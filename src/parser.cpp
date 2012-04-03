@@ -219,7 +219,11 @@ AST* ParseDefun (void)
         FreeAST(ret);
         return NULL;
     }
-    p = setF(ret->s, ret->LHS->i, NULL, LengthRatio);
+    p = setF(ret->s, ret->LHS->i, NULL, LengthRatio, 0);
+	/* overwriting static method */
+	if (p == NULL) {
+		PERROR
+	}
     ret->RHS = ParseBlock();
     if (ret->RHS == NULL){
         FreeAST(ret);

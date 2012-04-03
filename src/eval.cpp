@@ -40,15 +40,15 @@ void** eval (int i )
     }
 
     opline_t* stack_adr[STACKSIZE];
-    int stack_arg[STACKSIZE];
-    value_t stack_value[STACKSIZE];
+    lisp_stack_t stack_arg[STACKSIZE];
+    cons_t stack_value[STACKSIZE];
 
-    register value_t* sp_value = stack_value;
-    register int* sp_arg = stack_arg;
+    register cons_t* sp_value = stack_value;
+    register lisp_stack_t* sp_arg = stack_arg;
     register opline_t** sp_adr = stack_adr;
     register opline_t* pc = memory + CurrentIndex;
     register int a = 0; 
-    register struct value_t *a_ptr = NULL,*ret_ptr = NULL;
+    register struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
 
 
     goto *(pc->instruction_ptr);
@@ -120,7 +120,7 @@ jmp:
     goto *((pc)->instruction_ptr);
 
 funccall:
-    *(sp_arg++) = (--sp_value)->i;
+    (sp_arg++)->ivalue = (--sp_value)->i;
     *(sp_adr++) = pc + 1;
     pc = pc->op[0].adr;
     goto *((pc)->instruction_ptr);
@@ -128,12 +128,14 @@ funccall:
 nfunccall:
     a = pc->op[1].i;
     while (a-- != 0){
-        *(sp_arg++) = (--sp_value)->i;
+        (sp_arg++)->ivalue = (--sp_value)->i;
     }
     *(sp_adr++) = pc + 1;
     pc = pc->op[0].adr;
     goto *((pc)->instruction_ptr);
 
+sfunccall:
+	/* TODO call runtime function */
 Return:
     --sp_arg;
     pc = *(--sp_adr);
@@ -146,12 +148,12 @@ nReturn:
 
 arg:
     sp_value->type = NUM;
-    (sp_value++)->i = *(sp_arg-1);
+    (sp_value++)->i = (sp_arg-1)->ivalue;
     goto *((++pc)->instruction_ptr);
 
 narg:
     sp_value->type = NUM;
-    (sp_value++)->i = *(sp_arg - pc->op[0].i);
+    (sp_value++)->i = (sp_arg - pc->op[0].i)->ivalue;
     goto *((++pc)->instruction_ptr);
 
 minus2:

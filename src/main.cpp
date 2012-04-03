@@ -50,6 +50,10 @@ static char* readline(const char* prompt)
 	return p;
 }
 
+void set_static_mtds() {
+
+}
+
 int main (int argc, char* args[])
 {
     FILE* file = NULL;
@@ -67,6 +71,7 @@ int main (int argc, char* args[])
         Variable_Data[i].name = NULL;
         Variable_Data[i].next = NULL;
     }
+	set_static_mtds();
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
 	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;

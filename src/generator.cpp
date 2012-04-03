@@ -94,7 +94,7 @@ void GenerateDefun (AST* ast)
     memory[NextIndex].instruction = DEFUN;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
-    Function_Data_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex],0);
+    Function_Data_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0);
     //printf("%s/n",p->name);
     memory[NextIndex - 1].op[1].c = p->name;
     free(ast->LHS);

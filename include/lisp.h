@@ -3,7 +3,6 @@
 #define STACKSIZE 1000
 #define INSTSIZE 100000
 
-
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T};
 enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ };
 enum eTYPE { T = 0, nil = 1, NUM = 0, VAL };
@@ -17,10 +16,21 @@ typedef struct opline_t{
     }op[2];
 }opline_t;
 
-typedef struct value_t{
+typedef struct cons_t{
     int type;
-    int i;
-}value_t;
+	union {
+		int i;
+		const char* str;
+		cons_t *car;
+	};
+	struct cons_t *cdr;
+}cons_t;
+
+typedef union {
+	cons_t *cons;
+	int ivalue;
+	char *svalue;
+}lisp_stack_t;
 
 typedef struct AST{
     int type;
@@ -38,7 +48,8 @@ typedef struct Variable_Data_t{
 typedef struct Function_Data_t{
     char* name;
     struct Function_Data_t* next;
-    int value;
+    int value; // size of argument (?)
+	int isStatic; // cleared by bzero
     opline_t* adr;
 }Function_Data_t;
 
@@ -50,7 +61,7 @@ extern char* str;
 extern void** table;
 
 /*hash.h*/
-struct Function_Data_t* setF (char* str, int i , void* adr, int LengthRatio);
+struct Function_Data_t* setF (char* str, int i , void* adr, int LengthRatio, int isStatic);
 struct Variable_Data_t* setV (char* str, int LengthRatio);
 struct Variable_Data_t* searchV (char* str);
 struct Function_Data_t* searchF (char* str);
