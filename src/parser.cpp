@@ -80,7 +80,31 @@ int GetTok (void)
             } else {
                 return tok_setq;
             }
-        } else if (strcmp(TokStr,"T") == 0){
+        } else if (strcmp(TokStr, "car") == 0) {
+			if (*CurrentChar != ' ') {
+				ERROR
+			} else {
+				return tok_car;
+			}
+		} else if (strcmp(TokStr, "cdr") == 0) {
+			if (*CurrentChar != ' ') {
+				ERROR
+			} else {
+				return tok_cdr;
+			}
+		} else if (strcmp(TokStr, "cons") == 0) {
+			if (*CurrentChar != ' ') {
+				ERROR
+			} else {
+				return tok_cons;
+			}
+		} else if (strcmp(TokStr, "list") == 0) {
+			if (*CurrentChar != ' ') {
+				ERROR
+			} else {
+				return tok_list;
+			}
+		}else if (strcmp(TokStr,"T") == 0){
             return tok_T;
         } else if (strcmp(TokStr,"nil") == 0){
             return tok_nil;
