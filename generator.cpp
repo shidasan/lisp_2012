@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include"main.h"
+#include"lisp.h"
 
 void Generate (AST* ast, int i, char* str);
 int TempIndex;

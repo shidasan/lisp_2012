@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include"main.h"
+#include"lisp.h"
 #define STRLEN 50
 Function_Data_t Function_Data[1024];
 Variable_Data_t Variable_Data[1024];

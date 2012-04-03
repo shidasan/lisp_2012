@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include"main.h"
+#include"lisp.h"
 void** eval (int i )
 {
     static void *table [] = {

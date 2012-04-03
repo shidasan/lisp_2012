@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include"main.h"
+#include"lisp.h"
 
 struct Variable_Data_t* setV (char* str,int LengthRatio)
 {
