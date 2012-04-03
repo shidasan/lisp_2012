@@ -1,6 +1,6 @@
 CFLAGS= -O2 -W -Wall
 CC=g++
-TARGET=a
+TARGET=lisp
 OBJS=main.o eval.o parser.o generator.o hash.o
 
 $(TARGET): $(OBJS)
