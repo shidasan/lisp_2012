@@ -60,7 +60,7 @@ int main (int argc, char* args[])
     int StrSize = STRLEN;
     int StrIndex = 0;
     table = eval(1);
-   if (argc == 2){
+   if (argc > 1){
         file = fopen(args[1],"r");
     }
     CurrentIndex = NextIndex = 0;
@@ -82,8 +82,8 @@ int main (int argc, char* args[])
         StrSize = STRLEN;
         StrIndex = 0;
         CurrentIndex = NextIndex;
+        if (argc > 1){
         str = (char*)malloc(StrSize);
-        if (argc == 2){
             while (1) {
                 if ((str[StrIndex] = fgetc(file)) == EOF){
                     fclose(file);
@@ -118,8 +118,15 @@ int main (int argc, char* args[])
         if (ParseProgram() == 0){
 			myadd_history(str);
             eval(argc + 1);
-        } else {
-            argc = 1;
+        } else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
+			/* ignore */
+		}else {
+			if (argc > 2 && strcmp(args[2], "--testing") == 0) {
+				/* test failing */
+				exit(1);
+			}
+			/* exit when error occers while reading FILE* */
+            //argc = 1;
         }
         free(str);
     }
