@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 #include"lisp.h"
+#include"config.h"
 #define STRLEN 50
 Function_Data_t Function_Data[1024];
 Variable_Data_t Variable_Data[1024];
@@ -30,6 +32,8 @@ int main (int argc, char* args[])
         Variable_Data[i].name = NULL;
         Variable_Data[i].next = NULL;
     }
+	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
+	fprintf(stderr, "%p\n", handler);
     while (1){
         StrSize = STRLEN;
         str = (char*)malloc(StrSize);

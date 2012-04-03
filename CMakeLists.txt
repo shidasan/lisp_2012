@@ -7,7 +7,29 @@ endif()
 
 project(lisp)
 set(serial "1.0")
+
+if(UNIX)
+	set(K_OSDLLEXT ".so")
+endif(UNIX)
+if(APPLE)
+	set(K_OSDLLEXT ".dylib")
+endif(APPLE)
+if(CYGWIN)
+	set(K_OSDLLEXT ".so")
+endif(CYGWIN)
+if(MSVC)
+	set(K_OSDLLEXT ".dll")
+endif(MSVC)
+if(MINGW)
+	set(K_OSDLLEXT ".dll")
+endif(MINGW)
+
+add_definitions(-DHAVE_CONFIG_H)
+configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.cmake
+		${CMAKE_CURRENT_SOURCE_DIR}/include/config.h)
 include_directories("${PROJECT_SOURCE_DIR}/include")
+
 set(LISP_SRC
 		src/eval.cpp
 		src/generator.cpp
