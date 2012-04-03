@@ -18,6 +18,7 @@ typedef struct opline_t{
 
 typedef struct cons_t{
     int type;
+	int unused;
 	union {
 		int ivalue;
 		const char* str;
@@ -86,4 +87,6 @@ void GenerateProgram (AST*);
 int ParseProgram();
 /*eval.h*/
 void** eval (int);
+
+/* gc */
 #endif /*MAIN*/

@@ -38,8 +38,10 @@ set(LISP_SRC
 		src/mtddata.cpp
    )
 set(LISP_BIN src/main.cpp)
+set(GC_BIN src/gc.cpp)
 add_library(lisp SHARED ${LISP_SRC})
 add_executable(lisp ${LISP_BIN})
+add_executable(gc ${GC_BIN})
 
 enable_testing()
 set(ktest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lisp)
