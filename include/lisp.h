@@ -10,27 +10,27 @@ typedef struct opline_t{
     int instruction;
     void* instruction_ptr;
     union{
-        int i;
+        int ivalue;
+        char* svalue;
         struct opline_t* adr;
-        char* c;
     }op[2];
 }opline_t;
 
 typedef struct cons_t{
     int type;
 	union {
-		int i;
+		int ivalue;
 		const char* str;
 		cons_t *car;
 	};
 	struct cons_t *cdr;
 }cons_t;
 
-typedef union {
-	cons_t *cons;
-	int ivalue;
-	char *svalue;
-}lisp_stack_t;
+typedef struct static_mtd_data {
+	const char *name;
+	int num_args;
+	void (*mtd)(cons_t*, cons_t*);
+} static_mtd_data;
 
 typedef struct AST{
     int type;
@@ -60,6 +60,7 @@ extern int CurrentIndex, NextIndex;
 extern char* str;
 extern void** table;
 
+extern static_mtd_data static_mtds[];
 /*hash.h*/
 struct Function_Data_t* setF (char* str, int i , void* adr, int LengthRatio, int isStatic);
 struct Variable_Data_t* setV (char* str, int LengthRatio);
