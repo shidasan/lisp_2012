@@ -35,6 +35,7 @@ set(LISP_SRC
 		src/generator.cpp
 		src/hash.cpp
 		src/parser.cpp
+		src/mtddata.cpp
    )
 set(LISP_BIN src/main.cpp)
 add_library(lisp SHARED ${LISP_SRC})

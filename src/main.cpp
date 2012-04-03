@@ -51,7 +51,12 @@ static char* readline(const char* prompt)
 }
 
 void set_static_mtds() {
-
+	int i = 0;
+	while (static_mtds[i].mtd != NULL) {
+		static_mtd_data *data = static_mtds + i;
+		setF(data->name, data->num_args, (void*)data->mtd, strlen(data->name), 1);
+		i++;
+	}
 }
 
 int main (int argc, char* args[])

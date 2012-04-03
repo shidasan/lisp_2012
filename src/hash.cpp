@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include"lisp.h"
 
-struct Variable_Data_t* setV (char* str,int LengthRatio)
+struct Variable_Data_t* setV (const char* str,int LengthRatio)
 {
     Variable_Data_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
     while (1){
@@ -51,7 +51,7 @@ struct Function_Data_t* searchF (char* str)
     }
 }
 
-struct Function_Data_t* setF (char* str,int i, void* adr, int LengthRatio, int isStatic)
+struct Function_Data_t* setF (const char* str,int i, void* adr, int LengthRatio, int isStatic)
 {
 
     Function_Data_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
@@ -65,6 +65,7 @@ struct Function_Data_t* setF (char* str,int i, void* adr, int LengthRatio, int i
                 strncpy (p->name, str, LengthRatio);
             }
             p->value = i;
+			p->isStatic = isStatic;
             p->adr = (opline_t*)adr;
             return p;
         } else if (p->next == NULL){
