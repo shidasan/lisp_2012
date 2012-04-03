@@ -75,7 +75,7 @@ void GenerateSetq (AST* ast,int i)
     //printf("setq\n");
     memory[NextIndex].instruction = SETQ;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
-    memory[NextIndex].op[0].adr = (cons_t*)p;
+    memory[NextIndex].op[0].adr = (opline_t*)p;
     NextIndex++;
 }
 

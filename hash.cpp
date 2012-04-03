@@ -63,7 +63,7 @@ struct Function_Data_t* setF (char* str,int i, void* adr, int LengthRatio)
                 strncpy (p->name, str, LengthRatio);
             }
             p->value = i;
-            p->adr = (cons_t*)adr;
+            p->adr = (opline_t*)adr;
             return p;
         } else if (p->next == NULL){
             p->next = (Function_Data_t*)malloc(sizeof(Function_Data_t));
