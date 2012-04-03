@@ -39,14 +39,14 @@ void** eval (int i )
         return table;
     }
 
-    cons_t* stack_adr[STACKSIZE];
+    opline_t* stack_adr[STACKSIZE];
     int stack_arg[STACKSIZE];
     value_t stack_value[STACKSIZE];
 
     register value_t* sp_value = stack_value;
     register int* sp_arg = stack_arg;
-    register cons_t** sp_adr = stack_adr;
-    register cons_t* pc = memory + CurrentIndex;
+    register opline_t** sp_adr = stack_adr;
+    register opline_t* pc = memory + CurrentIndex;
     register int a = 0; 
     register struct value_t *a_ptr = NULL,*ret_ptr = NULL;
 

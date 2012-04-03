@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include"main.h"
 #define STRLEN 50
-Function_Data_t Function_Data[100];
-Variable_Data_t Variable_Data[100];
-cons_t memory[INSTSIZE];
+Function_Data_t Function_Data[1024];
+Variable_Data_t Variable_Data[1024];
+opline_t memory[INSTSIZE];
 int CurrentIndex, NextIndex;
 char* strtmp;
 char* str;
