@@ -13,7 +13,42 @@ char* strtmp;
 char* str;
 void** table;
 void Clean (void);
+static char *(*myreadline)(const char *);
+static int (*myadd_history)(const char *);
 
+static int add_history(const char *line) {
+	return 0;
+}
+
+static char* readline(const char* prompt)
+{
+	static int checkCTL = 0;
+	int ch, pos = 0;
+	static char linebuf[1024]; // THREAD-UNSAFE
+	fputs(prompt, stdout);
+	while((ch = fgetc(stdin)) != EOF) {
+		if(ch == '\r') continue;
+		if(ch == 27) {
+			/* ^[[A */;
+			fgetc(stdin); fgetc(stdin);
+			if(checkCTL == 0) {
+				fprintf(stdout, " - use readline, it provides better shell experience.\n");
+				checkCTL = 1;
+			}
+			continue;
+		}
+		if(ch == '\n' || pos == sizeof(linebuf) - 1) {
+			linebuf[pos] = 0;
+			break;
+		}
+		linebuf[pos] = ch;
+		pos++;
+	}
+	if(ch == EOF) return NULL;
+	char *p = (char*)malloc(pos+1);
+	memcpy(p, linebuf, pos+1);
+	return p;
+}
 
 int main (int argc, char* args[])
 {
@@ -33,12 +68,16 @@ int main (int argc, char* args[])
         Variable_Data[i].next = NULL;
     }
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
+	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
+	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;
+	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
+	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
 	fprintf(stderr, "%p\n", handler);
     while (1){
         StrSize = STRLEN;
-        str = (char*)malloc(StrSize);
         StrIndex = 0;
         CurrentIndex = NextIndex;
+        str = (char*)malloc(StrSize);
         if (argc == 2){
             while (1) {
                 if ((str[StrIndex] = fgetc(file)) == EOF){
@@ -63,23 +102,7 @@ int main (int argc, char* args[])
             }
 
         } else {
-            printf(">>>");
-            while (1) {
-                str[StrIndex] = fgetc(stdin);
-                if (StrIndex == StrSize - 1){
-                    StrSize *= 2;
-                    strtmp = (char*)malloc(StrSize);
-                    strncpy(strtmp, str, (StrSize / 2));
-                    free(str);
-                    str = strtmp;
-                }
-                if (str[StrIndex] == '\n' || str[StrIndex] == '\0'){
-                    str[StrIndex] = '\n';
-                    str[StrIndex + 1] = '\0';
-                    break;
-                }
-                StrIndex++;
-            }
+			str = myreadline(">>> ");
         }
         if (strcmp(str,"bye\n") == 0){
             printf("bye\n");
@@ -88,6 +111,7 @@ int main (int argc, char* args[])
             exit(0);
         }
         if (ParseProgram() == 0){
+			myadd_history(str);
             eval(argc + 1);
         } else {
             argc = 1;
