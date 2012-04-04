@@ -137,7 +137,6 @@ static cons_tbl_t *new_page_table() {
 	cons_page_t *page = (cons_page_t *)valloc(ARENASIZE);
 	tbl->head = page;
 	tbl->bottom = (cons_page_t *)(((char *)page) + ARENASIZE);
-	//fprintf(stderr, "bottom-head: %d\n", ((uintptr_t)tbl->bottom - (uintptr_t)tbl->head));
 	size_t bitmapsize = (ARENASIZE/sizeof(cons_t));
 	uintptr_t *bitmap = (uintptr_t *)malloc(bitmapsize);
 	bzero(bitmap, bitmapsize);
@@ -146,8 +145,8 @@ static cons_tbl_t *new_page_table() {
 	unused_object += PAGECONSSIZE * 16;
 	object_capacity += PAGECONSSIZE * 16;
 	for (; page < tbl->bottom - 1; page++) {
-		//fprintf(stderr, "page: %p, bottom: %p\n", page, tbl->bottom);
 		page->h.bitmap = bitmap;
+		bitmap += (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t);
 		page_init(page);
 	}
 	/* last slot in last page of cons_tbl */
@@ -163,11 +162,52 @@ cons_arena_t *new_cons_arena() {
 	cons_arena = arena;
 }
 
-void gc_mark() {
-	/* TODO */
+static void reftrace(cons_t *cons, array_t *traced) {
+
 }
 
-void gc_sweep() {
+static int cons_is_marked(cons_t *cons) {
+	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) % PAGESIZE) * PAGESIZE);
+	size_t offset = (((uintptr_t)cons) / sizeof(cons_t)) % (PAGESIZE / sizeof(cons_t));
+	int x = offset / (sizeof(uintptr_t) * 8);
+	if (!(page->h.bitmap[x] & 1 << (offset % (sizeof(uintptr_t) * 8)))) {
+		page->h.bitmap[x] |= 1 << offset;
+		return 0;
+	}
+	return 1;
+}
+
+static void mark_root(array_t *ostack, array_t *traced) {
+	/* TODO mark root */
+
+	size_t i;
+	for (i = 0; i < array_size(traced); i++) {
+		cons_t *tmp = (cons_t*)array_get(traced, i);
+		if (!cons_is_marked(tmp)) {
+			array_add(ostack, tmp);
+		}
+	}
+}
+
+static void gc_mark() {
+	size_t i;
+	array_t *ostack = new_array();
+	cons_t *cons = NULL;
+	array_t *a = cons_arena->a;
+	array_t *traced = new_array();
+	mark_root(ostack, traced);
+	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
+		reftrace(cons, traced);
+		for (i = 0; i < array_size(traced); i++) {
+			cons_t *tmp = (cons_t*)array_get(traced, i);
+			if (!cons_is_marked(tmp)) {
+				array_add(ostack, tmp);
+			}
+		}
+	}
+}
+
+static void gc_sweep() {
 	size_t i, j;
 	cons_page_t *page;
 	for (i = 0; i < array_size(cons_arena->a); i++) {
@@ -175,10 +215,12 @@ void gc_sweep() {
 		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
 		for (page = tbl->head; page < tbl->bottom-1; page++) {
 			for (j = 0; j < PAGECONSSIZE; j++) {
-				/* TODO bit test */
-				page->slots[j].cdr = free_list;
-				free_list = &page->slots[j];
-				unused_object++;
+				int x = j / (sizeof(uintptr_t) * 8);
+				if (!(page->h.bitmap[x] & 1 << (j % (sizeof(uintptr_t) * 8)))) {
+					page->slots[j].cdr = free_list;
+					free_list = &page->slots[j];
+					unused_object++;
+				}
 			}
 		}
 	}
@@ -209,7 +251,6 @@ int main() {
 	new_cons_arena();
 	while(1) {
 		cons_t *cons = new_cons_cell();
-		fprintf(stderr, "%p\n", cons);
 		fprintf(stderr, "object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
 	}
 }
