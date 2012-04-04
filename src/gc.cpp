@@ -65,6 +65,8 @@ void free_array(array_t *a) {
 
 /* allocator */
 cons_t *free_list = NULL;
+static size_t unused_object;
+static size_t object_capacity;
 
 typedef struct cons_page_h_t {
 	/* sizeof(cons_page_h_t) must be less than sizeof(cons_t) */
@@ -116,6 +118,7 @@ void *valloc(size_t size) {
 
 cons_t *new_cons() {
 	cons_t *o = NULL;
+	unused_object--;
 	//FREELIST_POP(o);
 }
 
@@ -136,12 +139,16 @@ static cons_tbl_t *new_page_table() {
 	cons_page_t *page = (cons_page_t *)valloc(ARENASIZE);
 	tbl->head = page;
 	tbl->bottom = (cons_page_t *)(((char *)page) + ARENASIZE);
+	//fprintf(stderr, "bottom-head: %d\n", ((uintptr_t)tbl->bottom - (uintptr_t)tbl->head));
 	size_t bitmapsize = (ARENASIZE/sizeof(cons_t));
 	uintptr_t *bitmap = (uintptr_t *)malloc(bitmapsize);
 	bzero(bitmap, bitmapsize);
 	tbl->bitmap = bitmap;
 	tbl->bitmapsize = bitmapsize;
-	for (; page < tbl->bottom; page++) {
+	unused_object += PAGECONSSIZE * 16;
+	object_capacity += PAGECONSSIZE * 16;
+	for (; page < tbl->bottom - 1; page++) {
+		//fprintf(stderr, "page: %p, bottom: %p\n", page, tbl->bottom);
 		page->h.bitmap = bitmap;
 		page_init(page);
 	}
@@ -167,6 +174,7 @@ cons_t *new_cons_cell() {
 	}
 	cons = free_list;
 	free_list = free_list->cdr;
+	unused_object--;
 	return cons;
 }
 
@@ -175,14 +183,6 @@ int main() {
 	while(1) {
 		cons_t *cons = new_cons_cell();
 		fprintf(stderr, "%p\n", cons);
-		//free(cons);
+		fprintf(stderr, "object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
 	}
-	void* ptr = valloc(ARENASIZE);
-	fprintf(stderr, "%p\n", ptr);
-	fprintf(stderr, "%p\n", (void*)(*(uintptr_t*)ptr));
-
-	malloc(12345);
-	ptr = valloc(ARENASIZE);
-	fprintf(stderr, "%p\n", ptr);
-	fprintf(stderr, "%p\n", (void*)(*(uintptr_t*)ptr));
 }
