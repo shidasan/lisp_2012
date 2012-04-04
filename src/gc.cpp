@@ -27,7 +27,7 @@ void array_set(array_t *a, size_t n, void *v) {
 	a->list[n] = v;
 }
 
-void array_add(array_t *a, size_t n, void *v) {
+void array_add(array_t *a, void *v) {
 	if (a->size < a->capacity) {
 		a->list[a->size] = v;
 		a->size++;
@@ -94,12 +94,6 @@ typedef struct cons_arena_t {
 
 static cons_arena_t *cons_arena;
 
-cons_arena_t *new_cons_arena() {
-	cons_arena_t *arena = (cons_arena_t *)malloc(sizeof(cons_arena_t));
-	arena->a = new_array();
-	//cons_tbl_t *tbl = array_get(arena->a, 
-}
-
 void *valloc(size_t size) {
 	void *block = malloc(size + PAGESIZE);
 	if (block == NULL/* unlikely */) {
@@ -135,7 +129,7 @@ static void page_init(cons_page_t *page) {
 	page->slots[PAGECONSSIZE-1].cdr = page[1].slots;
 }
 
-static void new_page_table() {
+static cons_tbl_t *new_page_table() {
 	cons_tbl_t *tbl = NULL;
 	tbl = (cons_tbl_t *)malloc(sizeof(cons_tbl_t));
 	bzero(tbl, sizeof(cons_tbl_t));
@@ -153,16 +147,36 @@ static void new_page_table() {
 	}
 	/* last slot in last page of cons_tbl */
 	(page-1)->slots[PAGECONSSIZE-1].cdr = NULL;
+	return tbl;
+}
+
+cons_arena_t *new_cons_arena() {
+	cons_arena_t *arena = (cons_arena_t *)malloc(sizeof(cons_arena_t));
+	arena->a = new_array();
+	array_add(arena->a, new_page_table());
+	free_list = ((cons_tbl_t*)array_get(arena->a, 0))->head->slots;
+	cons_arena = arena;
 }
 
 cons_t *new_cons_cell() {
 	cons_t *cons = NULL;
 	if (free_list == NULL) {
-
+		cons_tbl_t *tbl = new_page_table();
+		array_add(cons_arena->a, tbl);
+		free_list = tbl->head->slots;
 	}
+	cons = free_list;
+	free_list = free_list->cdr;
+	return cons;
 }
 
 int main() {
+	new_cons_arena();
+	while(1) {
+		cons_t *cons = new_cons_cell();
+		fprintf(stderr, "%p\n", cons);
+		//free(cons);
+	}
 	void* ptr = valloc(ARENASIZE);
 	fprintf(stderr, "%p\n", ptr);
 	fprintf(stderr, "%p\n", (void*)(*(uintptr_t*)ptr));
