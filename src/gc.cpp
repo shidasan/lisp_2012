@@ -4,6 +4,65 @@
 #include "lisp.h"
 #include "gc.h"
 
+/* Array */
+
+typedef struct array_t {
+	void **list;
+	size_t size;
+	size_t capacity;
+}array_t;
+
+void *array_get(array_t *a, size_t n) {
+	if (n < 0 || n >= a->size) {
+		fprintf(stderr, "out of bounds\n");
+		asm("int3");
+	}
+	return a->list[n];
+}
+
+void array_set(array_t *a, size_t n, void *v) {
+	if (n < 0 || n >= a->size) {
+		fprintf(stderr, "out if bounds\n");
+	}
+	a->list[n] = v;
+}
+
+void array_add(array_t *a, size_t n, void *v) {
+	if (a->size < a->capacity) {
+		a->list[a->size] = v;
+		a->size++;
+	} else {
+		size_t newcapacity = a->capacity * 2;
+		void **newlist = (void**)malloc(sizeof(void**) * newcapacity);
+		memcpy(newlist, a->list, sizeof(void**) * newcapacity);
+		free(a->list);
+		a->list = newlist;
+		a->capacity = newcapacity;
+		a->size++;
+	}
+}
+
+void *array_pop(array_t *a) {
+	if (a->size <= 0) {
+		return NULL;
+	}
+	a->size--;
+	return a->list[a->size];
+}
+
+array_t *new_array() {
+	array_t *a = (array_t *)malloc(sizeof(array_t));
+	a->capacity = 8;
+	a->size = 0;
+	a->list = (void**)malloc(sizeof(void*) * a->capacity);
+	return a;
+}
+
+void free_array(array_t *a) {
+	free(a->list);
+	free(a);
+}
+
 /* allocator */
 cons_t *free_list = NULL;
 
@@ -19,16 +78,27 @@ typedef struct cons_page_t {
 	cons_t slots[PAGECONSSIZE];
 } cons_page_t;
 
-typedef struct cons_page_tbl_t{
-	cons_page_tbl_t *head;
-	cons_page_tbl_t *bottom;
+typedef struct cons_tbl_t{
+	cons_page_t *head;
+	cons_page_t *bottom;
 	size_t           size;
+	size_t           bitmapsize;
 	uintptr_t       *bitmap;
-	uintptr_t        bitmapsize;
 	uintptr_t       *tenure;
-} cons_page_tbl_t;
+} cons_tbl_t;
 
-static cons_page_tbl_t *cons_page_tbl;
+typedef struct cons_arena_t {
+	/* list of cons_tbl_t */
+	array_t     *a;
+}cons_arena_t;
+
+static cons_arena_t *cons_arena;
+
+cons_arena_t *new_cons_arena() {
+	cons_arena_t *arena = (cons_arena_t *)malloc(sizeof(cons_arena_t));
+	arena->a = new_array();
+	//cons_tbl_t *tbl = array_get(arena->a, 
+}
 
 void *valloc(size_t size) {
 	void *block = malloc(size + PAGESIZE);
@@ -39,10 +109,11 @@ void *valloc(size_t size) {
 	if ((uintptr_t)block % PAGESIZE != 0) {
 		char *t2 = (char*)((((uintptr_t)block / PAGESIZE) + 1) * PAGESIZE);
 		void **p = (void**)(t2/* + size */);
-		fprintf(stderr, "%p\n", block);
+		bzero(t2, size);
 		p[0] = block;
 		block = (void*)t2;
 	} else {
+		bzero(block, size);
 		void **p = (void**) ((char*)block);
 		p[0] = block;
 	}
@@ -54,9 +125,34 @@ cons_t *new_cons() {
 	//FREELIST_POP(o);
 }
 
-static void init_page_table() {
-	cons_page_tbl = (cons_page_tbl_t *)malloc(sizeof(cons_page_tbl_t));
-	bzero(cons_page_tbl, sizeof(cons_page_tbl_t));
+static void page_init(cons_page_t *page) {
+	size_t i;
+	cons_t *cons = page->slots;
+	for (i = 0; i < PAGECONSSIZE - 1; i++) {
+		cons[i].cdr = &(cons[i+1]);
+	}
+	/* last slot in each page */
+	page->slots[PAGECONSSIZE-1].cdr = page[1].slots;
+}
+
+static void new_page_table() {
+	cons_tbl_t *tbl = NULL;
+	tbl = (cons_tbl_t *)malloc(sizeof(cons_tbl_t));
+	bzero(tbl, sizeof(cons_tbl_t));
+	cons_page_t *page = (cons_page_t *)valloc(ARENASIZE);
+	tbl->head = page;
+	tbl->bottom = (cons_page_t *)(((char *)page) + ARENASIZE);
+	size_t bitmapsize = (ARENASIZE/sizeof(cons_t));
+	uintptr_t *bitmap = (uintptr_t *)malloc(bitmapsize);
+	bzero(bitmap, bitmapsize);
+	tbl->bitmap = bitmap;
+	tbl->bitmapsize = bitmapsize;
+	for (; page < tbl->bottom; page++) {
+		page->h.bitmap = bitmap;
+		page_init(page);
+	}
+	/* last slot in last page of cons_tbl */
+	(page-1)->slots[PAGECONSSIZE-1].cdr = NULL;
 }
 
 cons_t *new_cons_cell() {
@@ -67,12 +163,12 @@ cons_t *new_cons_cell() {
 }
 
 int main() {
-	void* ptr = valloc(PAGESIZE * 16);
+	void* ptr = valloc(ARENASIZE);
 	fprintf(stderr, "%p\n", ptr);
 	fprintf(stderr, "%p\n", (void*)(*(uintptr_t*)ptr));
 
 	malloc(12345);
-	ptr = valloc(PAGESIZE * 16);
+	ptr = valloc(ARENASIZE);
 	fprintf(stderr, "%p\n", ptr);
 	fprintf(stderr, "%p\n", (void*)(*(uintptr_t*)ptr));
 }

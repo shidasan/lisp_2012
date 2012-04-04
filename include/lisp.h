@@ -24,6 +24,7 @@ typedef struct cons_t{
 		const char* str;
 		cons_t *car;
 	};
+	/* also used as free list */
 	struct cons_t *cdr;
 }cons_t;
 
