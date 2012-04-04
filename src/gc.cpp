@@ -20,6 +20,10 @@ void *array_get(array_t *a, size_t n) {
 	return a->list[n];
 }
 
+size_t array_size(array_t *a) {
+	return a->size;
+}
+
 void array_set(array_t *a, size_t n, void *v) {
 	if (n < 0 || n >= a->size) {
 		fprintf(stderr, "out if bounds\n");
@@ -116,12 +120,6 @@ void *valloc(size_t size) {
 	return block;
 }
 
-cons_t *new_cons() {
-	cons_t *o = NULL;
-	unused_object--;
-	//FREELIST_POP(o);
-}
-
 static void page_init(cons_page_t *page) {
 	size_t i;
 	cons_t *cons = page->slots;
@@ -165,12 +163,41 @@ cons_arena_t *new_cons_arena() {
 	cons_arena = arena;
 }
 
+void gc_mark() {
+	/* TODO */
+}
+
+void gc_sweep() {
+	size_t i, j;
+	cons_page_t *page;
+	for (i = 0; i < array_size(cons_arena->a); i++) {
+		array_t *a = cons_arena->a;
+		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
+		for (page = tbl->head; page < tbl->bottom-1; page++) {
+			for (j = 0; j < PAGECONSSIZE; j++) {
+				/* TODO bit test */
+				page->slots[j].cdr = free_list;
+				free_list = &page->slots[j];
+				unused_object++;
+			}
+		}
+	}
+}
+
+void gc() {
+	gc_mark();
+	gc_sweep();
+}
+
 cons_t *new_cons_cell() {
 	cons_t *cons = NULL;
 	if (free_list == NULL) {
-		cons_tbl_t *tbl = new_page_table();
-		array_add(cons_arena->a, tbl);
-		free_list = tbl->head->slots;
+		gc();
+		if ((object_capacity / 4) > unused_object) {
+			cons_tbl_t *tbl = new_page_table();
+			array_add(cons_arena->a, tbl);
+			free_list = tbl->head->slots;
+		}
 	}
 	cons = free_list;
 	free_list = free_list->cdr;
