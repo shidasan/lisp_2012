@@ -230,7 +230,7 @@ static void gc() {
 	gc_sweep();
 }
 
-cons_t *new_cons_cell() {
+static cons_t *new_cons_cell() {
 	cons_t *cons = NULL;
 	if (free_list == NULL) {
 		gc();
@@ -243,13 +243,25 @@ cons_t *new_cons_cell() {
 	cons = free_list;
 	free_list = free_list->cdr;
 	unused_object--;
+	bzero(cons, sizeof(cons_t));
 	return cons;
 }
 
-int main() {
-	new_cons_arena();
-	while(1) {
-		cons_t *cons = new_cons_cell();
-		fprintf(stderr, "object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
-	}
+cons_t *new_int(int n) {
+	cons_t *cons = new_cons_cell();
+	cons->type = NUM;
+	cons->ivalue = n;
+	return cons;
 }
+
+void gc_init() {
+	new_cons_arena();
+}
+
+//int main() {
+//	new_cons_arena();
+//	while(1) {
+//		cons_t *cons = new_cons_cell();
+//		fprintf(stderr, "object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
+//	}
+//}

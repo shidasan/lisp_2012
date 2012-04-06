@@ -10,6 +10,7 @@ typedef struct cons_t{
 	struct cons_t *cdr;
 }cons_t;
 
+void gc_init();
 cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
