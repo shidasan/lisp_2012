@@ -121,91 +121,95 @@ int main (int argc, char* args[])
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
 	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
 	fprintf(stderr, "%p\n", handler);
-	while (1){
-		StrSize = STRLEN;
-		StrIndex = 0;
-		init_opline();
-		if (argc > 1){
-			tmpstr = (char*)malloc(StrSize);
-			while (1) {
-				if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
-					fclose(file);
-					free(tmpstr);
-					Clean();
-					exit(0);
-				}
-				if (StrIndex == StrSize - 1){
-					StrSize *= 2;
-					strtmp = (char*)malloc(StrSize);
-					strncpy(strtmp, tmpstr, StrSize);
-					free(tmpstr);
-					tmpstr = strtmp;
-				}
-				if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
-					tmpstr[StrIndex] = '\n';
-					tmpstr[StrIndex + 1] = '\0';
-					break;
-				}
-				StrIndex++;
-			}
-		} else {
-			if (leftover != NULL) {
-				char *tmptmpstr = myreadline("    ");
-				fprintf(stderr, "leftover: %s\n", leftover);
-				tmpstr = str_join(tmptmpstr, leftover);
-				free(leftover);
-				leftover = NULL;
-				free(tmptmpstr);
-				tmptmpstr = NULL;
-			} else {
-				tmpstr = myreadline(">>> ");
-			}
-		}
-		int prev_point = 0;
-		int next_point = 0;
-		while ((next_point = get_split_point(tmpstr, prev_point)) != -1) {
-			init_opline();
-			str = (char*)malloc(next_point - prev_point + 2);
-			memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
-			str[next_point - prev_point + 1] = '\0';
-			prev_point = next_point + 1;
-			printf("%s\n", str);
-			//str = tmpstr;
-			if (strncmp(str,"bye", 3) == 0){
-				printf("bye\n");
-				free(str);
+	StrSize = STRLEN;
+	StrIndex = 0;
+	init_opline();
+	if (argc > 1){
+		tmpstr = (char*)malloc(StrSize);
+		while (1) {
+			if (StrIndex == StrSize - 1){
+				StrSize *= 2;
+				strtmp = (char*)malloc(StrSize);
+				strncpy(strtmp, tmpstr, StrSize);
 				free(tmpstr);
-				Clean();
-				exit(0);
+				tmpstr = strtmp;
 			}
-			if (ParseProgram(str) == 0){
-				myadd_history(str);
-				eval(argc + 1);
-			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
-				/* ignore */
-			} else {
-				if (argc > 2 && strcmp(args[2], "--testing") == 0) {
-					/* test failing */
-					exit(1);
-				}
-				/* exit when error occers while reading FILE* */
-				//argc = 1;
-			}
-			free(str);
-			if (next_point == strlen(tmpstr)) {
+			if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
+				tmpstr[StrIndex] = '\0';
+				fclose(file);
 				break;
+				//free(tmpstr);
+				//Clean();
+				//exit(0);
 			}
+			if (tmpstr[StrIndex] == '\n') {
+				tmpstr[StrIndex] = ' ';
+			}
+			//if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
+			//	tmpstr[StrIndex] = '\n';
+			//	tmpstr[StrIndex + 1] = '\0';
+			//	break;
+			//}
+			StrIndex++;
 		}
-		/* copy leftover */
-		if (next_point == -1) {
-			leftover = (char*)malloc(strlen(tmpstr) - prev_point + 2);
-			memcpy(leftover, tmpstr + prev_point ,strlen(tmpstr) - prev_point + 1);
-			leftover[strlen(tmpstr) - prev_point] = '\n';
-			leftover[strlen(tmpstr) - prev_point + 1] = '\0';
+	} else {
+		if (leftover != NULL) {
+			char *tmptmpstr = myreadline("    ");
+			fprintf(stderr, "leftover: %s\n", leftover);
+			tmpstr = str_join(tmptmpstr, leftover);
+			free(leftover);
+			leftover = NULL;
+			free(tmptmpstr);
+			tmptmpstr = NULL;
+		} else {
+			tmpstr = myreadline(">>> ");
 		}
-		free(tmpstr);
 	}
-
+	int prev_point = 0;
+	int next_point = 0;
+	while ((next_point = get_split_point(tmpstr, prev_point)) != -1) {
+		init_opline();
+		str = (char*)malloc(next_point - prev_point + 2);
+		memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
+		str[next_point - prev_point + 1] = '\0';
+		prev_point = next_point + 1;
+		printf("%s\n", str);
+		//str = tmpstr;
+		if (strncmp(str,"bye", 3) == 0){
+			printf("bye\n");
+			free(str);
+			free(tmpstr);
+			Clean();
+			exit(0);
+		}
+		int status = ParseProgram(str);
+		if (status == 0){
+			myadd_history(str);
+			eval(argc + 1);
+		} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
+			/* ignore */
+		} else if (status == 1) {
+			if (argc > 2 && strcmp(args[2], "--testing") == 0) {
+				/* test failing */
+				exit(1);
+			}
+			/* exit when error occers while reading FILE* */
+			//argc = 1;
+		}
+		free(str);
+		if (next_point == strlen(tmpstr)) {
+			break;
+		}
+	}
+	/* copy leftover */
+	if (next_point == -1) {
+		leftover = (char*)malloc(strlen(tmpstr) - prev_point + 2);
+		memcpy(leftover, tmpstr + prev_point ,strlen(tmpstr) - prev_point + 1);
+		leftover[strlen(tmpstr) - prev_point] = '\n';
+		leftover[strlen(tmpstr) - prev_point + 1] = '\0';
+	}
+	free(tmpstr);
+	return 0;
 }
 
 

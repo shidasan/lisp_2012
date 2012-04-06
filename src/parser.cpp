@@ -559,7 +559,7 @@ int ParseProgram (char *str)
 
     getNextToken();
     if (CurTok == tok_eof){
-        return 1;
+        return 2;
     }
 
     CurrentChar = str;
