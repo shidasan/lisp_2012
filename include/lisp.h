@@ -1,6 +1,6 @@
 #ifndef MAIN
 #define MAIN
-#include "gc.h"
+#include "cons.h"
 #define STACKSIZE 1000
 #define INSTSIZE 100000
 enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ };

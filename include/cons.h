@@ -1,6 +1,6 @@
+struct cons_api_t;
 typedef struct cons_t{
     int type;
-	int unused;
 	union {
 		int ivalue;
 		const char* str;
@@ -8,12 +8,21 @@ typedef struct cons_t{
 	};
 	/* also used as free list */
 	struct cons_t *cdr;
+	struct cons_api_t *api;
 }cons_t;
 
+typedef struct cons_api_t {
+	void (* print)(cons_t *);
+	void (* free)(cons_t *);
+}cons_api_t;
+
 void gc_init();
+cons_t *new_cons_cell();
 cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
+cons_t *new_T();
+cons_t *new_nil();
 
 #define PAGESIZE 4096
 #define ARENASIZE (PAGESIZE * 16)

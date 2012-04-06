@@ -37,6 +37,7 @@ set(LISP_SRC
 		src/parser.cpp
 		src/mtddata.cpp
 		src/gc.cpp
+		src/cons.cpp
    )
 set(LISP_BIN src/main.cpp)
 set(GC_BIN src/gc.cpp)

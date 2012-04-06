@@ -230,7 +230,7 @@ static void gc() {
 	gc_sweep();
 }
 
-static cons_t *new_cons_cell() {
+cons_t *new_cons_cell() {
 	cons_t *cons = NULL;
 	if (free_list == NULL) {
 		gc();
@@ -244,13 +244,6 @@ static cons_t *new_cons_cell() {
 	free_list = free_list->cdr;
 	unused_object--;
 	bzero(cons, sizeof(cons_t));
-	return cons;
-}
-
-cons_t *new_int(int n) {
-	cons_t *cons = new_cons_cell();
-	cons->type = NUM;
-	cons->ivalue = n;
 	return cons;
 }
 
