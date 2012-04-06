@@ -21,8 +21,7 @@ cons_t *new_cons_cell();
 cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
-cons_t *new_T();
-cons_t *new_nil();
+cons_t *new_bool(int n);
 
 #define PAGESIZE 4096
 #define ARENASIZE (PAGESIZE * 16)

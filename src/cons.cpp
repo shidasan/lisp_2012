@@ -33,4 +33,12 @@ cons_t *new_int(int n) {
 	cons->type = NUM;
 	cons->ivalue = n;
 	cons->api = &cons_int_api;
+	return cons;
+}
+
+cons_t *new_bool(int n) {
+	cons_t *cons = new_cons_cell();
+	cons->type = nil;
+	cons->api = (n) ? &cons_T_api : &cons_nil_api;
+	return cons;
 }

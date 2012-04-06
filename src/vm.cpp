@@ -92,7 +92,7 @@ funcdef:
 
 end:
     //if (i == 2) 
-        printf("%d\n",stack_value[0]->ivalue);
+		stack_value[0]->api->print(stack_value[0]);
     return NULL;
 
 push:
@@ -106,12 +106,13 @@ plus2:
     goto *((++pc)->instruction_ptr);
 
 gt2:
+	sp_value[-1] = new_bool(pc->op[0].ivalue > sp_value[-1]->ivalue);
     goto *((++pc)->instruction_ptr);
 
 gt:
     ret_ptr = ((--sp_value)[0]);
+	sp_value[-1] = new_bool(ret_ptr->ivalue > (sp_value)[-1]->ivalue);
     //ret_ptr->type = ( ret_ptr->ivalue > ((--sp_value)[0])->ivalue && ret_ptr->type != nil) ? T : nil;
-    *(sp_value++) = ret_ptr;
     goto *((++pc)->instruction_ptr);
 
 lte:
@@ -180,19 +181,20 @@ div2:
     goto *((++pc)->instruction_ptr);
 
 gte2:
+	sp_value[-1] = new_bool(pc->op[0].ivalue >= sp_value[-1]->ivalue);
     //a_ptr = (sp_value - 1);
     //a_ptr->type = ( pc->op[0].ivalue >= a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    //goto *((++pc)->instruction_ptr);
+    goto *((++pc)->instruction_ptr);
 
 lt2:
-    //a_ptr = (sp_value - 1);
-    //a_ptr->type = ( pc->op[0].ivalue < a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    //goto *((++pc)->instruction_ptr);
+	sp_value[-1] = new_bool(pc->op[0].ivalue < sp_value[-1]->ivalue);
+    goto *((++pc)->instruction_ptr);
 
 lte2:
+	sp_value[-1] = new_bool(pc->op[0].ivalue <= sp_value[-1]->ivalue);
     //a_ptr = (sp_value - 1);
     //a_ptr->type = ( pc->op[0].ivalue <= a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    //goto *((++pc)->instruction_ptr);
+    goto *((++pc)->instruction_ptr);
 
 eq2:
     //a_ptr = (sp_value - 1);
