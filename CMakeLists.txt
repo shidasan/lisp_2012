@@ -31,7 +31,7 @@ configure_file(
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 set(LISP_SRC
-		src/eval.cpp
+		src/vm.cpp
 		src/generator.cpp
 		src/hash.cpp
 		src/parser.cpp

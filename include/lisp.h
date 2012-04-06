@@ -1,5 +1,6 @@
 #ifndef MAIN
 #define MAIN
+#include "gc.h"
 #define STACKSIZE 1000
 #define INSTSIZE 100000
 
@@ -15,18 +16,6 @@ typedef struct opline_t{
         struct opline_t* adr;
     }op[2];
 }opline_t;
-
-typedef struct cons_t{
-    int type;
-	int unused;
-	union {
-		int ivalue;
-		const char* str;
-		cons_t *car;
-	};
-	/* also used as free list */
-	struct cons_t *cdr;
-}cons_t;
 
 typedef struct rbp_t {
 	union {
@@ -50,8 +39,11 @@ typedef struct static_mtd_data {
 
 typedef struct AST{
     int type;
-    int i;
-    char* s;
+	union {
+		int i;
+		char* s;
+		cons_t *cons;
+	};
     struct AST *LHS,*RHS,*COND;
 }AST;
 

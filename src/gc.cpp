@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lisp.h"
-#include "gc.h"
 
 /* Array */
 
@@ -154,7 +153,7 @@ static cons_tbl_t *new_page_table() {
 	return tbl;
 }
 
-cons_arena_t *new_cons_arena() {
+static cons_arena_t *new_cons_arena() {
 	cons_arena_t *arena = (cons_arena_t *)malloc(sizeof(cons_arena_t));
 	arena->a = new_array();
 	array_add(arena->a, new_page_table());
@@ -226,7 +225,7 @@ static void gc_sweep() {
 	}
 }
 
-void gc() {
+static void gc() {
 	gc_mark();
 	gc_sweep();
 }
