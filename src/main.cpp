@@ -20,6 +20,22 @@ static int add_history(const char *line) {
 	return 0;
 }
 
+static void init_opline() {
+	CurrentIndex = NextIndex;
+}
+
+static void init_opline_first() {
+	CurrentIndex = NextIndex = 0;
+}
+
+static char *str_join(char *tmptmpstr, char *leftover) {
+	char *tmpstr = (char*)malloc(sizeof(char) * (strlen(tmptmpstr) + strlen(leftover) + 1));
+	memcpy(tmpstr, leftover, strlen(leftover));
+	memcpy(tmpstr + strlen(leftover), tmptmpstr, sizeof(tmpstr));
+	tmpstr[strlen(tmptmpstr) + strlen(leftover)] = '\0';
+	fprintf(stderr, "join: %s\n",tmpstr);
+	return tmpstr;
+}
 static char* readline(const char* prompt)
 {
 	static int checkCTL = 0;
@@ -59,17 +75,38 @@ void set_static_mtds() {
 	}
 }
 
+int get_split_point(char *src, int start) {
+	int res = start, level = 0;
+	while (src[res] != '\0') {
+		if (src[res] == '(') {
+			level++;
+		}
+		if (src[res] == ')') {
+			level--;
+			if (level == 0) {
+				return res;
+			}
+		}
+		res++;
+	}
+	if (level > 0) {
+		return -1;
+	}
+	return strlen(src);
+}
+
 int main (int argc, char* args[])
 {
 	FILE* file = NULL;
 	int StrSize = STRLEN;
 	int StrIndex = 0;
+	char *tmpstr = NULL, *leftover = NULL;
 	table = eval(1);
 	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
 	}
-	CurrentIndex = NextIndex = 0;
+	init_opline_first();
 	int i;
 	for (i = 0; i < (signed int)(sizeof(Function_Data)/sizeof(Function_Data[0])); i++) {
 		Function_Data[i].name = NULL;
@@ -87,54 +124,86 @@ int main (int argc, char* args[])
 	while (1){
 		StrSize = STRLEN;
 		StrIndex = 0;
-		CurrentIndex = NextIndex;
+		init_opline();
 		if (argc > 1){
-			str = (char*)malloc(StrSize);
+			tmpstr = (char*)malloc(StrSize);
 			while (1) {
-				if ((str[StrIndex] = fgetc(file)) == EOF){
+				if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
 					fclose(file);
-					free(str);
+					free(tmpstr);
 					Clean();
 					exit(0);
 				}
 				if (StrIndex == StrSize - 1){
 					StrSize *= 2;
 					strtmp = (char*)malloc(StrSize);
-					strncpy(strtmp, str, StrSize);
-					free(str);
-					str = strtmp;
+					strncpy(strtmp, tmpstr, StrSize);
+					free(tmpstr);
+					tmpstr = strtmp;
 				}
-				if (str[StrIndex] == '\n' || str[StrIndex] == '\0'){
-					str[StrIndex] = '\n';
-					str[StrIndex + 1] = '\0';
+				if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
+					tmpstr[StrIndex] = '\n';
+					tmpstr[StrIndex + 1] = '\0';
 					break;
 				}
 				StrIndex++;
 			}
-
 		} else {
-			str = myreadline(">>> ");
-		}
-		if (strcmp(str,"bye\n") == 0){
-			printf("bye\n");
-			free(str);
-			Clean();
-			exit(0);
-		}
-		if (ParseProgram() == 0){
-			myadd_history(str);
-			eval(argc + 1);
-		} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
-			/* ignore */
-		}else {
-			if (argc > 2 && strcmp(args[2], "--testing") == 0) {
-				/* test failing */
-				exit(1);
+			if (leftover != NULL) {
+				char *tmptmpstr = myreadline("    ");
+				fprintf(stderr, "leftover: %s\n", leftover);
+				tmpstr = str_join(tmptmpstr, leftover);
+				free(leftover);
+				leftover = NULL;
+				free(tmptmpstr);
+				tmptmpstr = NULL;
+			} else {
+				tmpstr = myreadline(">>> ");
 			}
-			/* exit when error occers while reading FILE* */
-			//argc = 1;
 		}
-		free(str);
+		int prev_point = 0;
+		int next_point = 0;
+		while ((next_point = get_split_point(tmpstr, prev_point)) != -1) {
+			init_opline();
+			str = (char*)malloc(next_point - prev_point + 2);
+			memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
+			str[next_point - prev_point + 1] = '\0';
+			prev_point = next_point + 1;
+			printf("%s\n", str);
+			//str = tmpstr;
+			if (strncmp(str,"bye", 3) == 0){
+				printf("bye\n");
+				free(str);
+				free(tmpstr);
+				Clean();
+				exit(0);
+			}
+			if (ParseProgram(str) == 0){
+				myadd_history(str);
+				eval(argc + 1);
+			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
+				/* ignore */
+			} else {
+				if (argc > 2 && strcmp(args[2], "--testing") == 0) {
+					/* test failing */
+					exit(1);
+				}
+				/* exit when error occers while reading FILE* */
+				//argc = 1;
+			}
+			free(str);
+			if (next_point == strlen(tmpstr)) {
+				break;
+			}
+		}
+		/* copy leftover */
+		if (next_point == -1) {
+			leftover = (char*)malloc(strlen(tmpstr) - prev_point + 2);
+			memcpy(leftover, tmpstr + prev_point ,strlen(tmpstr) - prev_point + 1);
+			leftover[strlen(tmpstr) - prev_point] = '\n';
+			leftover[strlen(tmpstr) - prev_point + 1] = '\0';
+		}
+		free(tmpstr);
 	}
 
 }
@@ -173,6 +242,5 @@ void Clean (void)
 			}
 		}
 	}
-
 }
 

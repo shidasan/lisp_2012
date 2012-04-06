@@ -86,13 +86,14 @@ div:
     goto *((++pc)->instruction_ptr);
 
 funcdef:
-    //if (i == 2)
-        printf("%s\n",pc->op[1].svalue);
-    return NULL;
+	printf("%s\n",pc->op[1].svalue);
+	return NULL;
 
 end:
-    //if (i == 2) 
+	printf("hi\n");
+	if (stack_value[0] != 0) {
 		stack_value[0]->api->print(stack_value[0]);
+	}
     return NULL;
 
 push:

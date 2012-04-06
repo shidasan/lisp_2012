@@ -548,7 +548,7 @@ AST* ParseBlock (void)
     return NULL;
 }
 
-int ParseProgram (void)
+int ParseProgram (char *str)
 {
     ArgsRatio = AR;
     LengthRatio = LR;
