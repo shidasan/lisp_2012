@@ -66,7 +66,23 @@ void array_free(array_t *a) {
 	free(a);
 }
 
+/* AST */
+
+ast_t *new_ast(int type) {
+	ast_t *ast = (ast_t *)malloc(sizeof(ast_t));
+	bzero(ast, sizeof(ast_t));
+	ast->type = type;
+	ast->a = new_array();
+	return ast;
+}
+
+void ast_free(ast_t *ast) {
+	array_free(ast->a);
+	free(ast);
+}
+
 /* allocator */
+
 cons_t *free_list = NULL;
 static size_t unused_object;
 static size_t object_capacity;

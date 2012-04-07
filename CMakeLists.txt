@@ -36,11 +36,11 @@ set(LISP_SRC
 		src/hash.cpp
 		src/parser.cpp
 		src/mtddata.cpp
-		src/gc.cpp
+		src/memory.cpp
 		src/cons.cpp
    )
 set(LISP_BIN src/main.cpp)
-set(GC_BIN src/gc.cpp)
+set(GC_BIN src/memory.cpp)
 add_library(lisp ${LISP_SRC})
 add_executable(lisp ${LISP_BIN})
 #add_executable(gc_test ${GC_BIN})

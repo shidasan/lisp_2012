@@ -1,19 +1,20 @@
 #ifndef MAIN
 #define MAIN
-#include "cons.h"
+#include "memory.h"
 #define STACKSIZE 1000
 #define INSTSIZE 100000
+#define TODO(STR) fprintf(stderr, "TODO: "); fprintf(stderr, (STR));
 enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ };
-enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T};
-enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3};
-struct array_t;
+enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol};
+enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3, FUNC = 4, VARIABLE = 5};
+enum ast_type {ast_atom, ast_list, ast_list_close, ast_symbol};
+
 void *array_get(struct array_t, size_t);
 size_t array_size(struct array_t *);
 void array_set(struct array_t *, size_t, void *);
 void array_add(struct array_t *, void *);
 void *array_pop(struct array_t *a);
-struct array_t *new_array();
-void array_free(struct array_t *a);
+
 typedef struct opline_t{
     int instruction;
     void* instruction_ptr;
@@ -43,16 +44,6 @@ typedef struct static_mtd_data {
 	int num_args;
 	void (*mtd)(cons_t*, cons_t*);
 } static_mtd_data;
-
-typedef struct ast_t {
-	int type;
-	union {
-		int ivalue;
-		char *svalue;
-		/* array of cons_t */
-		struct array_t *a;
-	};
-}ast_t;
 
 typedef struct AST{
     int type;
