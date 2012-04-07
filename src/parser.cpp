@@ -678,7 +678,8 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 		if (is_head_of_list) {
 			func_t *func = searchF(token_str);
 			if (func != NULL && func->is_quote) {	
-				cons_t *cons = make_cons_tree();
+				ast = new_ast(ast_atom, LIST);
+				ast->cons = make_cons_tree();
 			} else if (func != NULL && func->is_static) {
 				fprintf(stderr, "new_func: %s\n", token_str);
 				ast = new_ast(ast_static_func, -1);
