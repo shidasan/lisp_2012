@@ -199,7 +199,7 @@ AST* ParseIf (void)
 
 AST* ParseDefun (void)
 {
-    Function_Data_t* p = NULL;
+    func_t* p = NULL;
     int i = 0;
     AST* ret = (AST*)malloc(sizeof(AST));
     ret->LHS = ret->RHS = ret->COND = NULL;
@@ -337,7 +337,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
     ret->LHS = ret->RHS = ret->COND = NULL;
     ret->s = NULL;
     AST *LHS,*RHS;
-    Function_Data_t* p;
+    func_t* p;
     int OpType;
     if (pRHS == NULL){
         //printf("plus ");

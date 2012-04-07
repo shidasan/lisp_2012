@@ -61,7 +61,7 @@ array_t *new_array() {
 	return a;
 }
 
-void free_array(array_t *a) {
+void array_free(array_t *a) {
 	free(a->list);
 	free(a);
 }

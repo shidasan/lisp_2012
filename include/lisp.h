@@ -13,6 +13,7 @@ void array_set(struct array_t *, size_t, void *);
 void array_add(struct array_t *, void *);
 void *array_pop(struct array_t *a);
 struct array_t *new_array();
+void array_free(struct array_t *a);
 typedef struct opline_t{
     int instruction;
     void* instruction_ptr;
@@ -63,32 +64,32 @@ typedef struct AST{
     struct AST *LHS,*RHS,*COND;
 }AST;
 
-typedef struct Variable_Data_t{
+typedef struct variable_t{
     char* name;
-    struct Variable_Data_t* next;
+    struct variable_t* next;
     int value;
-}Variable_Data_t;
+}variable_t;
 
-typedef struct Function_Data_t{
+typedef struct func_t{
     char* name;
-    struct Function_Data_t* next;
+    struct func_t* next;
     int value; // size of argument (?)
 	int isStatic; // cleared by bzero
     opline_t* adr;
-}Function_Data_t;
+}func_t;
 
-extern Function_Data_t Function_Data[1024];
-extern Variable_Data_t Variable_Data[1024];
+extern func_t Function_Data[1024];
+extern variable_t Variable_Data[1024];
 extern opline_t memory[INSTSIZE];
 extern int CurrentIndex, NextIndex;
 extern void** table;
 
 extern static_mtd_data static_mtds[];
 /*hash.h*/
-struct Function_Data_t* setF (const char* str, int i , void* adr, int LengthRatio, int isStatic);
-struct Variable_Data_t* setV (const char* str, int LengthRatio);
-struct Variable_Data_t* searchV (char* str);
-struct Function_Data_t* searchF (char* str);
+struct func_t* setF (const char* str, int i , void* adr, int LengthRatio, int isStatic);
+struct variable_t* setV (const char* str, int LengthRatio);
+struct variable_t* searchV (char* str);
+struct func_t* searchF (char* str);
 /*generator.h*/
 void GenerateProgram (AST*);
 /*parser.h*/

@@ -16,6 +16,9 @@ typedef struct cons_api_t {
 	void (* free)(cons_t *);
 }cons_api_t;
 
+#define CONS_PRINT(CONS) (CONS)->api->print(CONS)
+#define CONS_FREE(CONS) (CONS)->api->free(CONS)
+
 void gc_init();
 cons_t *new_cons_cell();
 cons_t *new_int(int n);

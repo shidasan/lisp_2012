@@ -39,7 +39,7 @@ void GenerateNumber (AST* ast)
 
 void GenerateIf (AST* ast, int i, char* str)
 {
-    Function_Data_t* p;
+    func_t* p;
     Generate(ast->COND, i, str);
     TempIndex = NextIndex;
     //printf("jmp\n");
@@ -68,7 +68,7 @@ void GenerateIf (AST* ast, int i, char* str)
 
 void GenerateSetq (AST* ast,int i)
 {
-    Variable_Data_t* p;
+    variable_t* p;
     p = searchV (ast->s);
     free(ast->s);
     Generate (ast->LHS, i, null);
@@ -94,7 +94,7 @@ void GenerateDefun (AST* ast)
     memory[NextIndex].instruction = DEFUN;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
-    Function_Data_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0);
+    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0);
     //printf("%s/n",p->name);
     memory[NextIndex - 1].op[1].svalue = p->name;
     free(ast->LHS);
@@ -130,7 +130,7 @@ void GenerateFunc (AST* ast, int i)
 {
     AST* temp = ast;
     AST* temp1 = NULL;
-    Function_Data_t* p = searchF(ast->s);
+    func_t* p = searchF(ast->s);
     free(ast->s);
     int count = p->value;
     while (1){

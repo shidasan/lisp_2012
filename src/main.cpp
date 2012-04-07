@@ -5,8 +5,8 @@
 #include"lisp.h"
 #include"config.h"
 #define STRLEN 50
-Function_Data_t Function_Data[1024];
-Variable_Data_t Variable_Data[1024];
+func_t Function_Data[1024];
+variable_t Variable_Data[1024];
 opline_t memory[INSTSIZE];
 int CurrentIndex, NextIndex;
 char* strtmp;
@@ -215,8 +215,8 @@ int main (int argc, char* args[])
 
 void Clean (void)
 {
-	Function_Data_t *tempF, *currentF;
-	Variable_Data_t *tempV, *currentV;
+	func_t *tempF, *currentF;
+	variable_t *tempV, *currentV;
 	int i;
 	for (i = 0;(unsigned int)i < (sizeof(Function_Data) / sizeof(Function_Data[0])); i++){
 		free(Function_Data[i].name);

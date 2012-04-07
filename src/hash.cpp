@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include"lisp.h"
 
-struct Variable_Data_t* setV (const char* str,int LengthRatio)
+struct variable_t* setV (const char* str,int LengthRatio)
 {
-    Variable_Data_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
+    variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
     while (1){
         if (p->name == NULL || strcmp(p->name,str) == 0){
             if (p->name == NULL){
@@ -14,8 +14,8 @@ struct Variable_Data_t* setV (const char* str,int LengthRatio)
             strcpy (p->name, str);
             return p;
         } else if (p->next == NULL){
-            p->next = (Variable_Data_t*)malloc(sizeof(Variable_Data_t));
-			bzero(p->next, sizeof(Variable_Data_t));
+            p->next = (variable_t*)malloc(sizeof(variable_t));
+			bzero(p->next, sizeof(variable_t));
             p = p->next;
         } else {
             p = p->next;
@@ -23,9 +23,9 @@ struct Variable_Data_t* setV (const char* str,int LengthRatio)
     }
 }
 
-struct Variable_Data_t* searchV (char* str)
+struct variable_t* searchV (char* str)
 {
-    struct Variable_Data_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
+    struct variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
     while (1){
         if (p->name != NULL && strcmp (p->name, str) == 0){
             return p;
@@ -37,9 +37,9 @@ struct Variable_Data_t* searchV (char* str)
     }
 }
 
-struct Function_Data_t* searchF (char* str)
+struct func_t* searchF (char* str)
 {
-    struct Function_Data_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
+    struct func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
     while (1){
         if (p->name != NULL && strcmp (p->name, str) == 0){
             return p;
@@ -51,10 +51,10 @@ struct Function_Data_t* searchF (char* str)
     }
 }
 
-struct Function_Data_t* setF (const char* str,int i, void* adr, int LengthRatio, int isStatic)
+struct func_t* setF (const char* str,int i, void* adr, int LengthRatio, int isStatic)
 {
 
-    Function_Data_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
+    func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
     while (1){
         if (p->name == NULL || strcmp(p->name,str) == 0){
 			if (p->name != NULL && strcmp(p->name, str) == 0 && p->isStatic && !isStatic) {
@@ -69,8 +69,8 @@ struct Function_Data_t* setF (const char* str,int i, void* adr, int LengthRatio,
             p->adr = (opline_t*)adr;
             return p;
         } else if (p->next == NULL){
-            p->next = (Function_Data_t*)malloc(sizeof(Function_Data_t));
-			bzero(p->next, sizeof(Variable_Data_t));
+            p->next = (func_t*)malloc(sizeof(func_t));
+			bzero(p->next, sizeof(variable_t));
             p = p->next;
         } else {
             p = p->next;
