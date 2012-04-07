@@ -68,16 +68,25 @@ void array_free(array_t *a) {
 
 /* AST */
 
-ast_t *new_ast(int type) {
+ast_t *new_ast(int type, int sub_type) {
 	ast_t *ast = (ast_t *)malloc(sizeof(ast_t));
 	bzero(ast, sizeof(ast_t));
 	ast->type = type;
+	ast->sub_type = sub_type;
 	ast->a = new_array();
 	return ast;
 }
 
 void ast_free(ast_t *ast) {
-	array_free(ast->a);
+	if (ast->type == ast_list) {
+		array_free(ast->a);
+	}
+	if (ast->type == ast_func) {
+		free(ast->str);
+	}
+	if (ast->type == ast_variable) {
+		free(ast->str);
+	}
 	free(ast);
 }
 

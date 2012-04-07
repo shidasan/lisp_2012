@@ -114,10 +114,13 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			Clean();
 			exit(0);
 		}
-		int status = ParseProgram(str);
+		int status;
+		if (strlen(str) > 0) {
+			status = parse_program(str);
+		}
 		if (status == 0){
 			myadd_history(str);
-			eval(argc + 1);
+			//eval(argc + 1);
 		} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
 			/* ignore */
 		} else if (status == 1) {

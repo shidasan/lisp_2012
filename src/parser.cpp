@@ -6,7 +6,7 @@
 #define ERROR /*printf("Error In Tokenizer\n");*/ return tok_error;
 #define ARGERROR if (ArgCount[ArgIndex] > p->value)printf("Too many "); else printf("Too few "); printf("arguments given to function\n");  return NULL;
 #define PERROR FreeAST(ret);return NULL;
-#define MSG(STR) fprintf(stderr, (STR))
+#define MSG(STR) fprintf(stderr, "Parse Error !! : ");fprintf(stderr, (STR))
 #define AR 3
 #define LR 10
 AST* ParseExpression (void);
@@ -15,7 +15,7 @@ void FreeAST (AST*);
 static int token_type;
 static char* current_char;
 static char* token_str;
-static int TokNum;
+static int token_int;
 static int ArgIndex;
 static unsigned int LengthRatio;
 static int ArgsRatio = AR;
@@ -24,7 +24,7 @@ int GetTok (void)
 {
     char* TokTemp = NULL;
     int ALT = 1;
-    TokNum = 0;
+    token_int = 0;
     unsigned int TokSize = 0;
     if (*current_char == '\0' || *current_char == '\n'){
         return tok_eof;
@@ -38,10 +38,10 @@ int GetTok (void)
             current_char++;
         }
         while (isdigit(*current_char)){
-            TokNum = 10 * TokNum + (*current_char - 48);
+            token_int = 10 * token_int + (*current_char - 48);
             current_char++;
         }
-        TokNum *= ALT;
+        token_int *= ALT;
         if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ','){
             ERROR
         } else {
@@ -318,7 +318,7 @@ AST* ParseNumber (void)
     ret->LHS = ret->RHS = ret->COND = NULL;
     ret->s = NULL;
     ret->type = tok_number;
-    ret->i = TokNum;
+    ret->i = token_int;
     ret->LHS = ret->RHS = NULL;
     return ret;
 }
@@ -597,39 +597,72 @@ int ParseProgram (char *str)
     return 1;
 }
 
-void tokenizer_init(char *str) {
+static void tokenizer_init(char *str) {
 	/* default maximum token length (mutable) */
 	LengthRatio = LR;
 	current_char = str;
+    token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-ast_t *parse_list() {
-	/* eat ')' in this function */
-	ast_t *ast = new_ast(ast_list);
+static ast_t *parse_expression(int is_head_of_list);
 
+static ast_t *parse_list() {
+	ast_t *ast = new_ast(ast_list, -1);
+	ast_t *childast = parse_expression(1);
+	if (childast->type == ast_list_close) {
+		ast_free(ast);
+		ast = new_ast(ast_atom, nil);
+		return ast;
+	}
+	array_add(ast->a, childast);
+	while (1) {
+		fprintf(stderr, "while loop\n");
+		childast = parse_expression(0);
+		if (childast == NULL) {
+			MSG("Illegal end of imput\n");
+		}
+		if (childast->type == ast_list_close) {
+			break;
+		}
+		array_add(ast->a, childast);
+	}
+	return ast;
 }
 
-ast_t *parse_expression() {
+static ast_t *parse_expression(int is_head_of_list) {
 	get_next_token();
 	if (token_type == tok_eof) {
 		return NULL;
+	}
+	if (token_type == tok_number) {
+		ast_t *ast = new_ast(ast_atom, INT);
+		ast->cons = new_int(token_int);
+		return ast;
 	}
 	if (token_type == tok_open) {
 		return parse_list();
 	}
 	if (token_type == tok_symbol) {
-		ast_t *ast = new_ast(ast_symbol);
+		ast_t *ast = NULL;
+		if (is_head_of_list) {
+			ast = new_ast(ast_func, -1);
+			ast->cons = new_func(token_str);
+		} else {
+			ast = new_ast(ast_variable, -1);
+			ast->cons = new_variable(token_str);
+		}
 		return ast;
 	}
 	if (token_type == tok_close) {
-		ast_t *ast = new_ast(ast_list_close);
+		ast_t *ast = new_ast(ast_list_close, -1);
 		return ast;
 	}
 }
 
 int parse_program (char *str) {
 	tokenizer_init(str);
-	ast_t *ast = parse_expression();
+	ast_t *ast = parse_expression(0);
+	fprintf(stderr, "parse end: %p\n", ast);
 	if (ast != NULL) {
 		codegen(ast);
 		return 0;

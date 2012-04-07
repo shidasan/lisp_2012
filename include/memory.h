@@ -18,11 +18,13 @@ typedef struct cons_api_t {
 
 typedef struct ast_t {
 	int type;
+	int sub_type;
 	union {
 		int ivalue;
-		char *svalue;
-		/* array of cons_t */
+		char *str;
+		/* array of ast_t */
 		struct array_t *a;
+		cons_t *cons;
 	};
 }ast_t;
 
@@ -36,11 +38,13 @@ cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
 cons_t *new_bool(int n);
+cons_t *new_func(char *str);
+cons_t *new_variable(char *str);
 
 array_t *new_array();
 void array_free(array_t *a);
 
-ast_t *new_ast(int type);
+ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);
 #define PAGESIZE 4096
 #define ARENASIZE (PAGESIZE * 16)

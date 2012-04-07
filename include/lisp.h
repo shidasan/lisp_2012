@@ -6,8 +6,8 @@
 #define TODO(STR) fprintf(stderr, "TODO: "); fprintf(stderr, (STR));
 enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ };
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol};
-enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3, FUNC = 4, VARIABLE = 5};
-enum ast_type {ast_atom, ast_list, ast_list_close, ast_symbol};
+enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
+enum ast_type {ast_atom, ast_list, ast_list_close, ast_func, ast_variable};
 
 void *array_get(struct array_t, size_t);
 size_t array_size(struct array_t *);
@@ -86,6 +86,7 @@ void GenerateProgram (AST*);
 void codegen(ast_t *);
 /*parser.h*/
 int ParseProgram(char *);
+int parse_program(char *);
 /*eval.h*/
 void** eval (int);
 
