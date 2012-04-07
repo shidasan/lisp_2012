@@ -1,4 +1,29 @@
+typedef struct opline_t{
+    int instruction;
+    void* instruction_ptr;
+    union{
+        int ivalue;
+        char* svalue;
+        struct opline_t* adr;
+    }op[2];
+}opline_t;
+
+typedef struct variable_t{
+    char* name;
+    struct variable_t* next;
+    int value;
+}variable_t;
+
+typedef struct func_t{
+    char* name;
+    struct func_t* next;
+    int value; // size of argument (?)
+	int isStatic; // cleared by bzero
+    opline_t* adr;
+}func_t;
+
 struct cons_api_t;
+
 typedef struct cons_t{
     int type;
 	union {

@@ -5,6 +5,10 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(USE_DEBUG_MODE 1)
+endif()
+
 project(lisp)
 set(serial "1.0")
 
@@ -32,7 +36,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 
 set(LISP_SRC
 		src/vm.cpp
-		src/generator.cpp
+		src/codegen.cpp
 		src/hash.cpp
 		src/parser.cpp
 		src/mtddata.cpp
