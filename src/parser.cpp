@@ -62,34 +62,35 @@ int GetTok (void)
         }
 
         TokStr[TokSize] = '\0';
-        if (strcmp(TokStr,"defun") == 0){
-            if(*CurrentChar != ' '){
-                ERROR
-            } else {
-                return tok_defun;
-            }
-        } else if (strcmp(TokStr,"if") == 0){
-            if (*CurrentChar != ' '){
-                ERROR
-            } else {
-                return tok_if;
-            }
-        } else if (strcmp(TokStr,"setq") == 0){
-            if (*CurrentChar != ' '){
-                ERROR
-            } else {
-                return tok_setq;
-            }
-		}else if (strcmp(TokStr,"T") == 0){
-            return tok_T;
-        } else if (strcmp(TokStr,"nil") == 0){
-            return tok_nil;
-        }
-        if (*CurrentChar != '(' && *CurrentChar != ')' && *CurrentChar != ' ' && (*CurrentChar) != '\n' && *CurrentChar != ','){
-            ERROR
-        } else {
-            return tok_str;
-        }
+		return tok_str;
+        //if (strcmp(TokStr,"defun") == 0){
+        //    if(*CurrentChar != ' '){
+        //        ERROR
+        //    } else {
+        //        return tok_defun;
+        //    }
+        //} else if (strcmp(TokStr,"if") == 0){
+        //    if (*CurrentChar != ' '){
+        //        ERROR
+        //    } else {
+        //        return tok_if;
+        //    }
+        //} else if (strcmp(TokStr,"setq") == 0){
+        //    if (*CurrentChar != ' '){
+        //        ERROR
+        //    } else {
+        //        return tok_setq;
+        //    }
+		//}else if (strcmp(TokStr,"T") == 0){
+        //    return tok_T;
+        //} else if (strcmp(TokStr,"nil") == 0){
+        //    return tok_nil;
+        //}
+        //if (*CurrentChar != '(' && *CurrentChar != ')' && *CurrentChar != ' ' && (*CurrentChar) != '\n' && *CurrentChar != ','){
+        //    ERROR
+        //} else {
+        //    return tok_str;
+        //}
     }
     if (*CurrentChar == '(' && !isdigit(*(CurrentChar + 1))){
         CurrentChar++;
@@ -99,38 +100,46 @@ int GetTok (void)
         return tok_close;
     } else if (*CurrentChar == '<' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_gt;
+		return tok_str;
+        //return tok_gt;
     } else if (*CurrentChar == '>' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_lt;
+		return tok_str;
+        //return tok_lt;
     } else if (*CurrentChar == '<' && *(CurrentChar + 1) == '=' && (*(CurrentChar + 2) == '(' || *(CurrentChar + 2) == ' ')){
         CurrentChar += 2;
-        return tok_gte;
+		return tok_str;
+        //return tok_gte;
     } else if (*CurrentChar == '>' && *(CurrentChar + 1) == '=' && (*(CurrentChar + 2) == '(' || *(CurrentChar + 2) == ' ')){
         CurrentChar += 2;
-        return tok_lte;
+		return tok_str;
+        //return tok_lte;
     } else if (*CurrentChar == '=' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_eq;
+        return tok_str;
+		//return tok_eq;
     } else if (*CurrentChar == '+' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_plus;
+        return tok_str;
+		//return tok_plus;
     } else if (*CurrentChar == '-' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_minus;
+		return tok_str;
+        //return tok_minus;
     } else if (*CurrentChar == '*' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_mul;
+		return tok_str;
+        //return tok_mul;
     } else if (*CurrentChar == '/' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
         CurrentChar++;
-        return tok_div;
+		return tok_str;
+        //return tok_div;
     }
 
     if( *CurrentChar == '\0'){
         return tok_eof;
     }
     ERROR
-
 } 
 
 void getNextToken (void)
