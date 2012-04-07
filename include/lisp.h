@@ -11,8 +11,8 @@
 #else
 #define DBG_P(STR)
 #endif
-
-enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ };
+/* PUSH, END, JMP, GOTO, RETURN, CALL */
+enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, CALL};
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol};
 enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_func, ast_variable};
@@ -72,7 +72,7 @@ void codegen(ast_t *);
 int ParseProgram(char *);
 int parse_program(char *);
 /*eval.h*/
-void** eval (int);
+void** eval (int, register opline_t *);
 
 /* gc */
 #endif /*MAIN*/

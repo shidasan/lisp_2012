@@ -5,10 +5,6 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(USE_DEBUG_MODE 1)
-endif()
-
 project(lisp)
 set(serial "1.0")
 

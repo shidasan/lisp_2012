@@ -1,27 +1,3 @@
-typedef struct opline_t{
-    int instruction;
-    void* instruction_ptr;
-    union{
-        int ivalue;
-        char* svalue;
-        struct opline_t* adr;
-    }op[2];
-}opline_t;
-
-typedef struct variable_t{
-    char* name;
-    struct variable_t* next;
-    int value;
-}variable_t;
-
-typedef struct func_t{
-    char* name;
-    struct func_t* next;
-    int value; // size of argument (?)
-	int isStatic; // cleared by bzero
-    opline_t* adr;
-}func_t;
-
 struct cons_api_t;
 
 typedef struct cons_t{
@@ -41,6 +17,31 @@ typedef struct cons_api_t {
 	void (* free)(cons_t *);
 }cons_api_t;
 
+typedef struct opline_t{
+    int instruction;
+    void* instruction_ptr;
+    union{
+        int ivalue; //unused
+        char* svalue; //unused
+        struct opline_t* adr;
+		cons_t *cons;
+    }op[2];
+}opline_t;
+
+typedef struct variable_t{
+    char* name;
+    struct variable_t* next;
+    int value;
+}variable_t;
+
+typedef struct func_t{
+    char* name;
+    struct func_t* next;
+    int value; // size of argument (?)
+	int isStatic; // cleared by bzero
+    opline_t* adr;
+}func_t;
+
 typedef struct ast_t {
 	int type;
 	int sub_type;
@@ -49,6 +50,7 @@ typedef struct ast_t {
 		char *str;
 		/* array of ast_t */
 		struct array_t *a;
+		/* atom */
 		cons_t *cons;
 	};
 }ast_t;

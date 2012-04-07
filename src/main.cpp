@@ -105,7 +105,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
 		str[next_point - prev_point + 1] = '\0';
 		prev_point = next_point + 1;
-		printf("%s\n", str);
 		//str = tmpstr;
 		if (strncmp(str,"bye", 3) == 0){
 			printf("bye\n");
@@ -117,19 +116,19 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		int status;
 		if (strlen(str) > 0) {
 			status = parse_program(str);
-		}
-		if (status == 0){
-			myadd_history(str);
-			//eval(argc + 1);
-		} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
-			/* ignore */
-		} else if (status == 1) {
-			if (argc > 2 && strcmp(args[2], "--testing") == 0) {
-				/* test failing */
-				exit(1);
+			if (status == 0){
+				myadd_history(str);
+				eval(argc + 1, memory + CurrentIndex);
+			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
+				/* ignore */
+			} else if (status == 1) {
+				if (argc > 2 && strcmp(args[2], "--testing") == 0) {
+					/* test failing */
+					exit(1);
+				}
+				/* exit when error occers while reading FILE* */
+				//argc = 1;
 			}
-			/* exit when error occers while reading FILE* */
-			//argc = 1;
 		}
 		free(str);
 		if (next_point == strlen(tmpstr)) {
@@ -152,7 +151,7 @@ int main (int argc, char* args[])
 	int StrSize = STRLEN;
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
-	table = eval(1);
+	table = eval(1, NULL);
 	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
@@ -171,7 +170,6 @@ int main (int argc, char* args[])
 	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
 	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
-	fprintf(stderr, "%p\n", handler);
 	StrSize = STRLEN;
 	StrIndex = 0;
 	if (argc > 1){

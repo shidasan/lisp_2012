@@ -4,13 +4,13 @@ const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", 
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
-	while (pc->instruction != END) {
-		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
-		pc++;
-	}
-	fprintf(stdout, "op: END\n");
+	//while (pc->instruction != END) {
+	//	fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
+	//	pc++;
+	//}
+	//fprintf(stdout, "op: END\n");
 }
-void** eval (int i )
+void** eval (int i , register opline_t* pc)
 {
     static void *table [] = {
         &&push,
@@ -42,7 +42,7 @@ void** eval (int i )
         &&narg,
         &&funcdef,
         &&setq,
-
+		&&call
     };
 
     if( i == 1 ){
@@ -58,12 +58,15 @@ void** eval (int i )
     register cons_t** sp_value = stack_value;
     register cons_t** sp_arg = stack_arg;
     register opline_t** sp_adr = stack_adr;
-    register opline_t* pc = memory + CurrentIndex;
+    //register opline_t* pc = memory + CurrentIndex;
     register int a = 0; 
     register struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
 
 
     goto *(pc->instruction_ptr);
+
+call:
+	goto *((++pc)->instruction_ptr);
 
 plus:
     (sp_value[-2])->ivalue += (sp_value[-1])->ivalue;
@@ -90,7 +93,6 @@ funcdef:
 	return NULL;
 
 end:
-	printf("hi\n");
 	if (stack_value[0] != 0) {
 		stack_value[0]->api->print(stack_value[0]);
 	}
@@ -98,7 +100,8 @@ end:
 
 push:
     //sp_value[0]->type = NUM;
-	(sp_value)[0] = new_int(pc->op[0].ivalue);
+	//(sp_value)[0] = new_int(pc->op[0].ivalue);
+	sp_value[0] = pc->op[0].cons;
 	sp_value++;
     goto *((++pc)->instruction_ptr);
 

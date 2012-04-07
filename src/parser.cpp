@@ -612,6 +612,7 @@ static ast_t *parse_list() {
 	if (childast->type == ast_list_close) {
 		ast_free(ast);
 		ast = new_ast(ast_atom, nil);
+		ast->cons = new_bool(0);
 		return ast;
 	}
 	array_add(ast->a, childast);
@@ -662,7 +663,6 @@ static ast_t *parse_expression(int is_head_of_list) {
 int parse_program (char *str) {
 	tokenizer_init(str);
 	ast_t *ast = parse_expression(0);
-	fprintf(stderr, "parse end: %p\n", ast);
 	if (ast != NULL) {
 		codegen(ast);
 		return 0;

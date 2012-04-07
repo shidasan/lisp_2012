@@ -226,11 +226,32 @@ void GenerateProgram (AST* ast)
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
 }
-void new_opline(enum eINSTRUCTION e) {
+void new_opline(enum eINSTRUCTION e, cons_t *cons) {
 	memory[NextIndex].instruction = e;
 	memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
+	memory[NextIndex].op[0].cons = cons;
 	NextIndex++;
 }
-void codegen(ast_t *ast) {
 
+void gen_atom(ast_t *ast) {
+	if (ast->sub_type == nil) {
+		new_opline(PUSH, ast->cons);
+	}
+	if (ast->sub_type == T) {
+		new_opline(PUSH, ast->cons);
+	}
+	if (ast->sub_type == INT) {
+		new_opline(PUSH, ast->cons);
+	}
+}
+
+void gen_expression(ast_t *ast) {
+	if (ast->type == ast_atom) {
+		gen_atom(ast);
+	}
+}
+
+void codegen(ast_t *ast) {
+	gen_expression(ast);
+	new_opline(END, NULL);
 }
