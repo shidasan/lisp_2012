@@ -226,3 +226,6 @@ void GenerateProgram (AST* ast)
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
 }
+void codegen(ast_t *ast) {
+
+}

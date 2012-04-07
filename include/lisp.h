@@ -49,9 +49,9 @@ typedef struct ast_t {
 	union {
 		int ivalue;
 		char *svalue;
-		//cons_t *cons;
+		/* array of cons_t */
+		struct array_t *a;
 	};
-	struct array_t *a;
 }ast_t;
 
 typedef struct AST{
@@ -92,6 +92,7 @@ struct variable_t* searchV (char* str);
 struct func_t* searchF (char* str);
 /*generator.h*/
 void GenerateProgram (AST*);
+void codegen(ast_t *);
 /*parser.h*/
 int ParseProgram(char *);
 /*eval.h*/

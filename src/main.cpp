@@ -95,78 +95,10 @@ int get_split_point(char *src, int start) {
 	return strlen(src);
 }
 
-int main (int argc, char* args[])
-{
-	FILE* file = NULL;
-	int StrSize = STRLEN;
-	int StrIndex = 0;
-	char *tmpstr = NULL, *leftover = NULL;
-	table = eval(1);
-	gc_init();
-	if (argc > 1){
-		file = fopen(args[1],"r");
-	}
-	init_opline_first();
-	int i;
-	for (i = 0; i < (signed int)(sizeof(Function_Data)/sizeof(Function_Data[0])); i++) {
-		Function_Data[i].name = NULL;
-		Function_Data[i].next = NULL;
-		Variable_Data[i].name = NULL;
-		Variable_Data[i].next = NULL;
-	}
-	set_static_mtds();
-	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
-	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
-	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;
-	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
-	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
-	fprintf(stderr, "%p\n", handler);
-	StrSize = STRLEN;
-	StrIndex = 0;
-	init_opline();
-	if (argc > 1){
-		tmpstr = (char*)malloc(StrSize);
-		while (1) {
-			if (StrIndex == StrSize - 1){
-				StrSize *= 2;
-				strtmp = (char*)malloc(StrSize);
-				strncpy(strtmp, tmpstr, StrSize);
-				free(tmpstr);
-				tmpstr = strtmp;
-			}
-			if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
-				tmpstr[StrIndex] = '\0';
-				fclose(file);
-				break;
-				//free(tmpstr);
-				//Clean();
-				//exit(0);
-			}
-			if (tmpstr[StrIndex] == '\n') {
-				tmpstr[StrIndex] = ' ';
-			}
-			//if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
-			//	tmpstr[StrIndex] = '\n';
-			//	tmpstr[StrIndex + 1] = '\0';
-			//	break;
-			//}
-			StrIndex++;
-		}
-	} else {
-		if (leftover != NULL) {
-			char *tmptmpstr = myreadline("    ");
-			fprintf(stderr, "leftover: %s\n", leftover);
-			tmpstr = str_join(tmptmpstr, leftover);
-			free(leftover);
-			leftover = NULL;
-			free(tmptmpstr);
-			tmptmpstr = NULL;
-		} else {
-			tmpstr = myreadline(">>> ");
-		}
-	}
+char *split_and_eval(int argc, char **args, char *tmpstr) {
 	int prev_point = 0;
 	int next_point = 0;
+	char *leftover = NULL;
 	while ((next_point = get_split_point(tmpstr, prev_point)) != -1) {
 		init_opline();
 		str = (char*)malloc(next_point - prev_point + 2);
@@ -207,6 +139,84 @@ int main (int argc, char* args[])
 		memcpy(leftover, tmpstr + prev_point ,strlen(tmpstr) - prev_point + 1);
 		leftover[strlen(tmpstr) - prev_point] = '\n';
 		leftover[strlen(tmpstr) - prev_point + 1] = '\0';
+	}
+	return leftover;
+}
+
+int main (int argc, char* args[])
+{
+	FILE* file = NULL;
+	int StrSize = STRLEN;
+	int StrIndex = 0;
+	char *tmpstr = NULL, *leftover = NULL;
+	table = eval(1);
+	gc_init();
+	if (argc > 1){
+		file = fopen(args[1],"r");
+	}
+	init_opline_first();
+	int i;
+	for (i = 0; i < (signed int)(sizeof(Function_Data)/sizeof(Function_Data[0])); i++) {
+		Function_Data[i].name = NULL;
+		Function_Data[i].next = NULL;
+		Variable_Data[i].name = NULL;
+		Variable_Data[i].next = NULL;
+	}
+	set_static_mtds();
+	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
+	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
+	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;
+	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
+	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
+	fprintf(stderr, "%p\n", handler);
+	StrSize = STRLEN;
+	StrIndex = 0;
+	if (argc > 1){
+		init_opline();
+		tmpstr = (char*)malloc(StrSize);
+		while (1) {
+			if (StrIndex == StrSize - 1){
+				StrSize *= 2;
+				strtmp = (char*)malloc(StrSize);
+				strncpy(strtmp, tmpstr, StrSize);
+				free(tmpstr);
+				tmpstr = strtmp;
+			}
+			if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
+				tmpstr[StrIndex] = '\0';
+				fclose(file);
+				break;
+				//free(tmpstr);
+				//Clean();
+				//exit(0);
+			}
+			if (tmpstr[StrIndex] == '\n') {
+				tmpstr[StrIndex] = ' ';
+			}
+			//if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
+			//	tmpstr[StrIndex] = '\n';
+			//	tmpstr[StrIndex + 1] = '\0';
+			//	break;
+			//}
+			StrIndex++;
+		}
+		split_and_eval(argc, args, tmpstr);
+	} else {
+		while (1) {
+			init_opline();
+			if (leftover != NULL) {
+				char *tmptmpstr = myreadline("    ");
+				fprintf(stderr, "leftover: %s\n", leftover);
+				tmpstr = str_join(tmptmpstr, leftover);
+				free(leftover);
+				leftover = NULL;
+				free(tmptmpstr);
+				tmptmpstr = NULL;
+			} else {
+				tmpstr = myreadline(">>> ");
+			}
+			leftover = split_and_eval(argc, args, tmpstr);
+		}
 	}
 	free(tmpstr);
 	return 0;

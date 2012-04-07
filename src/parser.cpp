@@ -6,13 +6,14 @@
 #define ERROR /*printf("Error In Tokenizer\n");*/ return tok_error;
 #define ARGERROR if (ArgCount[ArgIndex] > p->value)printf("Too many "); else printf("Too few "); printf("arguments given to function\n");  return NULL;
 #define PERROR FreeAST(ret);return NULL;
+#define MSG(STR) fprintf(stderr, (STR))
 #define AR 3
 #define LR 10
 AST* ParseExpression (void);
 AST* ParseBlock (void);
 void FreeAST (AST*);
-static int CurTok;
-static char* CurrentChar;
+static int current_token;
+static char* current_char;
 static char* TokStr;
 static int TokNum;
 static int ArgIndex;
@@ -25,33 +26,33 @@ int GetTok (void)
     int ALT = 1;
     TokNum = 0;
     unsigned int TokSize = 0;
-    if (*CurrentChar == '\0' || *CurrentChar == '\n'){
+    if (*current_char == '\0' || *current_char == '\n'){
         return tok_eof;
     }
-    while (isspace(*CurrentChar) || *CurrentChar == ','){
-        CurrentChar++;
+    while (isspace(*current_char) || *current_char == ','){
+        current_char++;
     }
-    if (isdigit(*CurrentChar) || (*CurrentChar == '-' && isdigit(*(CurrentChar + 1)))){
-        if (*CurrentChar == '-'){
+    if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
+        if (*current_char == '-'){
             ALT = -1;
-            CurrentChar++;
+            current_char++;
         }
-        while (isdigit(*CurrentChar)){
-            TokNum = 10 * TokNum + (*CurrentChar - 48);
-            CurrentChar++;
+        while (isdigit(*current_char)){
+            TokNum = 10 * TokNum + (*current_char - 48);
+            current_char++;
         }
         TokNum *= ALT;
-        if ((*CurrentChar) != '(' && (*CurrentChar) != ')' && (*CurrentChar) != ' ' && (*CurrentChar) != '\n' && *CurrentChar != ','){
+        if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ','){
             ERROR
         } else {
             return tok_number;
         }
     }
-    if (isalpha(*CurrentChar)){
-        while (isalnum(*CurrentChar)){
-            TokStr[TokSize] = *CurrentChar;
+    if (isalpha(*current_char)){
+        while (isalnum(*current_char)){
+            TokStr[TokSize] = *current_char;
             TokSize++;
-            CurrentChar++;
+            current_char++;
             if (TokSize >= LengthRatio - 1){
                 LengthRatio *= 2;
                 TokTemp = (char*)calloc(LengthRatio,sizeof(char));
@@ -62,21 +63,27 @@ int GetTok (void)
         }
 
         TokStr[TokSize] = '\0';
+		if (strcmp(TokStr, "nil") == 0) {
+			return tok_nil;
+		}
+		if (strcmp(TokStr, "T") == 0) {
+			return tok_T;
+		}
 		return tok_str;
         //if (strcmp(TokStr,"defun") == 0){
-        //    if(*CurrentChar != ' '){
+        //    if(*current_char != ' '){
         //        ERROR
         //    } else {
         //        return tok_defun;
         //    }
         //} else if (strcmp(TokStr,"if") == 0){
-        //    if (*CurrentChar != ' '){
+        //    if (*current_char != ' '){
         //        ERROR
         //    } else {
         //        return tok_if;
         //    }
         //} else if (strcmp(TokStr,"setq") == 0){
-        //    if (*CurrentChar != ' '){
+        //    if (*current_char != ' '){
         //        ERROR
         //    } else {
         //        return tok_setq;
@@ -86,57 +93,57 @@ int GetTok (void)
         //} else if (strcmp(TokStr,"nil") == 0){
         //    return tok_nil;
         //}
-        //if (*CurrentChar != '(' && *CurrentChar != ')' && *CurrentChar != ' ' && (*CurrentChar) != '\n' && *CurrentChar != ','){
+        //if (*current_char != '(' && *current_char != ')' && *current_char != ' ' && (*current_char) != '\n' && *current_char != ','){
         //    ERROR
         //} else {
         //    return tok_str;
         //}
     }
-    if (*CurrentChar == '(' && !isdigit(*(CurrentChar + 1))){
-        CurrentChar++;
+    if (*current_char == '(' && !isdigit(*(current_char + 1))){
+        current_char++;
         return tok_open;
-    } else if (*CurrentChar == ')'){
-        CurrentChar++;
+    } else if (*current_char == ')'){
+        current_char++;
         return tok_close;
-    } else if (*CurrentChar == '<' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '<' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
 		return tok_str;
         //return tok_gt;
-    } else if (*CurrentChar == '>' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '>' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
 		return tok_str;
         //return tok_lt;
-    } else if (*CurrentChar == '<' && *(CurrentChar + 1) == '=' && (*(CurrentChar + 2) == '(' || *(CurrentChar + 2) == ' ')){
-        CurrentChar += 2;
+    } else if (*current_char == '<' && *(current_char + 1) == '=' && (*(current_char + 2) == '(' || *(current_char + 2) == ' ')){
+        current_char += 2;
 		return tok_str;
         //return tok_gte;
-    } else if (*CurrentChar == '>' && *(CurrentChar + 1) == '=' && (*(CurrentChar + 2) == '(' || *(CurrentChar + 2) == ' ')){
-        CurrentChar += 2;
+    } else if (*current_char == '>' && *(current_char + 1) == '=' && (*(current_char + 2) == '(' || *(current_char + 2) == ' ')){
+        current_char += 2;
 		return tok_str;
         //return tok_lte;
-    } else if (*CurrentChar == '=' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '=' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
         return tok_str;
 		//return tok_eq;
-    } else if (*CurrentChar == '+' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '+' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
         return tok_str;
 		//return tok_plus;
-    } else if (*CurrentChar == '-' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '-' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
 		return tok_str;
         //return tok_minus;
-    } else if (*CurrentChar == '*' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '*' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
 		return tok_str;
         //return tok_mul;
-    } else if (*CurrentChar == '/' && (*(CurrentChar + 1) == '(' || *(CurrentChar + 1) == ' ')){
-        CurrentChar++;
+    } else if (*current_char == '/' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
+        current_char++;
 		return tok_str;
         //return tok_div;
     }
 
-    if( *CurrentChar == '\0'){
+    if( *current_char == '\0'){
         return tok_eof;
     }
     ERROR
@@ -144,7 +151,7 @@ int GetTok (void)
 
 void getNextToken (void)
 {
-    CurTok = GetTok();
+    current_token = GetTok();
 }
 
 AST* ParseArgument (void)
@@ -155,14 +162,14 @@ AST* ParseArgument (void)
     ret->LHS = ret->RHS = ret->COND = NULL;
     ret->s = NULL;
     getNextToken(); //eat '('
-    if (CurTok != tok_open){
+    if (current_token != tok_open){
         printf("wrong prototype\n");
         FreeAST(ret);
         return NULL;
     }
     getNextToken();
-    while (CurTok != tok_close){
-        if (CurTok != tok_str){
+    while (current_token != tok_close){
+        if (current_token != tok_str){
             FreeAST(ret);
             return NULL;
         }
@@ -200,7 +207,7 @@ AST* ParseIf (void)
         PERROR
     }
     getNextToken();
-    if (CurTok != tok_close){
+    if (current_token != tok_close){
         PERROR
     }
     return ret;
@@ -215,7 +222,7 @@ AST* ParseDefun (void)
     ret->s = NULL;
     ret->type = tok_defun;
     getNextToken();
-    if (CurTok == tok_str){
+    if (current_token == tok_str){
         ret->s = (char*)malloc(sizeof(char) * LengthRatio);
         strncpy(ret->s,TokStr,LengthRatio);
     } else {
@@ -239,7 +246,7 @@ AST* ParseDefun (void)
         return NULL;
     }
     getNextToken();
-    if (CurTok == tok_close){
+    if (current_token == tok_close){
         for (i = 0; i < ArgsRatio; i++){
             free(Args[i]);
             Args[i] = NULL;
@@ -256,7 +263,7 @@ AST* ParseSetq (void)
     ret->s = NULL;
     ret->type = tok_setq;
     getNextToken();
-    if (CurTok == tok_str){
+    if (current_token == tok_str){
         ret->s = (char*)malloc(LengthRatio);
         strncpy(ret->s, TokStr, LengthRatio);
     } else {
@@ -351,8 +358,8 @@ AST* ParseOperation (int Tok,AST* pRHS)
     if (pRHS == NULL){
         //printf("plus ");
         getNextToken(); // eat operator
-        OpType = CurTok;
-        if (CurTok == tok_str && (*CurrentChar == ' ' || *CurrentChar == ')' || *CurrentChar == ',')){
+        OpType = current_token;
+        if (current_token == tok_str && (*current_char == ' ' || *current_char == ')' || *current_char == ',')){
             p = searchF(TokStr);
             if (p != NULL){
                 ArgCount[ArgIndex] = 0;
@@ -364,7 +371,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
                     ret->LHS = NULL;
                     ret->RHS = NULL;
                     getNextToken(); // eat ')'
-                    if (CurTok == tok_close){
+                    if (current_token == tok_close){
                         return ret;
                     } else {
                         free(fname);
@@ -376,7 +383,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
                     ret->RHS = ParseExpression();
                     ret->LHS = NULL;
                     getNextToken(); //eat ')'
-                    if (CurTok == tok_close && ret->RHS != NULL){
+                    if (current_token == tok_close && ret->RHS != NULL){
                         return ret;
                     } else {
                         free(fname);
@@ -390,7 +397,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
                     LHS = ParseExpression();
                     if (LHS != NULL){
                         getNextToken();
-                        if (CurTok == tok_open || CurTok == tok_number || CurTok == tok_str){
+                        if (current_token == tok_open || current_token == tok_number || current_token == tok_str){
                             RHS = ParseOperation(tok_func, LHS);
                         } else {
                             free(fname);
@@ -421,7 +428,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
         getNextToken();
         LHS = ParseExpression();
         getNextToken();
-        if (CurTok == tok_close){
+        if (current_token == tok_close){
             ret->type = OpType;
             ret->LHS = LHS;
             ret->RHS = NULL;
@@ -454,7 +461,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
                 return NULL;
             }
             getNextToken();
-            if (CurTok == tok_number || CurTok == tok_open || CurTok == tok_str){
+            if (current_token == tok_number || current_token == tok_open || current_token == tok_str){
                 ret->type = OpType;
                 ret->LHS = LHS;
                 if (pRHS == NULL && (OpType == tok_minus || OpType == tok_div)){
@@ -467,7 +474,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
                     ret->RHS = ParseOperation(OpType, RHS);
                 }
                 if (ret->RHS == NULL) {PERROR}
-            } else if (CurTok == tok_close){
+            } else if (current_token == tok_close){
                 ret->LHS = LHS;
                 ret->RHS = RHS;
                 ret->type = OpType;
@@ -485,21 +492,21 @@ AST* ParseOperation (int Tok,AST* pRHS)
 AST* ParseExpression (void)
 {
     AST* ret = NULL;
-    if (CurTok == tok_number){
+    if (current_token == tok_number){
         ret = ParseNumber();
         if (ret == NULL){ PERROR }
         return ret;
-    } else if (CurTok == tok_T){
+    } else if (current_token == tok_T){
         ret = ParseT();
         return ret;
-    } else if (CurTok == tok_nil){
+    } else if (current_token == tok_nil){
         ret = ParseNil();
         return ret;
-    }else if (CurTok == tok_str){
+    }else if (current_token == tok_str){
         ret = ParseVariable();
         if (ret == NULL){ PERROR }
         return ret;
-    } else if (CurTok == tok_open){
+    } else if (current_token == tok_open){
         ArgIndex++;
         ret = ParseOperation(-1, NULL);
         ArgIndex--;
@@ -513,42 +520,42 @@ AST* ParseExpression (void)
 AST* ParseBlock (void)
 {
     AST* ret = NULL;
-    char *p = CurrentChar;
+    char *p = current_char;
     getNextToken();
-    if (CurTok == tok_open){
+    if (current_token == tok_open){
         getNextToken();
-        if (CurTok == tok_defun){
+        if (current_token == tok_defun){
             ret = ParseDefun();
             if (ret == NULL){ PERROR }
             return ret;
-        } else if (CurTok == tok_setq){
+        } else if (current_token == tok_setq){
             ret = ParseSetq();
             getNextToken();
             if (ret == NULL){ PERROR }
             return ret;
-        } else if (CurTok == tok_if){
+        } else if (current_token == tok_if){
             ret = ParseIf();
             if (ret == NULL){
                 PERROR
             }
             return ret;
         } else {
-            CurrentChar = p;
+            current_char = p;
             getNextToken();
             ret = ParseExpression();
             if (ret == NULL){ PERROR }
             return ret;
         }
-    } else if (CurTok == tok_number){
+    } else if (current_token == tok_number){
         ret = ParseNumber();
         return ret;
-    } else if (CurTok == tok_T){
+    } else if (current_token == tok_T){
         ret = ParseT();
         return ret;
-    } else if (CurTok == tok_nil){
+    } else if (current_token == tok_nil){
         ret = ParseNil();
         return ret;
-    }else if (CurTok == tok_str){
+    }else if (current_token == tok_str){
         ret = ParseVariable();
         return ret;
     }else {
@@ -564,14 +571,14 @@ int ParseProgram (char *str)
     Args = (char**)calloc(ArgsRatio,sizeof(char*));
     TokStr = (char*)calloc(LengthRatio,sizeof(char*));
     AST* ret = NULL;
-    CurrentChar = str;
+    current_char = str;
 
     getNextToken();
-    if (CurTok == tok_eof){
+    if (current_token == tok_eof){
         return 2;
     }
 
-    CurrentChar = str;
+    current_char = str;
     ret = ParseBlock();
 
     int i = 0;
@@ -582,12 +589,35 @@ int ParseProgram (char *str)
     free(Args);
     getNextToken();
     free(TokStr);
-    if (ret != NULL && CurTok == tok_eof ){
+    if (ret != NULL && current_token == tok_eof ){
         GenerateProgram(ret);
         return 0;
     }
 	printf("Syntax Error\n");
     return 1;
+}
+
+void tokenizer_init(char *str) {
+	/* default maximum token length (mutable) */
+	LengthRatio = LR;
+	current_char = str;
+}
+
+ast_t *parse_expression() {
+	getNextToken();
+	if (current_token == tok_eof) {
+		return NULL;
+	}
+}
+
+int parse_program (char *str) {
+	tokenizer_init(str);
+	ast_t *ast = parse_expression();
+	if (ast != NULL) {
+		codegen(ast);
+		return 0;
+	}
+	printf("Syntax Error\n");
 }
 
 void FreeAST (AST* ast)
