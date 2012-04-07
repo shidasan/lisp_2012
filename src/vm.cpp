@@ -10,7 +10,7 @@ static void dump_vm() {
 	//}
 	//fprintf(stdout, "op: END\n");
 }
-void** eval (int i , register opline_t* pc)
+cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
 {
     static void *table [] = {
         &&push,
@@ -42,18 +42,18 @@ void** eval (int i , register opline_t* pc)
         &&narg,
         &&funcdef,
         &&setq,
-		&&call
+		&&staticmtd
     };
 
     if( i == 1 ){
-        return table;
+        return (cons_t*)table;
     }
 
 	dump_vm();
 
     opline_t* stack_adr[STACKSIZE];
     cons_t *stack_arg[STACKSIZE];
-    cons_t *stack_value[STACKSIZE];
+    //cons_t *stack_value[STACKSIZE];
 
     register cons_t** sp_value = stack_value;
     register cons_t** sp_arg = stack_arg;
@@ -65,7 +65,12 @@ void** eval (int i , register opline_t* pc)
 
     goto *(pc->instruction_ptr);
 
-call:
+staticmtd:
+	func_t *func = searchF(pc->op[0].cons->str);
+	if (func->is_static) {
+		TODO("call static mtd\n");
+		func->mtd(NULL, NULL);
+	}
 	goto *((++pc)->instruction_ptr);
 
 plus:
@@ -93,10 +98,10 @@ funcdef:
 	return NULL;
 
 end:
-	if (stack_value[0] != 0) {
-		stack_value[0]->api->print(stack_value[0]);
-	}
-    return NULL;
+	//if (stack_value[0] != 0) {
+	//	stack_value[0]->api->print(stack_value[0]);
+	//}
+    return stack_value[0];
 
 push:
     //sp_value[0]->type = NUM;

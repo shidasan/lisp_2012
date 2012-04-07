@@ -15,6 +15,7 @@ void** table;
 void Clean (void);
 static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
+static cons_t *stack_value[STACKSIZE];
 
 static int add_history(const char *line) {
 	return 0;
@@ -70,7 +71,7 @@ void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		setF(data->name, data->num_args, (void*)data->mtd, strlen(data->name), 1);
+		setF(data->name, data->num_args, (void*)data->mtd, strlen(data->name), 1, data->is_special_form, data->is_quote);
 		i++;
 	}
 }
@@ -118,7 +119,10 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			status = parse_program(str);
 			if (status == 0){
 				myadd_history(str);
-				eval(argc + 1, memory + CurrentIndex);
+				cons_t *cons = (cons_t*)eval(argc + 1, memory + CurrentIndex, stack_value);
+				if (cons != NULL) {
+					CONS_PRINT(cons);
+				}
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
 				/* ignore */
 			} else if (status == 1) {
@@ -151,7 +155,7 @@ int main (int argc, char* args[])
 	int StrSize = STRLEN;
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
-	table = eval(1, NULL);
+	table = (void**)eval(1, NULL, NULL);
 	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");

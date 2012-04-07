@@ -94,7 +94,7 @@ void GenerateDefun (AST* ast)
     memory[NextIndex].instruction = DEFUN;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
-    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0);
+    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0, 0, 0);
     //printf("%s/n",p->name);
     memory[NextIndex - 1].op[1].svalue = p->name;
     free(ast->LHS);
@@ -226,14 +226,15 @@ void GenerateProgram (AST* ast)
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
 }
-void new_opline(enum eINSTRUCTION e, cons_t *cons) {
+
+static void new_opline(enum eINSTRUCTION e, cons_t *cons) {
 	memory[NextIndex].instruction = e;
 	memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
 	memory[NextIndex].op[0].cons = cons;
 	NextIndex++;
 }
 
-void gen_atom(ast_t *ast) {
+static void gen_atom(ast_t *ast) {
 	if (ast->sub_type == nil) {
 		new_opline(PUSH, ast->cons);
 	}
@@ -245,9 +246,29 @@ void gen_atom(ast_t *ast) {
 	}
 }
 
-void gen_expression(ast_t *ast) {
+static void gen_static_func(ast_t *ast) {
+	new_opline(STATICMTD, ast->cons);
+}
+
+static void gen_expression(ast_t *ast);
+
+static void gen_list(ast_t *ast) {
+	int i = 0;
+	for (; i < array_size(ast->a); i++) {
+		ast_t *child_ast = (ast_t *)array_get(ast->a, i);
+		gen_expression(child_ast);
+	}
+}
+
+static void gen_expression(ast_t *ast) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
+	}
+	if (ast->type == ast_static_func) {
+		gen_static_func(ast);
+	}
+	if (ast->type == ast_list) {
+		gen_list(ast);
 	}
 }
 

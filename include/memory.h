@@ -15,6 +15,7 @@ typedef struct cons_t{
 typedef struct cons_api_t {
 	void (* print)(cons_t *);
 	void (* free)(cons_t *);
+	cons_t* (* eval)(cons_t *);
 }cons_api_t;
 
 typedef struct opline_t{
@@ -38,8 +39,13 @@ typedef struct func_t{
     char* name;
     struct func_t* next;
     int value; // size of argument (?)
-	int isStatic; // cleared by bzero
-    opline_t* adr;
+	int is_static; // cleared by bzero
+	int is_special_form;
+	int is_quote;
+	union {
+		opline_t* adr;
+		void (*mtd)(cons_t**, cons_t**);
+	};
 }func_t;
 
 typedef struct ast_t {
@@ -57,6 +63,7 @@ typedef struct ast_t {
 
 #define CONS_PRINT(CONS) (CONS)->api->print(CONS)
 #define CONS_FREE(CONS) (CONS)->api->free(CONS)
+#define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
 
 void gc_init();
 
@@ -67,6 +74,7 @@ cons_t *new_float(float f);
 cons_t *new_bool(int n);
 cons_t *new_func(char *str);
 cons_t *new_variable(char *str);
+cons_t *new_open();
 
 array_t *new_array();
 void array_free(array_t *a);

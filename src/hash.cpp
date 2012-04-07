@@ -51,13 +51,13 @@ struct func_t* searchF (char* str)
     }
 }
 
-struct func_t* setF (const char* str,int i, void* adr, int LengthRatio, int isStatic)
+struct func_t* setF (const char* str,int i, void* adr, int LengthRatio, int is_static, int is_special_form, int is_quote)
 {
 
     func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
     while (1){
         if (p->name == NULL || strcmp(p->name,str) == 0){
-			if (p->name != NULL && strcmp(p->name, str) == 0 && p->isStatic && !isStatic) {
+			if (p->name != NULL && strcmp(p->name, str) == 0 && p->is_static && !is_static) {
 				return NULL;
 			}
             if (p->name == NULL){
@@ -65,7 +65,9 @@ struct func_t* setF (const char* str,int i, void* adr, int LengthRatio, int isSt
                 strncpy (p->name, str, LengthRatio);
             }
             p->value = i;
-			p->isStatic = isStatic;
+			p->is_static = is_static;
+			p->is_quote = is_quote;
+			p->is_special_form = is_special_form;
             p->adr = (opline_t*)adr;
             return p;
         } else if (p->next == NULL){

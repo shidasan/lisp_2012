@@ -42,7 +42,7 @@ int GetTok (void)
             current_char++;
         }
         token_int *= ALT;
-        if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ','){
+        if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
             ERROR
         } else {
             return tok_number;
@@ -70,34 +70,6 @@ int GetTok (void)
 			return tok_T;
 		}
 		return tok_symbol;
-        //if (strcmp(token_str,"defun") == 0){
-        //    if(*current_char != ' '){
-        //        ERROR
-        //    } else {
-        //        return tok_defun;
-        //    }
-        //} else if (strcmp(token_str,"if") == 0){
-        //    if (*current_char != ' '){
-        //        ERROR
-        //    } else {
-        //        return tok_if;
-        //    }
-        //} else if (strcmp(token_str,"setq") == 0){
-        //    if (*current_char != ' '){
-        //        ERROR
-        //    } else {
-        //        return tok_setq;
-        //    }
-		//}else if (strcmp(token_str,"T") == 0){
-        //    return tok_T;
-        //} else if (strcmp(token_str,"nil") == 0){
-        //    return tok_nil;
-        //}
-        //if (*current_char != '(' && *current_char != ')' && *current_char != ' ' && (*current_char) != '\n' && *current_char != ','){
-        //    ERROR
-        //} else {
-        //    return tok_symbol;
-        //}
     }
     if (*current_char == '(' && !isdigit(*(current_char + 1))){
         current_char++;
@@ -105,44 +77,74 @@ int GetTok (void)
     } else if (*current_char == ')'){
         current_char++;
         return tok_close;
-    } else if (*current_char == '<' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-		return tok_symbol;
-        //return tok_gt;
-    } else if (*current_char == '>' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-		return tok_symbol;
-        //return tok_lt;
-    } else if (*current_char == '<' && *(current_char + 1) == '=' && (*(current_char + 2) == '(' || *(current_char + 2) == ' ')){
-        current_char += 2;
-		return tok_symbol;
-        //return tok_gte;
-    } else if (*current_char == '>' && *(current_char + 1) == '=' && (*(current_char + 2) == '(' || *(current_char + 2) == ' ')){
-        current_char += 2;
-		return tok_symbol;
-        //return tok_lte;
-    } else if (*current_char == '=' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-        return tok_symbol;
-		//return tok_eq;
-    } else if (*current_char == '+' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-        return tok_symbol;
-		//return tok_plus;
-    } else if (*current_char == '-' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-		return tok_symbol;
-        //return tok_minus;
-    } else if (*current_char == '*' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-		return tok_symbol;
-        //return tok_mul;
-    } else if (*current_char == '/' && (*(current_char + 1) == '(' || *(current_char + 1) == ' ')){
-        current_char++;
-		return tok_symbol;
-        //return tok_div;
-    }
-
+	} else if (*current_char == '<') {
+		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+			current_char+=2;
+			token_str[0] = '<';
+			token_str[1] = '=';
+			token_str[2] = '\0';
+			return tok_symbol;
+		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '<';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '>') {
+		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+			current_char+=2;
+			token_str[0] = '>';
+			token_str[1] = '=';
+			token_str[2] = '\0';
+			return tok_symbol;
+		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '>';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '=') {
+		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+			current_char+=2;
+			token_str[0] = '=';
+			token_str[1] = '=';
+			token_str[2] = '\0';
+			return tok_symbol;
+		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '=';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '+') {
+		if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '+';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '-') {
+		if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '-';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '*') {
+		if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '*';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	} else if (*current_char == '/') {
+		if (current_char[1] == '(' || current_char[1] == ' ') {
+			current_char++;
+			token_str[0] = '/';
+			token_str[1] = '\0';
+			return tok_symbol;
+		}
+	}
     if( *current_char == '\0'){
         return tok_eof;
     }
@@ -235,7 +237,7 @@ AST* ParseDefun (void)
         FreeAST(ret);
         return NULL;
     }
-    p = setF(ret->s, ret->LHS->i, NULL, LengthRatio, 0);
+    p = setF(ret->s, ret->LHS->i, NULL, LengthRatio, 0, 0, 0);
 	/* overwriting static method */
 	if (p == NULL) {
 		PERROR
@@ -604,11 +606,11 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-static ast_t *parse_expression(int is_head_of_list);
+static ast_t *parse_expression(int is_head_of_list, int is_quote);
 
 static ast_t *parse_list() {
 	ast_t *ast = new_ast(ast_list, -1);
-	ast_t *childast = parse_expression(1);
+	ast_t *childast = parse_expression(1, 0);
 	if (childast->type == ast_list_close) {
 		ast_free(ast);
 		ast = new_ast(ast_atom, nil);
@@ -616,9 +618,21 @@ static ast_t *parse_list() {
 		return ast;
 	}
 	array_add(ast->a, childast);
+	func_t *func;
+	int quote_position = -1;
+	if (childast->type == ast_static_func) {
+		func = searchF(childast->str);
+		if (func->is_quote) {
+			quote_position = func->is_quote;
+		}
+	}
+	int args_count = 0;
 	while (1) {
-		fprintf(stderr, "while loop\n");
-		childast = parse_expression(0);
+		if (args_count == quote_position) {
+			childast = parse_expression(0, 1);
+		} else {
+			childast = parse_expression(0, 0);
+		}
 		if (childast == NULL) {
 			MSG("Illegal end of imput\n");
 		}
@@ -626,43 +640,65 @@ static ast_t *parse_list() {
 			break;
 		}
 		array_add(ast->a, childast);
+		args_count++;
 	}
 	return ast;
 }
 
-static ast_t *parse_expression(int is_head_of_list) {
+static cons_t *make_cons_tree() {
 	get_next_token();
+	cons_t *cons = new_cons_cell();
 	if (token_type == tok_eof) {
-		return NULL;
+		cons = NULL;
+	} else if (token_type == tok_number) {
+		cons->ivalue = token_int;
+	} else if (token_type == tok_open) {
+		cons->car = make_cons_tree();
+	} else if (token_type == tok_close) {
+		cons = NULL;
+	} else if (token_type == tok_symbol) {
+		cons->str = token_str;
 	}
-	if (token_type == tok_number) {
+	if (cons != NULL) {
+		cons->cdr = make_cons_tree();
+	}
+}
+
+static ast_t *parse_expression(int is_head_of_list, int is_quote) {
+	get_next_token();
+	ast_t *ast = NULL;
+	if (token_type == tok_eof) {
+	} else if (token_type == tok_number) {
 		ast_t *ast = new_ast(ast_atom, INT);
 		ast->cons = new_int(token_int);
-		return ast;
-	}
-	if (token_type == tok_open) {
-		return parse_list();
-	}
-	if (token_type == tok_symbol) {
+	} else if (token_type == tok_open) {
+		ast =  parse_list();
+	} else if (token_type == tok_symbol) {
 		ast_t *ast = NULL;
 		if (is_head_of_list) {
-			ast = new_ast(ast_func, -1);
-			ast->cons = new_func(token_str);
+			func_t *func = searchF(token_str);
+			if (func != NULL && func->is_quote) {	
+				cons_t *cons = make_cons_tree();
+			} else if (func != NULL && func->is_static) {
+				fprintf(stderr, "new_func: %s\n", token_str);
+				ast = new_ast(ast_static_func, -1);
+				ast->cons = new_func(token_str);
+			}
+			TODO("user definited function\n");
 		} else {
 			ast = new_ast(ast_variable, -1);
 			ast->cons = new_variable(token_str);
 		}
-		return ast;
+	} else if (token_type == tok_close) {
+		//ast_t *ast = new_ast(ast_list_close, -1);
+		ast = NULL;
 	}
-	if (token_type == tok_close) {
-		ast_t *ast = new_ast(ast_list_close, -1);
-		return ast;
-	}
+	return ast;
 }
 
 int parse_program (char *str) {
 	tokenizer_init(str);
-	ast_t *ast = parse_expression(0);
+	ast_t *ast = parse_expression(0, 0);
 	if (ast != NULL) {
 		codegen(ast);
 		return 0;
