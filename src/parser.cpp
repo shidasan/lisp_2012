@@ -77,6 +77,14 @@ int GetTok (void)
     } else if (*current_char == ')'){
         current_char++;
         return tok_close;
+	} else if (*current_char == '.') {
+		/* float or dot */
+		if (current_char[1] == ' ') {
+			current_char++;
+			return tok_dot;
+		} else if (isnumber(current_char[1])) {
+			TODO("float tokinizing\n");
+		}
 	} else if (*current_char == '<') {
 		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
 			current_char+=2;
@@ -606,47 +614,80 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-static cons_t *make_cons_tree(int is_head_of_list) {
+static cons_t *get_dot_right_side() {
 	get_next_token();
 	cons_t *cons = NULL;
-	if (token_type == tok_error) {
-		fprintf(stderr, "error in tokenizer!!\n");
-
-	} else if (token_type == tok_eof) {
-
-	} else if (token_type == tok_number) {
-		cons = new_open();
-		cons->car = new_int(token_int);
-	} else if (token_type = tok_nil) {
-		cons = new_open();
-		cons->car = new_bool(0);
-	} else if (token_type = tok_T) {
-		cons = new_open();
-		cons->car = new_bool(1);
+	if (token_type == tok_number) {
+		fprintf(stderr, "dot number: %d\n", token_int);
+		cons = new_int(token_int);
+	} else if (token_type == tok_T) {
+		cons = new_bool(1);
+	} else if (token_type == tok_nil) {
+		cons = new_bool(1);
 	} else if (token_type == tok_open) {
-		cons = new_open();
-		cons->car = make_cons_tree(1);
-	} else if (token_type == tok_close) {
-
-	} else if (token_type == tok_symbol) {
-		if (is_head_of_list) {
-			cons = new_open();
-			cons->car = new_func(token_str);
-		} else {
-			cons = new_open();
-			cons->car = new_variable(token_str);
-		}
-	}
-	if (cons == NULL) {
-		return NULL;
-	}
-	cons_t *cdr = make_cons_tree(0);
-	if (cdr == NULL) {
-		cons->cdr = new_bool(0);
+		//cons = make_cons_tree(0);
 	} else {
-		cons->cdr = cdr;
+		EXCEPTION("Illegal type for right side of dot operator!!\n");
+	}
+	get_next_token();
+	if (token_type != tok_close) {
+		EXCEPTION("Excepted \')\'");
 	}
 	return cons;
+}
+
+static cons_t *make_cons_single_node(int is_head_of_list) {
+	cons_t *cons = NULL;
+	if (token_type == tok_number) {
+		cons = new_int(token_int);
+	} else if (token_type == tok_nil) {
+		cons = new_bool(0);
+	} else if (token_type == tok_T) {
+		cons = new_bool(1);
+	} else if (token_type == tok_symbol) {
+		if (is_head_of_list) {
+			cons = new_func(token_str);
+		} else {
+			cons = new_variable(token_str);
+		}
+	}
+	return cons;
+}
+
+static cons_t *make_cons_tree2(int is_head_of_list);
+
+static cons_t *make_cons_list() {
+	cons_t *cons = new_open();
+	cons_t *tmp = cons;
+	cons_t *car = NULL;
+	int flag = 1;
+	tmp->car = make_cons_tree2(1);
+	if (tmp->car == NULL) {
+		tmp = new_bool(0);
+		return tmp;
+	}
+	while (1) {
+		car = make_cons_tree2(0);
+		if (car == NULL) {
+			tmp->cdr = new_bool(0);
+			break;
+		}
+		tmp->cdr = new_open();
+		tmp->cdr->car = car;
+		tmp = tmp->cdr;
+	}
+	return cons;
+}
+
+static cons_t *make_cons_tree2(int is_head_of_list) {
+	get_next_token();
+	if (token_type == tok_open) {
+		return make_cons_list();
+	} else if (token_type == tok_dot) {
+		
+	} else {
+		return make_cons_single_node(is_head_of_list);
+	}
 }
 
 static ast_t *parse_expression(int is_head_of_list, int is_quote);
@@ -675,8 +716,7 @@ static ast_t *parse_list() {
 	while (1) {
 		if (args_count == quote_position) {
 			fprintf(stderr, "quote make_tree\n");
-			cons_t *cons = make_cons_tree(0)->car;
-			fprintf(stderr, "asdf %d\n", cons->car->ivalue);
+			cons_t *cons = make_cons_tree2(0);
 			childast = new_ast(ast_atom, cons->type);
 			childast->cons = cons;
 			//childast = new_ast(ast_atom, OPEN);
@@ -698,7 +738,9 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 	get_next_token();
 	ast_t *ast = NULL;
 	if (token_type == tok_eof) {
-	} else if (token_type == tok_number) {
+		return NULL;
+	}
+	if (token_type == tok_number) {
 		ast = new_ast(ast_atom, INT);
 		ast->cons = new_int(token_int);
 	} else if (token_type == tok_nil) {
@@ -730,6 +772,9 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 	} else if (token_type == tok_close) {
 		//ast_t *ast = new_ast(ast_list_close, -1);
 		ast = NULL;
+	} else {
+		TODO("parsing error or does not implemented\n");
+		fprintf(stderr, "token_type: %d\n", token_type);
 	}
 	return ast;
 }
