@@ -119,6 +119,10 @@ static cons_t *length(cons_t **vstack, int ARGC) {
 	return new_int(res);
 }
 
+static cons_t *_if(cons_t **vstack, int ARGC) {
+
+}
+
 static_mtd_data static_mtds[] = {
 	{"car", 1, 0, 0, car},
 	{"cdr", 1, 0, 0, cdr},
@@ -130,5 +134,6 @@ static_mtd_data static_mtds[] = {
 	{"quote", 1, 1, 1, quote},
 	{"list", -1, 0, 0, list},
 	{"length", 1, 0, 0, length},
+	{"if", 3, 1, 0, _if},
 	{NULL, 0, 0, 0, NULL},
 };

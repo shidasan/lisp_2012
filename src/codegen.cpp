@@ -250,9 +250,14 @@ static void gen_atom(ast_t *ast) {
 }
 
 static void gen_static_func(ast_t *ast, int list_length) {
-	new_opline(MTDCALL, ast->cons);
-	printf("gen_static_func: %d\n", list_length);
-	memory[NextIndex-1].op[1].ivalue = list_length-1;
+	if (ast->type == ast_atom) {
+		EXCEPTION("Not a function!!\n");
+	}
+	if (ast->type == ast_static_func) {
+		new_opline(MTDCALL, ast->cons);
+		printf("gen_static_func: %d\n", list_length);
+		memory[NextIndex-1].op[1].ivalue = list_length-1;
+	}
 }
 
 static void gen_mtd_check(ast_t *ast, int list_length) {
@@ -272,12 +277,19 @@ static void gen_list(ast_t *ast) {
 	gen_static_func((ast_t *)array_get(ast->a, 0), array_size(ast->a));
 }
 
+static void gen_special_form(ast_t *ast, int list_length) {
+
+}
+
 static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
 	}
 	if (ast->type == ast_static_func) {
 		gen_mtd_check(ast, list_length);
+	}
+	if (ast->type == ast_special_form) {
+		gen_special_form(ast, list_length);
 	}
 	if (ast->type == ast_list) {
 		gen_list(ast);

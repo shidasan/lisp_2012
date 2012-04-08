@@ -120,7 +120,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			status = -1;
 			if (strlen(str) > 0 && is_unexpected_input(str)) {
 				fprintf(stderr, "%d\n", str[0]);
-				fprintf(stderr, "start: %s, strlen: %d\n", str, strlen(str));
 				status = parse_program(str);
 			}
 			if (status == 0){

@@ -77,6 +77,9 @@ int GetTok (void)
     } else if (*current_char == ')'){
         current_char++;
         return tok_close;
+	} else if (*current_char == '\'') {
+		current_char++;
+		return tok_quote;
 	} else if (*current_char == '.') {
 		/* float or dot */
 		if (current_char[1] == ' ') {
@@ -677,7 +680,7 @@ static cons_t *make_cons_tree2(int is_head_of_list) {
 	}
 }
 
-static ast_t *parse_expression(int is_head_of_list, int is_quote);
+static ast_t *parse_expression(int is_head_of_list, int is_quote_unused);
 
 static ast_t *parse_list() {
 	ast_t *ast = new_ast(ast_list, -1);
@@ -697,6 +700,9 @@ static ast_t *parse_list() {
 		if (func != NULL && func->is_quote) {
 			quote_position = func->is_quote;
 		}
+	}
+	if (childast->type == ast_special_form) {
+		TODO("parse special form function\n");
 	}
 	fprintf(stderr, "quote_potition: %d\n", quote_position);
 	int args_count = 1;
@@ -723,7 +729,7 @@ static ast_t *parse_list() {
 	return ast;
 }
 
-static ast_t *parse_expression(int is_head_of_list, int is_quote) {
+static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 	get_next_token();
 	ast_t *ast = NULL;
 	if (token_type == tok_eof) {
@@ -740,21 +746,34 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 		ast->cons = new_bool(1);
 	} else if (token_type == tok_open) {
 		ast =  parse_list();
+	} else if (token_type == tok_quote) {
+		/* quote macro */
+		ast = new_ast(ast_list, -1);
+		get_next_token();
+		ast_t *funcast = new_ast(ast_static_func, -1);
+		funcast->cons = new_func("quote");
+		array_add(ast->a, funcast);
+		cons_t *cons = make_cons_tree2(0);
+		ast_t *childast = new_ast(ast_atom, cons->type);
+		childast->cons = cons;
+		array_add(ast->a, childast);
 	} else if (token_type == tok_symbol) {
 		ast = NULL;
 		if (is_head_of_list) {
-			//func_t *func = searchF(token_str);
-			//fprintf(stderr, "is_quote: %d, is_static: %d\n", func->is_quote, func->is_static);
-			//if (func != NULL && func->is_quote) {	
-			//	ast = new_ast(ast_atom, OPEN);
-			//	ast->cons = make_cons_tree(0);
-			//} else if (func != NULL && func->is_static) {
-				fprintf(stderr, "new_func: %s\n", token_str);
-				ast = new_ast(ast_static_func, -1);
-				ast->cons = new_func(token_str);
-			//}
-			TODO("user definited function\n");
+			func_t *func = searchF(token_str);
+			if (func != NULL && func->is_static) {
+				if (func->is_special_form) {
+					ast = new_ast(ast_special_form, -1);
+					ast->cons = new_func(token_str);
+				} else {
+					ast = new_ast(ast_static_func, -1);
+					ast->cons = new_func(token_str);
+				}
+			} else {
+				TODO("user definited function\n");
+			}
 		} else {
+			TODO("variable\n");
 			ast = new_ast(ast_variable, -1);
 			ast->cons = new_variable(token_str);
 		}
