@@ -614,28 +614,6 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-static cons_t *get_dot_right_side() {
-	get_next_token();
-	cons_t *cons = NULL;
-	if (token_type == tok_number) {
-		fprintf(stderr, "dot number: %d\n", token_int);
-		cons = new_int(token_int);
-	} else if (token_type == tok_T) {
-		cons = new_bool(1);
-	} else if (token_type == tok_nil) {
-		cons = new_bool(1);
-	} else if (token_type == tok_open) {
-		//cons = make_cons_tree(0);
-	} else {
-		EXCEPTION("Illegal type for right side of dot operator!!\n");
-	}
-	get_next_token();
-	if (token_type != tok_close) {
-		EXCEPTION("Excepted \')\'");
-	}
-	return cons;
-}
-
 static cons_t *make_cons_single_node(int is_head_of_list) {
 	cons_t *cons = NULL;
 	if (token_type == tok_number) {
@@ -661,12 +639,24 @@ static cons_t *make_cons_list() {
 	cons_t *tmp = cons;
 	cons_t *car = NULL;
 	int flag = 1;
+	get_next_token();
 	tmp->car = make_cons_tree2(1);
 	if (tmp->car == NULL) {
 		tmp = new_bool(0);
 		return tmp;
 	}
 	while (1) {
+		get_next_token();
+		if (token_type == tok_dot) {
+			get_next_token();
+			tmp->cdr = make_cons_tree2(0);
+			/* eat ')' */
+			get_next_token();
+			if (token_type != tok_close) {
+				EXCEPTION("Excepted \')\'!!\n");
+			}
+			break;
+		}
 		car = make_cons_tree2(0);
 		if (car == NULL) {
 			tmp->cdr = new_bool(0);
@@ -680,11 +670,8 @@ static cons_t *make_cons_list() {
 }
 
 static cons_t *make_cons_tree2(int is_head_of_list) {
-	get_next_token();
 	if (token_type == tok_open) {
 		return make_cons_list();
-	} else if (token_type == tok_dot) {
-		
 	} else {
 		return make_cons_single_node(is_head_of_list);
 	}
@@ -716,6 +703,8 @@ static ast_t *parse_list() {
 	while (1) {
 		if (args_count == quote_position) {
 			fprintf(stderr, "quote make_tree\n");
+			/* make_cons_tree2 must not eat any token */
+			get_next_token();
 			cons_t *cons = make_cons_tree2(0);
 			childast = new_ast(ast_atom, cons->type);
 			childast->cons = cons;
