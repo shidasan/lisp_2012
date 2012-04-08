@@ -103,6 +103,22 @@ static cons_t *list(cons_t ** vstack, int ARGC) {
 	return res;
 }
 
+static cons_t *length(cons_t **vstack, int ARGC) {
+	cons_t *cons = ARGS(vstack, 0);
+	if (cons->type != OPEN) {
+		EXCEPTION("Not a list!!\n");
+	}
+	int res = 0;
+	while (cons->type == OPEN) {
+		res++;
+		cons = cons->cdr;
+	}
+	if (cons->type != nil) {
+		EXCEPTION("Not a list!!\n");
+	}
+	return new_int(res);
+}
+
 static_mtd_data static_mtds[] = {
 	{"car", 1, 0, 0, car},
 	{"cdr", 1, 0, 0, cdr},
@@ -113,5 +129,6 @@ static_mtd_data static_mtds[] = {
 	{"/", -1, 0, 0, div},
 	{"quote", 1, 1, 1, quote},
 	{"list", -1, 0, 0, list},
+	{"length", 1, 0, 0, length},
 	{NULL, 0, 0, 0, NULL},
 };
