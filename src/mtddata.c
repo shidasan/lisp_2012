@@ -130,7 +130,7 @@ static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
 	} else {
 		res = eval(2, (opline_t*)array_get(a, 2), vstack);
 	}
-	fprintf(stderr, "res %p\n", res);
+	//fprintf(stderr, "res %p\n", res);
 	return res;
 }
 

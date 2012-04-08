@@ -229,6 +229,7 @@ int main (int argc, char* args[])
 				free(tmptmpstr);
 				tmptmpstr = NULL;
 			} else {
+				fprintf(stderr, "myreadline %p\n", myreadline);
 				tmpstr = myreadline(">>> ");
 			}
 			leftover = split_and_eval(argc, args, tmpstr);

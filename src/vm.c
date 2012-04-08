@@ -75,9 +75,11 @@ special_mtd:
 	cons = pc->op[0].cons;
 	array = pc->op[1].a;
 	func = searchF(cons->str);
-	args_num = array_size(array);
-	sp_value[-args_num] = func->special_mtd(sp_value, args_num, array);
-	sp_value -= (args_num - 1);
+	//args_num = array_size(array);
+	args_num = 0;
+	//sp_value[-args_num] = func->special_mtd(sp_value, args_num, array);
+	sp_value[-args_num] = func->special_mtd(sp_value, 0, array);
+	//sp_value -= (args_num - 1);
 	goto *((++pc)->instruction_ptr);
 
 mtdcheck:
