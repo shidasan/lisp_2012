@@ -94,7 +94,9 @@ int get_split_point(char *src, int start) {
 	}
 	return strlen(src);
 }
-
+int is_unexpected_input(char *str) {
+	return (strcmp(str, " ") != 0 && strcmp(str, "\n") != 0 && strcmp(str, "\0") != 0);
+}
 char *split_and_eval(int argc, char **args, char *tmpstr) {
 	int prev_point = 0;
 	int next_point = 0;
@@ -115,7 +117,12 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		}
 		int status;
 		if (strlen(str) > 0) {
-			status = parse_program(str);
+			status = -1;
+			if (strlen(str) > 0 && is_unexpected_input(str)) {
+				fprintf(stderr, "%d\n", str[0]);
+				fprintf(stderr, "start: %s, strlen: %d\n", str, strlen(str));
+				status = parse_program(str);
+			}
 			if (status == 0){
 				myadd_history(str);
 				cons_t *cons = (cons_t*)eval(argc + 1, memory + CurrentIndex, stack_value);
