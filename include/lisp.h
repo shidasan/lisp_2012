@@ -15,7 +15,7 @@
 #define DBG_P(STR)
 #endif
 /* PUSH, END, JMP, GOTO, RETURN, CALL */
-enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK};
+enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK, SPECIAL_MTD};
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol, tok_dot, tok_quote};
 enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
@@ -32,6 +32,7 @@ typedef struct static_mtd_data {
 	int is_special_form;
 	int is_quote;
 	cons_t *(*mtd)(cons_t**, int);
+	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
 } static_mtd_data;
 
 typedef struct AST{
@@ -52,7 +53,7 @@ extern void** table;
 
 extern static_mtd_data static_mtds[];
 /*hash.h*/
-struct func_t* setF (const char* str, int i , void* adr, int LengthRatio, int isStatic, int is_special_form, int is_quote);
+struct func_t* setF (const char* str, int i , void* adr, void* special_mtd, int LengthRatio, int isStatic, int is_special_form, int is_quote);
 struct variable_t* setV (const char* str, int LengthRatio);
 struct variable_t* searchV (char* str);
 struct func_t* searchF (char* str);
@@ -63,7 +64,7 @@ void codegen(ast_t *);
 int ParseProgram(char *);
 int parse_program(char *);
 /*eval.h*/
-cons_t* eval (int, register opline_t *, cons_t **);
+cons_t* eval (int, opline_t *, cons_t **);
 
 /* gc */
 #endif /*MAIN*/

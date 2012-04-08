@@ -46,6 +46,7 @@ typedef struct func_t{
 	union {
 		opline_t* adr;
 		cons_t *(*mtd)(cons_t**, int);
+		cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
 	};
 }func_t;
 

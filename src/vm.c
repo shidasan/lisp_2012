@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK"};
+const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK", "SPECIAL_MTD"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
-	while (pc->instruction != END) {
+	while (pc < memory + NextIndex-1) {
 		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
 		pc++;
 	}
 	fprintf(stdout, "op: END\n");
 }
-cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
+cons_t* eval (int i , opline_t* pc, cons_t **stack_value)
 {
     static void *table [] = {
         &&push,
@@ -44,6 +44,7 @@ cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
         &&setq,
 		&&mtdcall,
 		&&mtdcheck,
+		&&special_mtd,
     };
 
     if( i == 1 ){
@@ -56,17 +57,28 @@ cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
     cons_t *stack_arg[STACKSIZE];
     //cons_t *stack_value[STACKSIZE];
 
-    register cons_t** sp_value = stack_value;
-    register cons_t** sp_arg = stack_arg;
-    register opline_t** sp_adr = stack_adr;
+    cons_t** sp_value = stack_value;
+    cons_t** sp_arg = stack_arg;
+    opline_t** sp_adr = stack_adr;
     //register opline_t* pc = memory + CurrentIndex;
-    register int a = 0, args_num = 0; 
-    register struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
-	register cons_t *cons = NULL;
-	register func_t *func = NULL;
+    int a = 0, args_num = 0; 
+    struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
+	cons_t *cons = NULL;
+	func_t *func = NULL;
+	struct array_t *array = NULL;
 
 
     goto *(pc->instruction_ptr);
+
+special_mtd:
+	fprintf(stderr, "now special_mtd\n");
+	cons = pc->op[0].cons;
+	array = pc->op[1].a;
+	func = searchF(cons->str);
+	args_num = array_size(array);
+	sp_value[-args_num] = func->special_mtd(sp_value, args_num, array);
+	sp_value -= (args_num - 1);
+	goto *((++pc)->instruction_ptr);
 
 mtdcheck:
 	cons = pc->op[0].cons;
@@ -118,12 +130,14 @@ funcdef:
 	return NULL;
 
 end:
+	fprintf(stderr, "now end\n");
 	//if (stack_value[0] != 0) {
 	//	stack_value[0]->api->print(stack_value[0]);
 	//}
     return stack_value[0];
 
 push:
+	fprintf(stderr, "now push\n");
     //sp_value[0]->type = NUM;
 	//(sp_value)[0] = new_int(pc->op[0].ivalue);
 	sp_value[0] = pc->op[0].cons;

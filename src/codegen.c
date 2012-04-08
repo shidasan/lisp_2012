@@ -94,7 +94,7 @@ void GenerateDefun (AST* ast)
     memory[NextIndex].instruction = DEFUN;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
-    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0, 0, 0);
+    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0, 0, 0, 0);
     //printf("%s/n",p->name);
     memory[NextIndex - 1].op[1].svalue = p->name;
     free(ast->LHS);
@@ -234,7 +234,13 @@ static void new_opline(enum eINSTRUCTION e, cons_t *cons) {
 	NextIndex++;
 }
 
+static void new_opline_special_method(enum eINSTRUCTION e, cons_t *cons, struct array_t *a) {
+	new_opline(e, cons);
+	memory[NextIndex-1].op[1].a = a;
+}
+
 static void gen_atom(ast_t *ast) {
+	fprintf(stderr, "gen_atom: type = %d\n", ast->cons->type);
 	if (ast->sub_type == nil) {
 		new_opline(PUSH, ast->cons);
 	}
@@ -255,7 +261,6 @@ static void gen_static_func(ast_t *ast, int list_length) {
 	}
 	if (ast->type == ast_static_func) {
 		new_opline(MTDCALL, ast->cons);
-		printf("gen_static_func: %d\n", list_length);
 		memory[NextIndex-1].op[1].ivalue = list_length-1;
 	}
 }
@@ -277,23 +282,36 @@ static void gen_list(ast_t *ast) {
 	gen_static_func((ast_t *)array_get(ast->a, 0), array_size(ast->a));
 }
 
-static void gen_special_form(ast_t *ast, int list_length) {
-
+static void gen_special_form(ast_t *ast) {
+	int i = 1;
+	struct array_t *a = new_array();
+	opline_t *pc = memory + NextIndex;
+	new_opline_special_method(SPECIAL_MTD, ((ast_t *)array_get(ast->a, 0))->cons, a);
+	new_opline(END, NULL);
+	for (; i < array_size(ast->a); i++) {
+		array_add(a, memory + NextIndex);
+		ast_t *child_ast = (ast_t *)array_get(ast->a, i);
+		gen_expression(child_ast, array_size(ast->a));
+		if (i != array_size(ast->a)-1) {
+			new_opline(END, NULL);
+		}
+	}
 }
 
 static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
 	}
-	if (ast->type == ast_special_form) {
-		gen_special_form(ast, list_length);
-		return;
-	}
 	if (ast->type == ast_static_func) {
 		gen_mtd_check(ast, list_length);
 	}
 	if (ast->type == ast_list) {
-		gen_list(ast);
+		ast_t *ast0 = (ast_t *)array_get(ast->a, 0);
+		if (ast0->type == ast_special_form) {
+			gen_special_form(ast);
+		} else {
+			gen_list(ast);
+		}
 	}
 }
 

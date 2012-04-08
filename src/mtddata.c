@@ -118,21 +118,33 @@ static cons_t *length(cons_t **vstack, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *_if(cons_t **vstack, int ARGC) {
-
+static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
+	fprintf(stderr, "pc[0]: %p\n", array_get(a, 0));
+	fprintf(stderr, "pc[1]: %p\n", array_get(a, 1));
+	fprintf(stderr, "pc[2]: %p\n", array_get(a, 2));
+	cons_t *cons = eval(2, (opline_t*)array_get(a, 0), vstack);
+	cons_t *res = NULL;
+	fprintf(stderr, "cons_type: %d\n", cons->type);
+	if (cons->type != nil) {
+		res = eval(2, (opline_t*)array_get(a, 1), vstack);
+	} else {
+		res = eval(2, (opline_t*)array_get(a, 2), vstack);
+	}
+	fprintf(stderr, "res %p\n", res);
+	return res;
 }
 
 static_mtd_data static_mtds[] = {
-	{"car", 1, 0, 0, car},
-	{"cdr", 1, 0, 0, cdr},
-	{"cons", 2, 0, 0, cons},
-	{"+", -1, 0, 0, add},
-	{"-", -1, 0, 0, sub},
-	{"*", -1, 0, 0, mul},
-	{"/", -1, 0, 0, div},
-	{"quote", 1, 0, 1, quote},
-	{"list", -1, 0, 0, list},
-	{"length", 1, 0, 0, length},
-	{"if", 3, 1, 0, _if},
-	{NULL, 0, 0, 0, NULL},
+	{"car", 1, 0, 0, car, NULL},
+	{"cdr", 1, 0, 0, cdr, NULL},
+	{"cons", 2, 0, 0, cons, NULL},
+	{"+", -1, 0, 0, add, NULL},
+	{"-", -1, 0, 0, sub, NULL},
+	{"*", -1, 0, 0, mul, NULL},
+	{"/", -1, 0, 0, div, NULL},
+	{"quote", 1, 0, 1, quote, NULL},
+	{"list", -1, 0, 0, list, NULL},
+	{"length", 1, 0, 0, length, NULL},
+	{"if", 3, 1, 0, NULL, _if},
+	{NULL, 0, 0, 0, NULL, NULL},
 };

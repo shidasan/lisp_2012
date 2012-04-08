@@ -68,9 +68,9 @@ static char* readline(const char* prompt)
 
 void set_static_mtds() {
 	int i = 0;
-	while (static_mtds[i].mtd != NULL) {
+	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		setF(data->name, data->num_args, (void*)data->mtd, strlen(data->name), 1, data->is_special_form, data->is_quote);
+		setF(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, strlen(data->name), 1, data->is_special_form, data->is_quote);
 		i++;
 	}
 }

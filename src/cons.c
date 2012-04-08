@@ -111,7 +111,7 @@ cons_t *new_int(int n) {
 
 cons_t *new_bool(int n) {
 	cons_t *cons = new_cons_cell();
-	cons->type = nil;
+	cons->type = (n) ? T : nil;
 	cons->api = (n) ? &cons_T_api : &cons_nil_api;
 	return cons;
 }
