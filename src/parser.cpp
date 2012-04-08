@@ -71,7 +71,7 @@ int GetTok (void)
 		}
 		return tok_symbol;
     }
-    if (*current_char == '(' && !isdigit(*(current_char + 1))){
+    if (*current_char == '('){
         current_char++;
         return tok_open;
     } else if (*current_char == ')'){
@@ -606,37 +606,73 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
+static cons_t *make_cons_tree(int make_next_node, int is_head_of_list) {
+	get_next_token();
+	fprintf(stderr, "make_cons: %d, make_next_node, %d\n", token_type, make_next_node);
+	cons_t *cons = NULL;
+	if (token_type == tok_error) {
+		fprintf(stderr, "error in tokenizer!!\n");
+		cons = NULL;
+	} else if (token_type == tok_eof) {
+		cons = NULL;
+	} else if (token_type == tok_number) {
+		cons = new_int(token_int);
+	} else if (token_type == tok_open) {
+		cons = new_open();
+		cons->car = make_cons_tree(0, 1);
+	} else if (token_type == tok_close) {
+		cons = NULL;
+	} else if (token_type == tok_symbol) {
+		if (is_head_of_list) {
+			cons = new_func(token_str);
+		} else {
+			cons = new_variable(token_str);
+		}
+	}
+	if (cons != NULL && (make_next_node | cons->type == OPEN)) {
+		cons->cdr = make_cons_tree(make_next_node | cons->type == OPEN, 0);
+	}
+	return cons;
+}
+
 static ast_t *parse_expression(int is_head_of_list, int is_quote);
 
 static ast_t *parse_list() {
 	ast_t *ast = new_ast(ast_list, -1);
 	ast_t *childast = parse_expression(1, 0);
-	if (childast->type == ast_list_close) {
+	if (childast == NULL) {
 		ast_free(ast);
 		ast = new_ast(ast_atom, nil);
 		ast->cons = new_bool(0);
 		return ast;
 	}
 	array_add(ast->a, childast);
+	fprintf(stderr, "parse list: %s, strlen: %d\n", childast->cons->str, strlen(childast->cons->str));
 	func_t *func;
 	int quote_position = -1;
 	if (childast->type == ast_static_func) {
-		func = searchF(childast->str);
-		if (func->is_quote) {
+		func = searchF(childast->cons->str);
+		fprintf(stderr, "function: %p\n", func);
+		if (func != NULL && func->is_quote) {
 			quote_position = func->is_quote;
 		}
 	}
-	int args_count = 0;
+	fprintf(stderr, "quote_potition: %d\n", quote_position);
+	int args_count = 1;
 	while (1) {
 		if (args_count == quote_position) {
-			childast = parse_expression(0, 1);
+			fprintf(stderr, "quote make_tree\n");
+			cons_t *cons = make_cons_tree(0, 0);
+			fprintf(stderr, "asdf %d\n", cons->car->ivalue);
+			childast = new_ast(ast_atom, cons->type);
+			childast->cons = cons;
+			//childast = new_ast(ast_atom, OPEN);
+			//childast->cons = make_cons_tree(0, 0);
+			//childast = parse_expression(0, 1);
 		} else {
 			childast = parse_expression(0, 0);
 		}
 		if (childast == NULL) {
-			MSG("Illegal end of imput\n");
-		}
-		if (childast->type == ast_list_close) {
 			break;
 		}
 		array_add(ast->a, childast);
@@ -645,46 +681,28 @@ static ast_t *parse_list() {
 	return ast;
 }
 
-static cons_t *make_cons_tree() {
-	get_next_token();
-	cons_t *cons = new_cons_cell();
-	if (token_type == tok_eof) {
-		cons = NULL;
-	} else if (token_type == tok_number) {
-		cons->ivalue = token_int;
-	} else if (token_type == tok_open) {
-		cons->car = make_cons_tree();
-	} else if (token_type == tok_close) {
-		cons = NULL;
-	} else if (token_type == tok_symbol) {
-		cons->str = token_str;
-	}
-	if (cons != NULL) {
-		cons->cdr = make_cons_tree();
-	}
-}
-
 static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 	get_next_token();
 	ast_t *ast = NULL;
 	if (token_type == tok_eof) {
 	} else if (token_type == tok_number) {
-		ast_t *ast = new_ast(ast_atom, INT);
+		ast = new_ast(ast_atom, INT);
 		ast->cons = new_int(token_int);
 	} else if (token_type == tok_open) {
 		ast =  parse_list();
 	} else if (token_type == tok_symbol) {
-		ast_t *ast = NULL;
+		ast = NULL;
 		if (is_head_of_list) {
-			func_t *func = searchF(token_str);
-			if (func != NULL && func->is_quote) {	
-				ast = new_ast(ast_atom, LIST);
-				ast->cons = make_cons_tree();
-			} else if (func != NULL && func->is_static) {
+			//func_t *func = searchF(token_str);
+			//fprintf(stderr, "is_quote: %d, is_static: %d\n", func->is_quote, func->is_static);
+			//if (func != NULL && func->is_quote) {	
+			//	ast = new_ast(ast_atom, OPEN);
+			//	ast->cons = make_cons_tree(0);
+			//} else if (func != NULL && func->is_static) {
 				fprintf(stderr, "new_func: %s\n", token_str);
 				ast = new_ast(ast_static_func, -1);
 				ast->cons = new_func(token_str);
-			}
+			//}
 			TODO("user definited function\n");
 		} else {
 			ast = new_ast(ast_variable, -1);

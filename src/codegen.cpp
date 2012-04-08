@@ -244,28 +244,40 @@ static void gen_atom(ast_t *ast) {
 	if (ast->sub_type == INT) {
 		new_opline(PUSH, ast->cons);
 	}
+	if (ast->sub_type == OPEN) {
+		new_opline(PUSH, ast->cons);
+	}
 }
 
-static void gen_static_func(ast_t *ast) {
-	new_opline(STATICMTD, ast->cons);
+static void gen_static_func(ast_t *ast, int list_length) {
+	new_opline(MTDCALL, ast->cons);
+	printf("gen_static_func: %d\n", list_length);
+	memory[NextIndex-1].op[1].ivalue = list_length-1;
 }
 
-static void gen_expression(ast_t *ast);
+static void gen_mtd_check(ast_t *ast, int list_length) {
+	new_opline(MTDCHECK, ast->cons);
+	memory[NextIndex-1].op[1].ivalue = list_length-1;
+}
+
+static void gen_expression(ast_t *ast, int list_length);
 
 static void gen_list(ast_t *ast) {
 	int i = 0;
 	for (; i < array_size(ast->a); i++) {
 		ast_t *child_ast = (ast_t *)array_get(ast->a, i);
-		gen_expression(child_ast);
+		printf("gen_list: %d, childast->type: %d\n", i, child_ast->type);
+		gen_expression(child_ast, array_size(ast->a));
 	}
+	gen_static_func((ast_t *)array_get(ast->a, 0), array_size(ast->a));
 }
 
-static void gen_expression(ast_t *ast) {
+static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
 	}
 	if (ast->type == ast_static_func) {
-		gen_static_func(ast);
+		gen_mtd_check(ast, list_length);
 	}
 	if (ast->type == ast_list) {
 		gen_list(ast);
@@ -273,6 +285,6 @@ static void gen_expression(ast_t *ast) {
 }
 
 void codegen(ast_t *ast) {
-	gen_expression(ast);
+	gen_expression(ast, 0);
 	new_opline(END, NULL);
 }

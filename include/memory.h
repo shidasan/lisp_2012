@@ -44,7 +44,7 @@ typedef struct func_t{
 	int is_quote;
 	union {
 		opline_t* adr;
-		void (*mtd)(cons_t**, cons_t**);
+		cons_t *(*mtd)(cons_t**, int);
 	};
 }func_t;
 

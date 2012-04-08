@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ"};
+const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
-	//while (pc->instruction != END) {
-	//	fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
-	//	pc++;
-	//}
-	//fprintf(stdout, "op: END\n");
+	while (pc->instruction != END) {
+		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
+		pc++;
+	}
+	fprintf(stdout, "op: END\n");
 }
 cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
 {
@@ -42,7 +42,8 @@ cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
         &&narg,
         &&funcdef,
         &&setq,
-		&&staticmtd
+		&&mtdcall,
+		&&mtdcheck,
     };
 
     if( i == 1 ){
@@ -59,18 +60,37 @@ cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
     register cons_t** sp_arg = stack_arg;
     register opline_t** sp_adr = stack_adr;
     //register opline_t* pc = memory + CurrentIndex;
-    register int a = 0; 
+    register int a = 0, args_num = 0; 
     register struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
+	register cons_t *cons = NULL;
+	register func_t *func = NULL;
 
 
     goto *(pc->instruction_ptr);
 
-staticmtd:
-	func_t *func = searchF(pc->op[0].cons->str);
-	if (func->is_static) {
-		TODO("call static mtd\n");
-		func->mtd(NULL, NULL);
+mtdcheck:
+	cons = pc->op[0].cons;
+	args_num = pc->op[1].ivalue;
+	if (cons->type != FUNC) {
+		fprintf(stderr, "can't call method!!\n");
+		asm("int3");
 	}
+	func = searchF(cons->str);
+	if (func->value != -1 && func->value != args_num) {
+		fprintf(stderr, "argument length does not match!!\n");
+		fprintf(stderr, "correct number: %d, this time: %d\n", func->value, args_num);
+		asm("int3");
+	}
+	goto *((++pc)->instruction_ptr);
+	
+mtdcall:
+	cons = pc->op[0].cons;
+	args_num = pc->op[1].ivalue;
+	func = searchF(cons->str);
+	if (func->is_static) {
+		sp_value[-args_num] = func->mtd(sp_value, args_num);
+	}
+	sp_value -= (args_num - 1);
 	goto *((++pc)->instruction_ptr);
 
 plus:

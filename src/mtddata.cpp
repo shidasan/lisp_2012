@@ -1,35 +1,74 @@
 #include <stdio.h>
 #include "lisp.h"
-void car(cons_t** vstack, cons_t** argstack) {
+cons_t *car(cons_t** vstack, int ARGC) {
 
 }
 
-void cdr(cons_t** vstack, cons_t** argstack) {
+cons_t *cdr(cons_t** vstack, int ARGC) {
 
 }
 
-void cons(cons_t** vstack, cons_t** argstack) {
+cons_t *cons(cons_t** vstack, int ARGC) {
 
 }
 
-void list(cons_t** vstack, cons_t** argstack) {
+cons_t *list(cons_t** vstack, int ARGC) {
 
 }
 
-void add(cons_t** vstack, cons_t** argstack) {
-	TODO("implement add method\n");
+cons_t *add(cons_t** vstack, int ARGC) {
+	int i, res = 0;
+	for (i = 0; i < ARGC; i++) {
+		cons_t *cons = ARGS(vstack, i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!!\n");
+			asm("int3");
+		}
+		res += cons->ivalue;
+	}
+	return new_int(res);
 }
 
-void sub(cons_t** vstack, cons_t** argstack) {
+cons_t *sub(cons_t** vstack, int ARGC) {
+	int i, res = 0;
+	for (i = 0; i < ARGC; i++) {
+		cons_t *cons = ARGS(vstack, i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!!\n");
+			asm("int3");
+		}
+		if (i == 0) {
+			res = cons->ivalue;
+		} else {
+			res -= cons->ivalue;
+		}
+	}
+	return new_int(res);
+}
+
+cons_t *mul(cons_t** vstack, int ARGC) {
+	int i, res = 1;
+	for (i = 0; i < ARGC; i++) {
+		cons_t *cons = ARGS(vstack, i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!!\n");
+			asm("int3");
+		}
+		res *= cons->ivalue;
+	}
+	return new_int(res);
+}
+
+cons_t *div(cons_t** vstack, int ARGC) {
 
 }
 
-void mul(cons_t** vstack, cons_t** argstack) {
-
-}
-
-void div(cons_t** vstack, cons_t** argstack) {
-
+cons_t *quote(cons_t ** vstack, int ARGC) {
+	fprintf(stderr, "quote\n");
+	cons_t *cons = ARGS(vstack, 0);
+	fprintf(stderr, "argc, %d, 0: %p\n", ARGC, ARGS(vstack, 0));
+	fprintf(stderr, "cons->type: %d\n", cons->type);
+	return cons;
 }
 
 static_mtd_data static_mtds[] = {
@@ -41,5 +80,6 @@ static_mtd_data static_mtds[] = {
 	{"-", -1, 0, 0, sub},
 	{"*", -1, 0, 0, mul},
 	{"/", -1, 0, 0, div},
-	{NULL, 0, 0, 0, NULL}
+	{"quote", 1, 1, 1, quote},
+	{NULL, 0, 0, 0, NULL},
 };

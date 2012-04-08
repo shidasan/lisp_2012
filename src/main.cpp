@@ -34,7 +34,6 @@ static char *str_join(char *tmptmpstr, char *leftover) {
 	memcpy(tmpstr, leftover, strlen(leftover));
 	memcpy(tmpstr + strlen(leftover), tmptmpstr, sizeof(tmpstr));
 	tmpstr[strlen(tmptmpstr) + strlen(leftover)] = '\0';
-	fprintf(stderr, "join: %s\n",tmpstr);
 	return tmpstr;
 }
 static char* readline(const char* prompt)
@@ -122,6 +121,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 				cons_t *cons = (cons_t*)eval(argc + 1, memory + CurrentIndex, stack_value);
 				if (cons != NULL) {
 					CONS_PRINT(cons);
+					printf("\n");
 				}
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
 				/* ignore */
@@ -143,7 +143,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 	if (next_point == -1) {
 		leftover = (char*)malloc(strlen(tmpstr) - prev_point + 2);
 		memcpy(leftover, tmpstr + prev_point ,strlen(tmpstr) - prev_point + 1);
-		leftover[strlen(tmpstr) - prev_point] = '\n';
+		leftover[strlen(tmpstr) - prev_point] = ' ';
 		leftover[strlen(tmpstr) - prev_point + 1] = '\0';
 	}
 	return leftover;
@@ -211,7 +211,6 @@ int main (int argc, char* args[])
 			init_opline();
 			if (leftover != NULL) {
 				char *tmptmpstr = myreadline("    ");
-				fprintf(stderr, "leftover: %s\n", leftover);
 				tmpstr = str_join(tmptmpstr, leftover);
 				free(leftover);
 				leftover = NULL;

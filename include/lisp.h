@@ -4,7 +4,9 @@
 #include "config.h"
 #define STACKSIZE 1000
 #define INSTSIZE 100000
-#define TODO(STR) fprintf(stderr, "TODO: "); fprintf(stderr, (STR));
+#define ARGC _argc
+#define ARGS(STACK, N) (STACK)[(N) - (ARGC)]
+#define TODO(STR) fprintf(stderr, "TODO(%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR));
 
 #ifdef USE_DEBUG_MODE
 #define DBG_P(STR) fprintf(stderr, "Debug: ");fprintf(stderr, STR);
@@ -12,9 +14,9 @@
 #define DBG_P(STR)
 #endif
 /* PUSH, END, JMP, GOTO, RETURN, CALL */
-enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, STATICMTD};
+enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK};
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol};
-enum eTYPE { nil = 0, T = 1, NUM = 2, LIST = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
+enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable};
 
 void *array_get(struct array_t*, size_t);
@@ -28,7 +30,7 @@ typedef struct static_mtd_data {
 	int num_args;
 	int is_special_form;
 	int is_quote;
-	void (*mtd)(cons_t**, cons_t**);
+	cons_t *(*mtd)(cons_t**, int);
 } static_mtd_data;
 
 typedef struct AST{
