@@ -116,7 +116,7 @@ cons_t *new_bool(int n) {
 	return cons;
 }
 
-cons_t *new_func(char *str) {
+cons_t *new_func(const char *str) {
 	cons_t *cons = new_cons_cell();
 	cons->type = FUNC;
 	cons->api = &cons_func_api;

@@ -31,16 +31,16 @@ configure_file(
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 set(LISP_SRC
-		src/vm.cpp
-		src/codegen.cpp
-		src/hash.cpp
-		src/parser.cpp
-		src/mtddata.cpp
-		src/memory.cpp
-		src/cons.cpp
+		src/vm.c
+		src/codegen.c
+		src/hash.c
+		src/parser.c
+		src/mtddata.c
+		src/memory.c
+		src/cons.c
    )
-set(LISP_BIN src/main.cpp)
-set(GC_BIN src/memory.cpp)
+set(LISP_BIN src/main.c)
+set(GC_BIN src/memory.c)
 add_library(lisp ${LISP_SRC})
 add_executable(lisp ${LISP_BIN})
 #add_executable(gc_test ${GC_BIN})

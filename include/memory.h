@@ -5,7 +5,7 @@ typedef struct cons_t{
 	union {
 		int ivalue;
 		char* str;
-		cons_t *car;
+		struct cons_t *car;
 	};
 	/* also used as free list */
 	struct cons_t *cdr;
@@ -26,6 +26,7 @@ typedef struct opline_t{
         char* svalue; //unused
         struct opline_t* adr;
 		cons_t *cons;
+		struct array_t *a;
     }op[2];
 }opline_t;
 
@@ -72,12 +73,12 @@ cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
 cons_t *new_bool(int n);
-cons_t *new_func(char *str);
+cons_t *new_func(const char *str);
 cons_t *new_variable(char *str);
 cons_t *new_open();
 
-array_t *new_array();
-void array_free(array_t *a);
+struct array_t *new_array();
+void array_free(struct array_t *a);
 
 ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);

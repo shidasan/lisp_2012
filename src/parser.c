@@ -761,10 +761,10 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 			if (func != NULL && func->is_static) {
 				if (func->is_special_form) {
 					ast = new_ast(ast_special_form, -1);
-					ast->cons = new_func(token_str);
+					ast->cons = new_func((const char*)token_str);
 				} else {
 					ast = new_ast(ast_static_func, -1);
-					ast->cons = new_func(token_str);
+					ast->cons = new_func((const char*)token_str);
 				}
 			} else {
 				TODO("user definited function\n");
