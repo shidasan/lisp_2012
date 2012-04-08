@@ -120,7 +120,13 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 				myadd_history(str);
 				cons_t *cons = (cons_t*)eval(argc + 1, memory + CurrentIndex, stack_value);
 				if (cons != NULL) {
+					if (cons->type == OPEN) {
+						printf("(");
+					}
 					CONS_PRINT(cons);
+					if (cons->type == OPEN) {
+						printf(")");
+					}
 					printf("\n");
 				}
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {

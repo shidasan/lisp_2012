@@ -606,31 +606,45 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-static cons_t *make_cons_tree(int make_next_node, int is_head_of_list) {
+static cons_t *make_cons_tree(int is_head_of_list) {
 	get_next_token();
-	fprintf(stderr, "make_cons: %d, make_next_node, %d\n", token_type, make_next_node);
 	cons_t *cons = NULL;
 	if (token_type == tok_error) {
 		fprintf(stderr, "error in tokenizer!!\n");
-		cons = NULL;
+
 	} else if (token_type == tok_eof) {
-		cons = NULL;
+
 	} else if (token_type == tok_number) {
-		cons = new_int(token_int);
+		cons = new_open();
+		cons->car = new_int(token_int);
+	} else if (token_type = tok_nil) {
+		cons = new_open();
+		cons->car = new_bool(0);
+	} else if (token_type = tok_T) {
+		cons = new_open();
+		cons->car = new_bool(1);
 	} else if (token_type == tok_open) {
 		cons = new_open();
-		cons->car = make_cons_tree(0, 1);
+		cons->car = make_cons_tree(1);
 	} else if (token_type == tok_close) {
-		cons = NULL;
+
 	} else if (token_type == tok_symbol) {
 		if (is_head_of_list) {
-			cons = new_func(token_str);
+			cons = new_open();
+			cons->car = new_func(token_str);
 		} else {
-			cons = new_variable(token_str);
+			cons = new_open();
+			cons->car = new_variable(token_str);
 		}
 	}
-	if (cons != NULL && (make_next_node | cons->type == OPEN)) {
-		cons->cdr = make_cons_tree(make_next_node | cons->type == OPEN, 0);
+	if (cons == NULL) {
+		return NULL;
+	}
+	cons_t *cdr = make_cons_tree(0);
+	if (cdr == NULL) {
+		cons->cdr = new_bool(0);
+	} else {
+		cons->cdr = cdr;
 	}
 	return cons;
 }
@@ -647,7 +661,6 @@ static ast_t *parse_list() {
 		return ast;
 	}
 	array_add(ast->a, childast);
-	fprintf(stderr, "parse list: %s, strlen: %d\n", childast->cons->str, strlen(childast->cons->str));
 	func_t *func;
 	int quote_position = -1;
 	if (childast->type == ast_static_func) {
@@ -662,7 +675,7 @@ static ast_t *parse_list() {
 	while (1) {
 		if (args_count == quote_position) {
 			fprintf(stderr, "quote make_tree\n");
-			cons_t *cons = make_cons_tree(0, 0);
+			cons_t *cons = make_cons_tree(0)->car;
 			fprintf(stderr, "asdf %d\n", cons->car->ivalue);
 			childast = new_ast(ast_atom, cons->type);
 			childast->cons = cons;
@@ -688,6 +701,12 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote) {
 	} else if (token_type == tok_number) {
 		ast = new_ast(ast_atom, INT);
 		ast->cons = new_int(token_int);
+	} else if (token_type == tok_nil) {
+		ast = new_ast(ast_atom, nil);
+		ast->cons = new_bool(0);
+	} else if (token_type == tok_T) {
+		ast = new_ast(ast_atom, T);
+		ast->cons = new_bool(1);
 	} else if (token_type == tok_open) {
 		ast =  parse_list();
 	} else if (token_type == tok_symbol) {

@@ -3,10 +3,7 @@
 #include <stdlib.h>
 #include "lisp.h"
 static void print_T(cons_t *cons) {
-	printf("T\n");
-	if (cons->cdr != NULL) {
-		CONS_PRINT(cons->cdr);
-	}
+	printf("T");
 }
 
 static void free_T(cons_t *cons) {
@@ -18,10 +15,7 @@ static cons_t *eval_T(cons_t *cons) {
 }
 
 static void print_nil(cons_t *cons) {
-	printf("nil\n");
-	if (cons->cdr != NULL) {
-		CONS_PRINT(cons->cdr);
-	}
+	printf("nil");
 }
 
 static void free_nil(cons_t *cons) {
@@ -45,7 +39,7 @@ static cons_t *eval_i(cons_t *cons) {
 }
 
 static void print_func(cons_t *cons) {
-	TODO("print_func\n");
+	printf("%s", cons->str);
 }
 
 static void free_func(cons_t *cons) {
@@ -54,7 +48,6 @@ static void free_func(cons_t *cons) {
 
 static cons_t *eval_func(cons_t *cons) {
 	func_t *func = searchF(cons->str);
-	//return func->mtd(NULL, NULL);
 }
 
 static void print_variable(cons_t *cons) {
@@ -71,16 +64,22 @@ static cons_t *eval_variable(cons_t *cons) {
 
 static void print_open(cons_t *cons) {
 	cons_t *child = cons->car;
-	printf("(");
-	CONS_PRINT(child);
-	printf(" ");
-	while ((cons = cons->cdr) != NULL) {
-		CONS_PRINT(cons);
-		if (cons->cdr != NULL) {
-			printf(" ");
-		}
+	if (child->type == OPEN) {
+		printf("(");
 	}
-	printf(")");
+	CONS_PRINT(child);
+	if (cons->cdr->type == OPEN) {
+		printf(" ");
+		CONS_PRINT(cons->cdr);
+	} else if (cons->cdr->type == nil) {
+
+	} else {
+		printf(" . ");
+		CONS_PRINT(cons->cdr);
+	}
+	if (child->type == OPEN) {
+		printf(")");
+	}
 }
 
 static void free_open(cons_t *cons) {
