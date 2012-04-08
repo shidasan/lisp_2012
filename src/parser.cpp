@@ -696,7 +696,6 @@ static ast_t *parse_list() {
 	int quote_position = -1;
 	if (childast->type == ast_static_func) {
 		func = searchF(childast->cons->str);
-		fprintf(stderr, "function: %p\n", func);
 		if (func != NULL && func->is_quote) {
 			quote_position = func->is_quote;
 		}
@@ -704,11 +703,9 @@ static ast_t *parse_list() {
 	if (childast->type == ast_special_form) {
 		TODO("parse special form function\n");
 	}
-	fprintf(stderr, "quote_potition: %d\n", quote_position);
 	int args_count = 1;
 	while (1) {
 		if (args_count == quote_position) {
-			fprintf(stderr, "quote make_tree\n");
 			/* make_cons_tree2 must not eat any token */
 			get_next_token();
 			cons_t *cons = make_cons_tree2(0);

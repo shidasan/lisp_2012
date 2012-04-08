@@ -4,7 +4,7 @@
 static cons_t *car(cons_t** vstack, int ARGC) {
 	cons_t *cons = ARGS(vstack, 0);
 	if (cons->type != OPEN) {
-		fprintf(stderr, "excepted list!!\n");
+		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
 	}
 	return cons->car;
@@ -13,10 +13,9 @@ static cons_t *car(cons_t** vstack, int ARGC) {
 static cons_t *cdr(cons_t** vstack, int ARGC) {
 	cons_t *cons = ARGS(vstack, 0);
 	if (cons->type != OPEN) {
-		fprintf(stderr, "excepted list!!\n");
+		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
 	}
-	fprintf(stderr, "cdr type: %d, new car: %p\n", cons->type, cons->cdr->car);
 	return cons->cdr;
 }
 
@@ -131,7 +130,7 @@ static_mtd_data static_mtds[] = {
 	{"-", -1, 0, 0, sub},
 	{"*", -1, 0, 0, mul},
 	{"/", -1, 0, 0, div},
-	{"quote", 1, 1, 1, quote},
+	{"quote", 1, 0, 1, quote},
 	{"list", -1, 0, 0, list},
 	{"length", 1, 0, 0, length},
 	{"if", 3, 1, 0, _if},

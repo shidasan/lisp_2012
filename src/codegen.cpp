@@ -285,11 +285,12 @@ static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
 	}
-	if (ast->type == ast_static_func) {
-		gen_mtd_check(ast, list_length);
-	}
 	if (ast->type == ast_special_form) {
 		gen_special_form(ast, list_length);
+		return;
+	}
+	if (ast->type == ast_static_func) {
+		gen_mtd_check(ast, list_length);
 	}
 	if (ast->type == ast_list) {
 		gen_list(ast);

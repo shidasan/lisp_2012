@@ -69,7 +69,11 @@ static void print_open(cons_t *cons) {
 	}
 	CONS_PRINT(child);
 	if (cons->cdr->type == OPEN) {
-		printf(" ");
+		if (cons->cdr->cdr != NULL && cons->cdr->cdr->type != nil) {
+			printf(") . (");
+		} else {
+			printf(" ");
+		}
 		CONS_PRINT(cons->cdr);
 	} else if (cons->cdr->type == nil) {
 

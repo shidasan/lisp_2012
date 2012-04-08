@@ -50,7 +50,7 @@ cons_t* eval (int i , register opline_t* pc, cons_t **stack_value)
         return (cons_t*)table;
     }
 
-	//dump_vm();
+	dump_vm();
 
     opline_t* stack_adr[STACKSIZE];
     cons_t *stack_arg[STACKSIZE];
