@@ -30,7 +30,8 @@ typedef struct static_mtd_data {
 	const char *name;
 	int num_args;
 	int is_special_form;
-	int is_quote;
+	int is_quote0;
+	int is_quote1;
 	cons_t *(*mtd)(cons_t**, int);
 	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
 } static_mtd_data;
@@ -53,7 +54,7 @@ extern void** table;
 
 extern static_mtd_data static_mtds[];
 /*hash.h*/
-struct func_t* setF (const char* str, int i , void* adr, void* special_mtd, int LengthRatio, int isStatic, int is_special_form, int is_quote);
+struct func_t* setF (const char* str, int i , void* adr, void* special_mtd, int LengthRatio, int isStatic, int is_special_form, int *is_quote);
 struct variable_t* setV (const char* str, int LengthRatio);
 struct variable_t* searchV (char* str);
 struct func_t* searchF (char* str);

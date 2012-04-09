@@ -51,7 +51,7 @@ struct func_t* searchF (char* str)
     }
 }
 
-struct func_t* setF (const char* str,int i, void* adr, void *special_mtd, int LengthRatio, int is_static, int is_special_form, int is_quote)
+struct func_t* setF (const char* str,int i, void* adr, void *special_mtd, int LengthRatio, int is_static, int is_special_form, int *is_quote)
 {
 
     func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];

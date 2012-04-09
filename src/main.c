@@ -36,41 +36,12 @@ static char *str_join(char *tmptmpstr, char *leftover) {
 	tmpstr[strlen(tmptmpstr) + strlen(leftover)] = '\0';
 	return tmpstr;
 }
-static char* readline(const char* prompt)
-{
-	static int checkCTL = 0;
-	int ch, pos = 0;
-	static char linebuf[1024]; // THREAD-UNSAFE
-	fputs(prompt, stdout);
-	while((ch = fgetc(stdin)) != EOF) {
-		if(ch == '\r') continue;
-		if(ch == 27) {
-			/* ^[[A */;
-			fgetc(stdin); fgetc(stdin);
-			if(checkCTL == 0) {
-				fprintf(stdout, " - use readline, it provides better shell experience.\n");
-				checkCTL = 1;
-			}
-			continue;
-		}
-		if(ch == '\n' || pos == sizeof(linebuf) - 1) {
-			linebuf[pos] = 0;
-			break;
-		}
-		linebuf[pos] = ch;
-		pos++;
-	}
-	if(ch == EOF) return NULL;
-	char *p = (char*)malloc(pos+1);
-	memcpy(p, linebuf, pos+1);
-	return p;
-}
 
 void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		setF(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, strlen(data->name), 1, data->is_special_form, data->is_quote);
+		setF(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, strlen(data->name), 1, data->is_special_form, &(data->is_quote0));
 		i++;
 	}
 }
@@ -182,7 +153,7 @@ int main (int argc, char* args[])
 	set_static_mtds();
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
-	myreadline = (f != NULL) ? (char* (*)(const char*))f : readline;
+	myreadline = (f != NULL) ? (char* (*)(const char*))f : NULL;
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
 	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
 	StrSize = STRLEN;

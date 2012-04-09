@@ -167,19 +167,24 @@ static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
 	return res;
 }
 
+static cons_t *defun(cons_t **vstack, int ARGC, struct array_t *a) {
+
+}
+
 static_mtd_data static_mtds[] = {
-	{"car", 1, 0, 0, car, NULL},
-	{"cdr", 1, 0, 0, cdr, NULL},
-	{"cons", 2, 0, 0, cons, NULL},
-	{"+", -1, 0, 0, add, NULL},
-	{"-", -1, 0, 0, sub, NULL},
-	{"*", -1, 0, 0, mul, NULL},
-	{"/", -1, 0, 0, div, NULL},
-	{"<", -1, 0, 0, lt, NULL},
-	{">", -1, 0, 0, gt, NULL},
-	{"quote", 1, 0, 1, quote, NULL},
-	{"list", -1, 0, 0, list, NULL},
-	{"length", 1, 0, 0, length, NULL},
-	{"if", 3, 1, 0, NULL, _if},
-	{NULL, 0, 0, 0, NULL, NULL},
+	{"car", 1, 0, 0, 0, car, NULL},
+	{"cdr", 1, 0, 0, 0, cdr, NULL},
+	{"cons", 2, 0, 0, 0, cons, NULL},
+	{"+", -1, 0, 0, 0, add, NULL},
+	{"-", -1, 0, 0, 0, sub, NULL},
+	{"*", -1, 0, 0, 0, mul, NULL},
+	{"/", -1, 0, 0, 0, div, NULL},
+	{"<", -1, 0, 0, 0, lt, NULL},
+	{">", -1, 0, 0, 0, gt, NULL},
+	{"quote", 1, 0, 1, 1, quote, NULL},
+	{"list", -1, 0, 0, 0, list, NULL},
+	{"length", 1, 0, 0, 0, length, NULL},
+	{"if", 3, 0, 0, 0, NULL, _if},
+	{"defun", 0, 1, 1, 2, NULL, defun},
+	{NULL, 0, 0, 0, 0, NULL, NULL},
 };

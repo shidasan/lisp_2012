@@ -42,7 +42,7 @@ typedef struct func_t{
     int value; // size of argument (?)
 	int is_static; // cleared by bzero
 	int is_special_form;
-	int is_quote;
+	int *is_quote;
 	union {
 		opline_t* adr;
 		cons_t *(*mtd)(cons_t**, int);
