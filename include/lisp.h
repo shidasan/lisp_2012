@@ -55,10 +55,11 @@ extern void** table;
 
 extern static_mtd_data static_mtds[];
 /*hash.h*/
-struct func_t* setF (const char* str, int i , void* adr, void* special_mtd, int LengthRatio, int isStatic, int is_special_form, int *is_quote);
-struct cons_t* setV (cons_t *cons, cons_t *value);
-struct cons_t* searchV (char* str);
-struct func_t* searchF (char* str);
+struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote);
+struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args);
+struct cons_t* set_variable (cons_t *cons, cons_t *value);
+struct cons_t* search_variable (char* str);
+struct func_t* search_func (char* str);
 /*generator.h*/
 void GenerateProgram (AST*);
 void codegen(ast_t *);

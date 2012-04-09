@@ -44,10 +44,11 @@ typedef struct func_t{
 	int is_special_form;
 	int *is_quote;
 	union {
-		opline_t* adr;
+		struct array_t *opline_list;
 		cons_t *(*mtd)(cons_t**, int);
 		cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
 	};
+	cons_t *args;
 }func_t;
 
 typedef struct ast_t {

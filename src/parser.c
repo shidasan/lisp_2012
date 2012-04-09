@@ -248,7 +248,7 @@ AST* ParseDefun (void)
         FreeAST(ret);
         return NULL;
     }
-    p = setF(ret->s, ret->LHS->i, NULL, NULL, LengthRatio, 0, 0, 0);
+    p = set_static_func(ret->s, ret->LHS->i, NULL, NULL, 0, 0, 0);
 	/* overwriting static method */
 	if (p == NULL) {
 		PERROR
@@ -309,7 +309,7 @@ AST* ParseVariable (void)
             return ret;
         }
     }
-    if (searchV(token_str) != NULL){
+    if (search_variable(token_str) != NULL){
         ret = (AST*)malloc(sizeof(AST));
         ret->LHS = ret->RHS = ret->COND = NULL;
         ret->s = NULL;
@@ -373,7 +373,7 @@ AST* ParseOperation (int Tok,AST* pRHS)
         get_next_token(); // eat operator
         OpType = token_type;
         if (token_type == tok_symbol && (*current_char == ' ' || *current_char == ')' || *current_char == ',')){
-            p = searchF(token_str);
+            p = search_func(token_str);
             if (p != NULL){
                 ArgCount[ArgIndex] = 0;
                 fname = (char*)malloc(LengthRatio);
@@ -694,8 +694,10 @@ static ast_t *parse_list() {
 	array_add(ast->a, childast);
 	func_t *func;
 	int* quote_position = NULL;
-	if (childast->type == ast_static_func) {
-		func = searchF(childast->cons->str);
+	fprintf(stderr, "hi\n");
+	fprintf(stderr, "child: %d, ast_static_func: %d\n", childast->type, ast_static_func);
+	if (childast->type == ast_static_func || childast->type == ast_special_form) {
+		func = search_func(childast->cons->str);
 		if (func != NULL && func->is_quote[0]) {
 			quote_position = func->is_quote;
 			fprintf(stderr, "quote_position: %d, %d\n", quote_position[0], quote_position[1]);
@@ -755,20 +757,20 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 	} else if (token_type == tok_symbol) {
 		ast = NULL;
 		if (is_head_of_list) {
-			func_t *func = searchF(token_str);
+			func_t *func = search_func(token_str);
 			if (func != NULL && func->is_static) {
 				if (func->is_special_form) {
 					ast = new_ast(ast_special_form, -1);
 					ast->cons = new_func((const char*)token_str);
-				} else {
+				} else if (func->is_static) {
 					ast = new_ast(ast_static_func, -1);
 					ast->cons = new_func((const char*)token_str);
 				}
 			} else {
-				TODO("user definited function\n");
+				ast = new_ast(ast_func, -1);
+				ast->cons = new_func((const char*)token_str);
 			}
 		} else {
-			TODO("variable\n");
 			ast = new_ast(ast_variable, -1);
 			ast->cons = new_variable(token_str);
 		}

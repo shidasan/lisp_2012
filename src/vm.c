@@ -67,13 +67,14 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
 	cons_t *cons = NULL;
 	func_t *func = NULL;
 	struct array_t *array = NULL;
+	struct array_t *opline_list = NULL;
 
 
     goto *(pc->instruction_ptr);
 
 variable_push:
 	cons = pc->op[0].cons;
-	cons = searchV(cons->str);
+	cons = search_variable(cons->str);
 	if (cons == NULL) {
 		fprintf(stderr, "variable not found!!\n");
 	}
@@ -84,7 +85,7 @@ variable_push:
 special_mtd:
 	cons = pc->op[0].cons;
 	array = pc->op[1].a;
-	func = searchF(cons->str);
+	func = search_func(cons->str);
 	//args_num = array_size(array);
 	args_num = 0;
 	//sp_value[-args_num] = func->special_mtd(sp_value, args_num, array);
@@ -99,7 +100,7 @@ mtdcheck:
 		fprintf(stderr, "can't call method!!\n");
 		asm("int3");
 	}
-	func = searchF(cons->str);
+	func = search_func(cons->str);
 	if (func->value != -1 && func->value != args_num) {
 		fprintf(stderr, "argument length does not match!!\n");
 		fprintf(stderr, "correct number: %d, this time: %d\n", func->value, args_num);
@@ -110,9 +111,15 @@ mtdcheck:
 mtdcall:
 	cons = pc->op[0].cons;
 	args_num = pc->op[1].ivalue;
-	func = searchF(cons->str);
+	func = search_func(cons->str);
 	if (func->is_static) {
 		sp_value[-args_num] = func->mtd(sp_value, args_num);
+	} else {
+		opline_list = func->opline_list;
+		for (a = 0; a < array_size(opline_list); a++) {
+			cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+1);
+		}
+		sp_value[-args_num] = cons;
 	}
 	sp_value -= (args_num - 1);
 	goto *((++pc)->instruction_ptr);

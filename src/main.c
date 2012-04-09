@@ -41,7 +41,7 @@ void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		setF(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, strlen(data->name), 1, data->is_special_form, &(data->is_quote0));
+		set_static_func(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, 1, data->is_special_form, &(data->is_quote0));
 		i++;
 	}
 }
@@ -79,7 +79,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		str[next_point - prev_point + 1] = '\0';
 		prev_point = next_point + 1;
 		//str = tmpstr;
-		if (strncmp(str,"bye", 3) == 0){
+		if (strncmp(str,"exit", 3) == 0){
 			printf("bye\n");
 			free(str);
 			free(tmpstr);

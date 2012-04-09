@@ -47,7 +47,7 @@ static void free_func(cons_t *cons) {
 }
 
 static cons_t *eval_func(cons_t *cons) {
-	func_t *func = searchF(cons->str);
+	func_t *func = search_func(cons->str);
 }
 
 static void print_variable(cons_t *cons) {

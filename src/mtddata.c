@@ -150,6 +150,9 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 
 static cons_t *length(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
+	if (cons->type == nil) {
+		return new_int(0);
+	}
 	if (cons->type != OPEN) {
 		EXCEPTION("Not a list!!\n");
 	}
@@ -176,7 +179,19 @@ static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 }
 
 static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
-	TODO("defun\n");
+	cons_t *fcons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	cons_t *args = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
+	//struct array_t *opline = (struct array_t*)array_get(a, 2);
+	int i = 2;
+	struct array_t *opline_list = new_array();
+	for (; i < array_size(a); i++) {
+		array_add(opline_list, array_get(a, i));
+	}
+	fprintf(stderr, "array_size: %d\n", array_size(opline_list));
+	VSTACK[1] = args;
+	int argc = length(VSTACK+1, 1)->ivalue;
+	set_func(fcons, opline_list, argc, args);
+	return fcons;
 }
 
 static cons_t *setq(cons_t **VSTACK, int ARGC) {
@@ -185,7 +200,7 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 	if (variable->type != VARIABLE || value->type == VARIABLE || value->type == FUNC) {
 		EXCEPTION("Not a atom!!\n");
 	}
-	setV(variable, value);
+	set_variable(variable, value);
 	return value;
 }
 

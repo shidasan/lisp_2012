@@ -52,7 +52,7 @@ void GenerateIf (AST* ast, int i, char* str)
     if (i != 1){
         memory[NextIndex].instruction = END;
     } else {
-        p = searchF(str);
+        p = search_func(str);
         if (p->value <= 1){
             memory[NextIndex].instruction = RETURN;
         } else {
@@ -94,7 +94,7 @@ void GenerateDefun (AST* ast)
     memory[NextIndex].instruction = DEFUN;
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
-    func_t* p = setF (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0, 0, 0, 0);
+    func_t* p = set_static_func (ast->s, ast->LHS->i, &memory[NextIndex], 0, 0, 0, 0);
     //printf("%s/n",p->name);
     memory[NextIndex - 1].op[1].svalue = p->name;
     free(ast->LHS);
@@ -130,7 +130,7 @@ void GenerateFunc (AST* ast, int i)
 {
     AST* temp = ast;
     AST* temp1 = NULL;
-    func_t* p = searchF(ast->s);
+    func_t* p = search_func(ast->s);
     free(ast->s);
     int count = p->value;
     while (1){
@@ -141,7 +141,7 @@ void GenerateFunc (AST* ast, int i)
             NextIndex++;
             //printf("goto\n");
             memory[NextIndex].instruction = GOTO;
-            memory[NextIndex].op[0].adr = p->adr;
+            //memory[NextIndex].op[0].adr = p->adr;
             memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
             NextIndex++;
             break;
@@ -149,7 +149,7 @@ void GenerateFunc (AST* ast, int i)
             Generate(temp->RHS, i, null);
             //printf("goto\n");
             memory[NextIndex].instruction = GOTO;
-            memory[NextIndex].op[0].adr = p->adr;
+            //memory[NextIndex].op[0].adr = p->adr;
             memory[NextIndex].op[1].ivalue = p->value;
             memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
             NextIndex++;
@@ -158,7 +158,7 @@ void GenerateFunc (AST* ast, int i)
             Generate(temp->LHS, i, null);
             Generate(temp->RHS, i, null);
             memory[NextIndex].instruction = NGOTO;
-            memory[NextIndex].op[0].adr = p->adr;
+            //memory[NextIndex].op[0].adr = p->adr;
             memory[NextIndex].op[1].ivalue = p->value;
             memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
             NextIndex++;
@@ -264,6 +264,9 @@ static void gen_static_func(ast_t *ast, int list_length) {
 	if (ast->type == ast_static_func) {
 		new_opline(MTDCALL, ast->cons);
 		memory[NextIndex-1].op[1].ivalue = list_length-1;
+	} else if (ast->type == ast_func) {
+		new_opline(MTDCALL, ast->cons);
+		memory[NextIndex-1].op[1].ivalue = list_length-1;
 	}
 }
 
@@ -306,7 +309,7 @@ static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_variable) {
 		gen_variable(ast);
 	}
-	if (ast->type == ast_static_func) {
+	if (ast->type == ast_static_func || ast->type == ast_func) {
 		gen_mtd_check(ast, list_length);
 	}
 	if (ast->type == ast_list) {
