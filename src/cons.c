@@ -63,26 +63,37 @@ static cons_t *eval_variable(cons_t *cons) {
 }
 
 static void print_open(cons_t *cons) {
-	cons_t *child = cons->car;
-	if (child->type == OPEN) {
+	cons_t *car = cons->car;
+	cons_t *cdr = cons->cdr;
+	if (car->type == OPEN) {
 		printf("(");
 	}
-	CONS_PRINT(child);
-	if (cons->cdr->type == OPEN) {
-		if (cons->cdr->cdr != NULL && cons->cdr->cdr->type != nil) {
-			printf(") . (");
-		} else {
-			printf(" ");
-		}
-		CONS_PRINT(cons->cdr);
-	} else if (cons->cdr->type == nil) {
-
-	} else {
-		printf(" . ");
-		CONS_PRINT(cons->cdr);
-	}
-	if (child->type == OPEN) {
+	CONS_PRINT(car);
+	if (car->type == OPEN) {
 		printf(")");
+	}
+	if (cdr->type == OPEN) {
+		if (cdr->type != nil) {
+			printf(" ");
+			if (cdr->car->type == OPEN) {
+				printf("(");
+			}
+			CONS_PRINT(cons->cdr);
+			if (cdr->car->type == OPEN) {
+				printf(")");
+			}
+		}
+	} else {
+		if (cdr->type != nil) {
+			printf(" . ");
+			if (cdr->type == OPEN) {
+				printf("(");
+			}
+			CONS_PRINT(cons->cdr);
+			if (cdr->type == OPEN) {
+				printf(")");
+			}
+		}
 	}
 }
 
