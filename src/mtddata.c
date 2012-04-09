@@ -1,6 +1,19 @@
 #include <stdio.h>
 #include "lisp.h"
 
+static cons_t *print(cons_t **vstack, int ARGC) {
+	cons_t *cons = ARGS(vstack, 0);
+	if (cons->type == OPEN) {
+		printf("(");
+	}
+	CONS_PRINT(cons);
+	if (cons->type == OPEN) {
+		printf(")");
+	}
+	printf("\n");
+	return cons;
+}
+
 static cons_t *car(cons_t** vstack, int ARGC) {
 	cons_t *cons = ARGS(vstack, 0);
 	if (cons->type != OPEN) {
@@ -168,10 +181,11 @@ static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
 }
 
 static cons_t *defun(cons_t **vstack, int ARGC, struct array_t *a) {
-
+	TODO("defun\n");
 }
 
 static_mtd_data static_mtds[] = {
+	{"print", 1, 0, 0, 0, print, NULL},
 	{"car", 1, 0, 0, 0, car, NULL},
 	{"cdr", 1, 0, 0, 0, cdr, NULL},
 	{"cons", 2, 0, 0, 0, cons, NULL},
@@ -185,6 +199,6 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, length, NULL},
 	{"if", 3, 0, 0, 0, NULL, _if},
-	{"defun", 0, 1, 1, 2, NULL, defun},
+	{"defun", -1, 1, 1, 2, NULL, defun},
 	{NULL, 0, 0, 0, 0, NULL, NULL},
 };
