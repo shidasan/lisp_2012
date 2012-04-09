@@ -165,18 +165,13 @@ static cons_t *length(cons_t **VSTACK, int ARGC) {
 }
 
 static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
-	fprintf(stderr, "pc[0]: %p\n", array_get(a, 0));
-	fprintf(stderr, "pc[1]: %p\n", array_get(a, 1));
-	fprintf(stderr, "pc[2]: %p\n", array_get(a, 2));
 	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *res = NULL;
-	fprintf(stderr, "cons_type: %d\n", cons->type);
 	if (cons->type != nil) {
 		res = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	} else {
 		res = vm_exec(2, (opline_t*)array_get(a, 2), VSTACK);
 	}
-	//fprintf(stderr, "res %p\n", res);
 	return res;
 }
 
@@ -185,11 +180,8 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 }
 
 static cons_t *setq(cons_t **VSTACK, int ARGC) {
-	TODO("setq\n");
-	fprintf(stderr, "argc, %d\n", ARGC);
 	cons_t *variable = ARGS(0);
 	cons_t *value = ARGS(1);
-	fprintf(stderr, "variable: %p, str: %s\n", variable, variable->str);
 	setV(variable, value);
 	return value;
 }

@@ -77,7 +77,6 @@ variable_push:
 	if (cons == NULL) {
 		fprintf(stderr, "variable not found!!\n");
 	}
-	fprintf(stderr, "value: %p\n", cons);
 	sp_value[0] = cons;
 	sp_value++;
 	goto *((++pc)->instruction_ptr);
