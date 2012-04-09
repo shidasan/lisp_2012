@@ -10,7 +10,7 @@ static void dump_vm() {
 	}
 	fprintf(stdout, "op: END\n");
 }
-cons_t* eval (int i , opline_t* pc, cons_t **stack_value)
+cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
 {
     static void *table [] = {
         &&push,

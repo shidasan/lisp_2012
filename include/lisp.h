@@ -64,7 +64,7 @@ void codegen(ast_t *);
 int ParseProgram(char *);
 int parse_program(char *);
 /*eval.h*/
-cons_t* eval (int, opline_t *, cons_t **);
+cons_t* vm_exec (int, opline_t *, cons_t **);
 
 /* gc */
 #endif /*MAIN*/

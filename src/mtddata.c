@@ -75,11 +75,44 @@ static cons_t *div(cons_t** vstack, int ARGC) {
 
 }
 
+static cons_t *lt(cons_t** vstack, int ARGC) {
+	int i;
+	int current_number = ARGS(vstack, 0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(vstack, i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number >= next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
+static cons_t *gt(cons_t** vstack, int ARGC) {
+	int i;
+	int current_number = ARGS(vstack, 0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(vstack, i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number <= next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
 static cons_t *quote(cons_t ** vstack, int ARGC) {
-	fprintf(stderr, "quote\n");
 	cons_t *cons = ARGS(vstack, 0);
-	fprintf(stderr, "argc, %d, 0: %p\n", ARGC, ARGS(vstack, 0));
-	fprintf(stderr, "cons->type: %d\n", cons->type);
 	return cons;
 }
 
@@ -122,13 +155,13 @@ static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
 	fprintf(stderr, "pc[0]: %p\n", array_get(a, 0));
 	fprintf(stderr, "pc[1]: %p\n", array_get(a, 1));
 	fprintf(stderr, "pc[2]: %p\n", array_get(a, 2));
-	cons_t *cons = eval(2, (opline_t*)array_get(a, 0), vstack);
+	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), vstack);
 	cons_t *res = NULL;
 	fprintf(stderr, "cons_type: %d\n", cons->type);
 	if (cons->type != nil) {
-		res = eval(2, (opline_t*)array_get(a, 1), vstack);
+		res = vm_exec(2, (opline_t*)array_get(a, 1), vstack);
 	} else {
-		res = eval(2, (opline_t*)array_get(a, 2), vstack);
+		res = vm_exec(2, (opline_t*)array_get(a, 2), vstack);
 	}
 	//fprintf(stderr, "res %p\n", res);
 	return res;
@@ -142,6 +175,8 @@ static_mtd_data static_mtds[] = {
 	{"-", -1, 0, 0, sub, NULL},
 	{"*", -1, 0, 0, mul, NULL},
 	{"/", -1, 0, 0, div, NULL},
+	{"<", -1, 0, 0, lt, NULL},
+	{">", -1, 0, 0, gt, NULL},
 	{"quote", 1, 0, 1, quote, NULL},
 	{"list", -1, 0, 0, list, NULL},
 	{"length", 1, 0, 0, length, NULL},

@@ -123,7 +123,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			}
 			if (status == 0){
 				myadd_history(str);
-				cons_t *cons = (cons_t*)eval(argc + 1, memory + CurrentIndex, stack_value);
+				cons_t *cons = (cons_t*)vm_exec(argc + 1, memory + CurrentIndex, stack_value);
 				if (cons != NULL) {
 					if (cons->type == OPEN) {
 						printf("(");
@@ -166,7 +166,7 @@ int main (int argc, char* args[])
 	int StrSize = STRLEN;
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
-	table = (void**)eval(1, NULL, NULL);
+	table = (void**)vm_exec(1, NULL, NULL);
 	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
