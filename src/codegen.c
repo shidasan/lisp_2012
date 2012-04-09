@@ -69,7 +69,7 @@ void GenerateIf (AST* ast, int i, char* str)
 void GenerateSetq (AST* ast,int i)
 {
     variable_t* p;
-    p = searchV (ast->s);
+    //p = searchV (ast->s);
     free(ast->s);
     Generate (ast->LHS, i, null);
     //printf("setq\n");
@@ -83,7 +83,7 @@ void GenerateVariable (AST* ast)
 {
     //printf("variable\n");
     memory[NextIndex].instruction = PUSH;
-    memory[NextIndex].op[0].ivalue = searchV(ast->s)->value;
+    //memory[NextIndex].op[0].ivalue = searchV(ast->s)->value;
     free(ast->s);
     memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
     NextIndex++;
@@ -240,18 +240,21 @@ static void new_opline_special_method(enum eINSTRUCTION e, cons_t *cons, struct 
 }
 
 static void gen_atom(ast_t *ast) {
-	if (ast->sub_type == nil) {
-		new_opline(PUSH, ast->cons);
+	switch (ast->type) {
+		case nil:
+		case VARIABLE:
+		case T:
+		case INT:
+		case OPEN:
+			new_opline(PUSH, ast->cons);
+			break;
+		default:
+			TODO("atom codegen\n");
 	}
-	if (ast->sub_type == T) {
-		new_opline(PUSH, ast->cons);
-	}
-	if (ast->sub_type == INT) {
-		new_opline(PUSH, ast->cons);
-	}
-	if (ast->sub_type == OPEN) {
-		new_opline(PUSH, ast->cons);
-	}
+}
+
+static void gen_variable(ast_t *ast) {
+	new_opline(VARIABLE_PUSH, ast->cons);
 }
 
 static void gen_static_func(ast_t *ast, int list_length) {
@@ -299,6 +302,9 @@ static void gen_special_form(ast_t *ast) {
 static void gen_expression(ast_t *ast, int list_length) {
 	if (ast->type == ast_atom) {
 		gen_atom(ast);
+	}
+	if (ast->type == ast_variable) {
+		gen_variable(ast);
 	}
 	if (ast->type == ast_static_func) {
 		gen_mtd_check(ast, list_length);

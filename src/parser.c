@@ -291,7 +291,7 @@ AST* ParseSetq (void)
         FreeAST(ret);
         return NULL;
     }
-    setV(ret->s,LengthRatio);
+    //setV(ret->s,LengthRatio);
     return ret;
 }
 
@@ -711,9 +711,6 @@ static ast_t *parse_list() {
 			cons_t *cons = make_cons_tree2(0);
 			childast = new_ast(ast_atom, cons->type);
 			childast->cons = cons;
-			//childast = new_ast(ast_atom, OPEN);
-			//childast->cons = make_cons_tree(0, 0);
-			//childast = parse_expression(0, 1);
 		} else {
 			childast = parse_expression(0, 0);
 		}

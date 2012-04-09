@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "lisp.h"
 
-static cons_t *print(cons_t **vstack, int ARGC) {
-	cons_t *cons = ARGS(vstack, 0);
+static cons_t *print(cons_t **VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
 	if (cons->type == OPEN) {
 		printf("(");
 	}
@@ -14,8 +14,8 @@ static cons_t *print(cons_t **vstack, int ARGC) {
 	return cons;
 }
 
-static cons_t *car(cons_t** vstack, int ARGC) {
-	cons_t *cons = ARGS(vstack, 0);
+static cons_t *car(cons_t** VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
 	if (cons->type != OPEN) {
 		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
@@ -23,8 +23,8 @@ static cons_t *car(cons_t** vstack, int ARGC) {
 	return cons->car;
 }
 
-static cons_t *cdr(cons_t** vstack, int ARGC) {
-	cons_t *cons = ARGS(vstack, 0);
+static cons_t *cdr(cons_t** VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
 	if (cons->type != OPEN) {
 		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
@@ -32,19 +32,19 @@ static cons_t *cdr(cons_t** vstack, int ARGC) {
 	return cons->cdr;
 }
 
-static cons_t *cons(cons_t** vstack, int ARGC) {
-	cons_t *car = ARGS(vstack, 0);
-	cons_t *cdr = ARGS(vstack, 1);
+static cons_t *cons(cons_t** VSTACK, int ARGC) {
+	cons_t *car = ARGS(0);
+	cons_t *cdr = ARGS(1);
 	cons_t *cons = new_open();
 	cons->car = car;
 	cons->cdr = cdr;
 	return cons;
 }
 
-static cons_t *add(cons_t** vstack, int ARGC) {
+static cons_t *add(cons_t** VSTACK, int ARGC) {
 	int i, res = 0;
 	for (i = 0; i < ARGC; i++) {
-		cons_t *cons = ARGS(vstack, i);
+		cons_t *cons = ARGS(i);
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
@@ -54,10 +54,10 @@ static cons_t *add(cons_t** vstack, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *sub(cons_t** vstack, int ARGC) {
+static cons_t *sub(cons_t** VSTACK, int ARGC) {
 	int i, res = 0;
 	for (i = 0; i < ARGC; i++) {
-		cons_t *cons = ARGS(vstack, i);
+		cons_t *cons = ARGS(i);
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
@@ -71,10 +71,10 @@ static cons_t *sub(cons_t** vstack, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *mul(cons_t** vstack, int ARGC) {
+static cons_t *mul(cons_t** VSTACK, int ARGC) {
 	int i, res = 1;
 	for (i = 0; i < ARGC; i++) {
-		cons_t *cons = ARGS(vstack, i);
+		cons_t *cons = ARGS(i);
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
@@ -84,15 +84,15 @@ static cons_t *mul(cons_t** vstack, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *div(cons_t** vstack, int ARGC) {
+static cons_t *div(cons_t** VSTACK, int ARGC) {
 
 }
 
-static cons_t *lt(cons_t** vstack, int ARGC) {
+static cons_t *lt(cons_t** VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(vstack, 0)->ivalue;
+	int current_number = ARGS(0)->ivalue;
 	for (i = 1; i < ARGC; i++) {
-		cons_t *cons = ARGS(vstack, i);
+		cons_t *cons = ARGS(i);
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
@@ -106,11 +106,11 @@ static cons_t *lt(cons_t** vstack, int ARGC) {
 	return new_bool(1);
 }
 
-static cons_t *gt(cons_t** vstack, int ARGC) {
+static cons_t *gt(cons_t** VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(vstack, 0)->ivalue;
+	int current_number = ARGS(0)->ivalue;
 	for (i = 1; i < ARGC; i++) {
-		cons_t *cons = ARGS(vstack, i);
+		cons_t *cons = ARGS(i);
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
@@ -124,12 +124,12 @@ static cons_t *gt(cons_t** vstack, int ARGC) {
 	return new_bool(1);
 }
 
-static cons_t *quote(cons_t ** vstack, int ARGC) {
-	cons_t *cons = ARGS(vstack, 0);
+static cons_t *quote(cons_t ** VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
 	return cons;
 }
 
-static cons_t *list(cons_t ** vstack, int ARGC) {
+static cons_t *list(cons_t ** VSTACK, int ARGC) {
 	int i;
 	if (ARGC == 0) {
 		return new_bool(0);
@@ -137,7 +137,7 @@ static cons_t *list(cons_t ** vstack, int ARGC) {
 	cons_t *res = new_open();
 	cons_t *tmp = res;
 	for (i = 0; i < ARGC; i++) {
-		tmp->car = ARGS(vstack, i);
+		tmp->car = ARGS(i);
 		if (i == ARGC - 1) {
 			tmp->cdr = new_bool(0);
 		} else {
@@ -148,8 +148,8 @@ static cons_t *list(cons_t ** vstack, int ARGC) {
 	return res;
 }
 
-static cons_t *length(cons_t **vstack, int ARGC) {
-	cons_t *cons = ARGS(vstack, 0);
+static cons_t *length(cons_t **VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
 	if (cons->type != OPEN) {
 		EXCEPTION("Not a list!!\n");
 	}
@@ -164,24 +164,34 @@ static cons_t *length(cons_t **vstack, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *_if(cons_t **vstack, int ARGC, struct array_t *a) {
+static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	fprintf(stderr, "pc[0]: %p\n", array_get(a, 0));
 	fprintf(stderr, "pc[1]: %p\n", array_get(a, 1));
 	fprintf(stderr, "pc[2]: %p\n", array_get(a, 2));
-	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), vstack);
+	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *res = NULL;
 	fprintf(stderr, "cons_type: %d\n", cons->type);
 	if (cons->type != nil) {
-		res = vm_exec(2, (opline_t*)array_get(a, 1), vstack);
+		res = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	} else {
-		res = vm_exec(2, (opline_t*)array_get(a, 2), vstack);
+		res = vm_exec(2, (opline_t*)array_get(a, 2), VSTACK);
 	}
 	//fprintf(stderr, "res %p\n", res);
 	return res;
 }
 
-static cons_t *defun(cons_t **vstack, int ARGC, struct array_t *a) {
+static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	TODO("defun\n");
+}
+
+static cons_t *setq(cons_t **VSTACK, int ARGC) {
+	TODO("setq\n");
+	fprintf(stderr, "argc, %d\n", ARGC);
+	cons_t *variable = ARGS(0);
+	cons_t *value = ARGS(1);
+	fprintf(stderr, "variable: %p, str: %s\n", variable, variable->str);
+	setV(variable, value);
+	return value;
 }
 
 static_mtd_data static_mtds[] = {
@@ -200,5 +210,6 @@ static_mtd_data static_mtds[] = {
 	{"length", 1, 0, 0, 0, length, NULL},
 	{"if", 3, 0, 0, 0, NULL, _if},
 	{"defun", -1, 1, 1, 2, NULL, defun},
+	{"setq", 2, 0, 1, 0, setq, NULL},
 	{NULL, 0, 0, 0, 0, NULL, NULL},
 };

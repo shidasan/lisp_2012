@@ -5,7 +5,8 @@
 #define STACKSIZE 1000
 #define INSTSIZE 100000
 #define ARGC _argc
-#define ARGS(STACK, N) (STACK)[(N) - (ARGC)]
+#define VSTACK _vstack
+#define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR));
 #define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));
 
@@ -15,7 +16,7 @@
 #define DBG_P(STR)
 #endif
 /* PUSH, END, JMP, GOTO, RETURN, CALL */
-enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK, SPECIAL_MTD};
+enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK, SPECIAL_MTD, VARIABLE_PUSH};
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol, tok_dot, tok_quote};
 enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
@@ -55,8 +56,8 @@ extern void** table;
 extern static_mtd_data static_mtds[];
 /*hash.h*/
 struct func_t* setF (const char* str, int i , void* adr, void* special_mtd, int LengthRatio, int isStatic, int is_special_form, int *is_quote);
-struct variable_t* setV (const char* str, int LengthRatio);
-struct variable_t* searchV (char* str);
+struct cons_t* setV (cons_t *cons, cons_t *value);
+struct cons_t* searchV (char* str);
 struct func_t* searchF (char* str);
 /*generator.h*/
 void GenerateProgram (AST*);

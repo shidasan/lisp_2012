@@ -3,16 +3,18 @@
 #include <stdio.h>
 #include"lisp.h"
 
-struct variable_t* setV (const char* str,int LengthRatio)
+struct cons_t* setV (cons_t *cons, cons_t *value/*const char* str,int LengthRatio*/)
 {
+	const char *str = cons->str;
     variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
     while (1){
         if (p->name == NULL || strcmp(p->name,str) == 0){
-            if (p->name == NULL){
-                p->name = (char*)malloc(LengthRatio);
-            }
+			if (p->name == NULL) {
+				p->name = (char*)malloc(strlen(str));
+			}
             strcpy (p->name, str);
-            return p;
+			p->cons = value;
+            return p->cons;
         } else if (p->next == NULL){
             p->next = (variable_t*)malloc(sizeof(variable_t));
 			bzero(p->next, sizeof(variable_t));
@@ -23,12 +25,12 @@ struct variable_t* setV (const char* str,int LengthRatio)
     }
 }
 
-struct variable_t* searchV (char* str)
+struct cons_t* searchV (char* str)
 {
     struct variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
     while (1){
         if (p->name != NULL && strcmp (p->name, str) == 0){
-            return p;
+            return p->cons;
         } else if (p->next != NULL){
             p = p->next;
         } else {

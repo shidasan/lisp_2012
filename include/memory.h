@@ -33,7 +33,7 @@ typedef struct opline_t{
 typedef struct variable_t{
     char* name;
     struct variable_t* next;
-    int value;
+	cons_t *cons;
 }variable_t;
 
 typedef struct func_t{
