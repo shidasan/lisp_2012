@@ -698,6 +698,7 @@ static ast_t *parse_list() {
 		func = searchF(childast->cons->str);
 		if (func != NULL && func->is_quote[0]) {
 			quote_position = func->is_quote;
+			fprintf(stderr, "quote_position: %d, %d\n", quote_position[0], quote_position[1]);
 		}
 	}
 	if (childast->type == ast_special_form) {

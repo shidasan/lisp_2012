@@ -51,7 +51,7 @@ static cons_t *eval_func(cons_t *cons) {
 }
 
 static void print_variable(cons_t *cons) {
-	TODO("print_variable\n");
+	printf("%s", cons->str);
 }
 
 static void free_variable(cons_t *cons) {

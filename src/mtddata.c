@@ -182,6 +182,9 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 static cons_t *setq(cons_t **VSTACK, int ARGC) {
 	cons_t *variable = ARGS(0);
 	cons_t *value = ARGS(1);
+	if (variable->type != VARIABLE || value->type == VARIABLE || value->type == FUNC) {
+		EXCEPTION("Not a atom!!\n");
+	}
 	setV(variable, value);
 	return value;
 }
@@ -200,7 +203,7 @@ static_mtd_data static_mtds[] = {
 	{"quote", 1, 0, 1, 1, quote, NULL},
 	{"list", -1, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, length, NULL},
-	{"if", 3, 0, 0, 0, NULL, _if},
+	{"if", 3, 1, 0, 0, NULL, _if},
 	{"defun", -1, 1, 1, 2, NULL, defun},
 	{"setq", 2, 0, 1, 0, setq, NULL},
 	{NULL, 0, 0, 0, 0, NULL, NULL},
