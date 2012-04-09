@@ -240,7 +240,6 @@ static void new_opline_special_method(enum eINSTRUCTION e, cons_t *cons, struct 
 }
 
 static void gen_atom(ast_t *ast) {
-	fprintf(stderr, "gen_atom: type = %d\n", ast->cons->type);
 	if (ast->sub_type == nil) {
 		new_opline(PUSH, ast->cons);
 	}
@@ -276,7 +275,6 @@ static void gen_list(ast_t *ast) {
 	int i = 0;
 	for (; i < array_size(ast->a); i++) {
 		ast_t *child_ast = (ast_t *)array_get(ast->a, i);
-		printf("gen_list: %d, childast->type: %d\n", i, child_ast->type);
 		gen_expression(child_ast, array_size(ast->a));
 	}
 	gen_static_func((ast_t *)array_get(ast->a, 0), array_size(ast->a));

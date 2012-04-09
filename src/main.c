@@ -119,7 +119,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		if (strlen(str) > 0) {
 			status = -1;
 			if (strlen(str) > 0 && is_unexpected_input(str)) {
-				fprintf(stderr, "%d\n", str[0]);
 				status = parse_program(str);
 			}
 			if (status == 0){
@@ -229,7 +228,6 @@ int main (int argc, char* args[])
 				free(tmptmpstr);
 				tmptmpstr = NULL;
 			} else {
-				fprintf(stderr, "myreadline %p\n", myreadline);
 				tmpstr = myreadline(">>> ");
 			}
 			leftover = split_and_eval(argc, args, tmpstr);

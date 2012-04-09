@@ -41,6 +41,7 @@ void array_add(array_t *a, void *v) {
 		free(a->list);
 		a->list = newlist;
 		a->capacity = newcapacity;
+		a->list[a->size] = v;
 		a->size++;
 	}
 }

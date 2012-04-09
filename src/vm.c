@@ -71,7 +71,6 @@ cons_t* eval (int i , opline_t* pc, cons_t **stack_value)
     goto *(pc->instruction_ptr);
 
 special_mtd:
-	fprintf(stderr, "now special_mtd\n");
 	cons = pc->op[0].cons;
 	array = pc->op[1].a;
 	func = searchF(cons->str);
@@ -132,14 +131,12 @@ funcdef:
 	return NULL;
 
 end:
-	fprintf(stderr, "now end\n");
 	//if (stack_value[0] != 0) {
 	//	stack_value[0]->api->print(stack_value[0]);
 	//}
     return stack_value[0];
 
 push:
-	fprintf(stderr, "now push\n");
     //sp_value[0]->type = NUM;
 	//(sp_value)[0] = new_int(pc->op[0].ivalue);
 	sp_value[0] = pc->op[0].cons;

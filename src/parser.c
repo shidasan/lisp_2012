@@ -715,7 +715,6 @@ static ast_t *parse_list() {
 			//childast->cons = make_cons_tree(0, 0);
 			//childast = parse_expression(0, 1);
 		} else {
-			fprintf(stderr, "parse_expression if\n");
 			childast = parse_expression(0, 0);
 		}
 		if (childast == NULL) {
@@ -759,7 +758,6 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		ast = NULL;
 		if (is_head_of_list) {
 			func_t *func = searchF(token_str);
-			fprintf(stderr, "searchF: %p %s\n", func, token_str);
 			if (func != NULL && func->is_static) {
 				if (func->is_special_form) {
 					ast = new_ast(ast_special_form, -1);
