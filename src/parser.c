@@ -694,13 +694,10 @@ static ast_t *parse_list() {
 	array_add(ast->a, childast);
 	func_t *func;
 	int* quote_position = NULL;
-	fprintf(stderr, "hi\n");
-	fprintf(stderr, "child: %d, ast_static_func: %d\n", childast->type, ast_static_func);
 	if (childast->type == ast_static_func || childast->type == ast_special_form) {
 		func = search_func(childast->cons->str);
 		if (func != NULL && func->is_quote[0]) {
 			quote_position = func->is_quote;
-			fprintf(stderr, "quote_position: %d, %d\n", quote_position[0], quote_position[1]);
 		}
 	}
 	if (childast->type == ast_special_form) {

@@ -52,7 +52,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
         return (cons_t*)table;
     }
 
-	dump_vm();
+	//dump_vm();
 
     opline_t* stack_adr[STACKSIZE];
     cons_t *stack_arg[STACKSIZE];
@@ -117,7 +117,7 @@ mtdcall:
 	} else {
 		opline_list = func->opline_list;
 		for (a = 0; a < array_size(opline_list); a++) {
-			cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+1);
+			cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+a+1);
 		}
 		sp_value[-args_num] = cons;
 	}

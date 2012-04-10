@@ -5,14 +5,11 @@
 #include"lisp.h"
 #include"config.h"
 #define STRLEN 50
-func_t Function_Data[1024];
-variable_t Variable_Data[1024];
 opline_t memory[INSTSIZE];
 int CurrentIndex, NextIndex;
 char* strtmp;
 char* str;
 void** table;
-void Clean (void);
 static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
 static cons_t *stack_value[STACKSIZE];
@@ -83,7 +80,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			printf("bye\n");
 			free(str);
 			free(tmpstr);
-			Clean();
 			exit(0);
 		}
 		int status;
@@ -138,18 +134,14 @@ int main (int argc, char* args[])
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
 	table = (void**)vm_exec(1, NULL, NULL);
+	new_func_data_table();
+	variable_data_table_push();
 	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
 	}
 	init_opline_first();
 	int i;
-	for (i = 0; i < (signed int)(sizeof(Function_Data)/sizeof(Function_Data[0])); i++) {
-		Function_Data[i].name = NULL;
-		Function_Data[i].next = NULL;
-		Variable_Data[i].name = NULL;
-		Variable_Data[i].next = NULL;
-	}
 	set_static_mtds();
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
@@ -174,7 +166,6 @@ int main (int argc, char* args[])
 				fclose(file);
 				break;
 				//free(tmpstr);
-				//Clean();
 				//exit(0);
 			}
 			if (tmpstr[StrIndex] == '\n') {
@@ -208,39 +199,8 @@ int main (int argc, char* args[])
 	return 0;
 }
 
-
+/*
 void Clean (void)
 {
-	func_t *tempF, *currentF;
-	variable_t *tempV, *currentV;
-	int i;
-	for (i = 0;(unsigned int)i < (sizeof(Function_Data) / sizeof(Function_Data[0])); i++){
-		free(Function_Data[i].name);
-		currentF = Function_Data[i].next;
-		while (1){
-			if (currentF != NULL){
-				tempF = currentF->next;
-				free(currentF->name);
-				free(currentF);
-				currentF = tempF;
-			} else {
-				break;
-			}
-		}
-	}
-	for (i = 0;(unsigned int)i < (sizeof(Variable_Data) / sizeof(Variable_Data[0])); i++){
-		free(Variable_Data[i].name);
-		currentV = Variable_Data[i].next;
-		while (1){
-			if (currentV != NULL){
-				tempV = currentV->next;
-				free(currentV->name);
-				free(currentV);
-				currentV = tempV;
-			} else {
-				break;
-			}
-		}
-	}
 }
-
+*/

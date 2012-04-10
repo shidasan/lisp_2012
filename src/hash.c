@@ -2,11 +2,50 @@
 #include <string.h>
 #include <stdio.h>
 #include"lisp.h"
+/* list of variable_data table */
+cons_t *variable_data_table = NULL;
+/* function_data table */
+func_t *func_data_table = NULL;
+
+void new_func_data_table() {
+	int i;
+	func_data_table = (func_t*)malloc(sizeof(func_t) * HASH_SIZE);
+	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
+}
+
+void variable_data_table_push() {
+
+}
+
+cons_t *variable_data_table_pop() {
+
+}
+void free_func_data_table() {
+	func_t *tempF, *currentF;
+	int i;
+	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
+		free(func_data_table[i].name);
+		currentF = func_data_table[i].next;
+		while (1){
+			if (currentF != NULL){
+				tempF = currentF->next;
+				free(currentF->name);
+				free(currentF);
+				currentF = tempF;
+			} else {
+				break;
+			}
+		}
+	}
+}
+void free_variable_data_table(variable_t *table) {
+
+}
 
 struct cons_t* set_variable (cons_t *cons, cons_t *value/*const char* str,int LengthRatio*/)
 {
 	const char *str = cons->str;
-	variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
+	variable_t* p = variable_data_table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
 			if (p->name == NULL) {
@@ -28,7 +67,7 @@ struct cons_t* set_variable (cons_t *cons, cons_t *value/*const char* str,int Le
 
 struct cons_t* search_variable (char* str)
 {
-	struct variable_t* p = &Variable_Data[(str[0] * str[1]) % (sizeof(Variable_Data) / sizeof(Variable_Data[0]))];
+	variable_t* p = variable_data_table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name != NULL && strcmp (p->name, str) == 0){
 			return p->cons;
@@ -42,7 +81,7 @@ struct cons_t* search_variable (char* str)
 
 struct func_t* search_func (char* str)
 {
-	struct func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
+	struct func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name != NULL && strcmp (p->name, str) == 0){
 			return p;
@@ -57,7 +96,7 @@ struct func_t* search_func (char* str)
 struct func_t* set_static_func (const char* str,int i, void* adr, void *special_mtd, int is_static, int is_special_form, int *is_quote)
 {
 
-	func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
+	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
 			if (p->name != NULL && strcmp(p->name, str) == 0 && p->is_static && !is_static) {
@@ -90,7 +129,7 @@ struct func_t* set_static_func (const char* str,int i, void* adr, void *special_
 
 struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, cons_t *args) {
 	char *str = cons->str;
-	func_t* p = &Function_Data[(str[0] * str[1]) % (sizeof(Function_Data) / sizeof(Function_Data[0]))];
+	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
 			if (p->name != NULL && strcmp(p->name, str) == 0 && p->is_static) {

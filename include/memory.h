@@ -1,4 +1,5 @@
 struct cons_api_t;
+struct variable_t;
 
 typedef struct cons_t{
     int type;
@@ -6,6 +7,7 @@ typedef struct cons_t{
 		int ivalue;
 		char* str;
 		struct cons_t *car;
+		struct variable_t *variable_data_table;
 	};
 	/* also used as free list */
 	struct cons_t *cdr;

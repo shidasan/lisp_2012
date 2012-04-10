@@ -2,6 +2,7 @@
 #define MAIN
 #include "memory.h"
 #include "config.h"
+#define HASH_SIZE 64
 #define STACKSIZE 1000
 #define INSTSIZE 100000
 #define ARGC _argc
@@ -47,14 +48,16 @@ typedef struct AST{
     struct AST *LHS,*RHS,*COND;
 }AST;
 
-extern func_t Function_Data[1024];
-extern variable_t Variable_Data[1024];
 extern opline_t memory[INSTSIZE];
 extern int CurrentIndex, NextIndex;
 extern void** table;
 
 extern static_mtd_data static_mtds[];
 /*hash.h*/
+void new_func_data_table();
+void variable_data_table_push();
+cons_t *variable_data_table_pop();
+void free_variable_data_table(variable_t *);
 struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote);
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args);
 struct cons_t* set_variable (cons_t *cons, cons_t *value);
