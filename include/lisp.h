@@ -31,6 +31,7 @@ void *array_pop(struct array_t *);
 typedef struct static_mtd_data {
 	const char *name;
 	int num_args;
+	int creates_local_scope;
 	int is_special_form;
 	int is_quote0;
 	int is_quote1;
@@ -55,8 +56,8 @@ extern void** table;
 extern static_mtd_data static_mtds[];
 /*hash.h*/
 void new_func_data_table();
-void variable_data_table_push();
-cons_t *variable_data_table_pop();
+void begin_local_scope();
+cons_t *end_local_scope();
 void free_variable_data_table(variable_t *);
 struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote);
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args);

@@ -206,7 +206,7 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 }
 
 static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
-	variable_data_table_push();
+	begin_local_scope();
 	cons_t *value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *variable = NULL;
 	cons_t *list = NULL;
@@ -237,27 +237,40 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 	}
-	variable_data_table_pop();
+	end_local_scope();
 	return res;
 }
 
+/*
+typedef struct static_mtd_data {
+	const char *name;
+	int num_args;
+	int creates_local_scope;
+	int is_special_form;
+	int is_quote0;
+	int is_quote1;
+	cons_t *(*mtd)(cons_t**, int);
+	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
+} static_mtd_data;
+*/
+
 static_mtd_data static_mtds[] = {
-	{"print", 1, 0, 0, 0, print, NULL},
-	{"car", 1, 0, 0, 0, car, NULL},
-	{"cdr", 1, 0, 0, 0, cdr, NULL},
-	{"cons", 2, 0, 0, 0, cons, NULL},
-	{"+", -1, 0, 0, 0, add, NULL},
-	{"-", -1, 0, 0, 0, sub, NULL},
-	{"*", -1, 0, 0, 0, mul, NULL},
-	{"/", -1, 0, 0, 0, div, NULL},
-	{"<", -1, 0, 0, 0, lt, NULL},
-	{">", -1, 0, 0, 0, gt, NULL},
-	{"quote", 1, 0, 1, 1, quote, NULL},
-	{"list", -1, 0, 0, 0, list, NULL},
-	{"length", 1, 0, 0, 0, length, NULL},
-	{"if", 3, 1, 0, 0, NULL, _if},
-	{"defun", -1, 1, 1, 2, NULL, defun},
-	{"setq", 2, 0, 1, 0, setq, NULL},
-	{"let", -1, 1, 1, 0, NULL, let},
-	{NULL, 0, 0, 0, 0, NULL, NULL},
+	{"print", 1, 0, 0, 0, 0, print, NULL},
+	{"car", 1, 0, 0, 0, 0, car, NULL},
+	{"cdr", 1, 0, 0, 0, 0, cdr, NULL},
+	{"cons", 2, 0, 0, 0, 0, cons, NULL},
+	{"+", -1, 0, 0, 0, 0, add, NULL},
+	{"-", -1, 0, 0, 0, 0, sub, NULL},
+	{"*", -1, 0, 0, 0, 0, mul, NULL},
+	{"/", -1, 0, 0, 0, 0, div, NULL},
+	{"<", -1, 0, 0, 0, 0, lt, NULL},
+	{">", -1, 0, 0, 0, 0, gt, NULL},
+	{"quote", 1, 0, 0, 1, 1, quote, NULL},
+	{"list", -1, 0, 0, 0, 0, list, NULL},
+	{"length", 1, 0, 0, 0, 0, length, NULL},
+	{"if", 3, 0, 1, 0, 0, NULL, _if},
+	{"defun", -1, 0, 1, 1, 2, NULL, defun},
+	{"setq", 2, 0, 0, 1, 0, setq, NULL},
+	{"let", -1, 0, 1, 1, 0, NULL, let},
+	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

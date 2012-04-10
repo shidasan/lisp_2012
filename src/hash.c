@@ -13,13 +13,13 @@ void new_func_data_table() {
 	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
 }
 
-void variable_data_table_push() {
+void begin_local_scope() {
 	cons_t *cons = new_variable_data_table();
 	cons->cdr = variable_data_table;
 	variable_data_table = cons;
 }
 
-cons_t *variable_data_table_pop() {
+cons_t *end_local_scope() {
 	if (variable_data_table->cdr != NULL) {
 		variable_data_table = variable_data_table->cdr;
 	} else {

@@ -136,7 +136,7 @@ int main (int argc, char* args[])
 	table = (void**)vm_exec(1, NULL, NULL);
 	gc_init();
 	new_func_data_table();
-	variable_data_table_push();
+	begin_local_scope();
 	if (argc > 1){
 		file = fopen(args[1],"r");
 	}
