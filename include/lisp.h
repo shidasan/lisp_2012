@@ -60,7 +60,7 @@ cons_t *variable_data_table_pop();
 void free_variable_data_table(variable_t *);
 struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote);
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args);
-struct cons_t* set_variable (cons_t *cons, cons_t *value);
+struct cons_t* set_variable (cons_t *cons, cons_t *value, int set_local_scope);
 struct cons_t* search_variable (char* str);
 struct func_t* search_func (char* str);
 /*generator.h*/

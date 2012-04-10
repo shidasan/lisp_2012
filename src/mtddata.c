@@ -150,6 +150,7 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 
 static cons_t *length(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
+	fprintf(stderr, "length args: %p\n", cons);
 	if (cons->type == nil) {
 		return new_int(0);
 	}
@@ -158,6 +159,8 @@ static cons_t *length(cons_t **VSTACK, int ARGC) {
 	}
 	int res = 0;
 	while (cons->type == OPEN) {
+		fprintf(stderr, "res++\n");
+		fprintf(stderr, "cons->cdr->type: %d\n", cons->cdr->type);
 		res++;
 		cons = cons->cdr;
 	}
@@ -198,8 +201,44 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 	if (variable->type != VARIABLE || value->type == VARIABLE || value->type == FUNC) {
 		EXCEPTION("Not a atom!!\n");
 	}
-	set_variable(variable, value);
+	set_variable(variable, value, 0);
 	return value;
+}
+
+static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
+	TODO("let\n");
+	//cons_t *value_list = (cons_t*)array_get(a, 0);;
+	cons_t *value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	cons_t *variable = NULL;
+	cons_t *list = NULL;
+	cons_t *value = NULL;
+	if (value_list->type == OPEN) {
+		list = value_list->car;
+		while (list != NULL && list->type != nil) {
+			if (list->type == OPEN) {
+				VSTACK[1] = list;
+				int argc = length(VSTACK+2, 1)->ivalue;
+				if (argc == 2) {
+					variable = list->car;
+					value = list->cdr->car;
+					set_variable(variable, value, 1);
+				} else {
+					fprintf(stderr, "illegal variable specification!! %d\n", argc);
+					asm("int3");
+				}
+			} else {
+				cons_t *p = set_variable(list, new_bool(0), 1);
+			}
+			value_list = value_list->cdr;
+			list = value_list->car;
+		}
+	}
+	cons_t *res = NULL;
+	int i;
+	for (i = 1; i < array_size(a); i++) {
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
+	}
+	return res;
 }
 
 static_mtd_data static_mtds[] = {
@@ -219,5 +258,6 @@ static_mtd_data static_mtds[] = {
 	{"if", 3, 1, 0, 0, NULL, _if},
 	{"defun", -1, 1, 1, 2, NULL, defun},
 	{"setq", 2, 0, 1, 0, setq, NULL},
+	{"let", -1, 1, 1, 0, NULL, let},
 	{NULL, 0, 0, 0, 0, NULL, NULL},
 };
