@@ -206,8 +206,7 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 }
 
 static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
-	TODO("let\n");
-	//cons_t *value_list = (cons_t*)array_get(a, 0);;
+	variable_data_table_push();
 	cons_t *value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *variable = NULL;
 	cons_t *list = NULL;
@@ -238,6 +237,7 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 	}
+	variable_data_table_pop();
 	return res;
 }
 
