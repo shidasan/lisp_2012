@@ -13,19 +13,32 @@ void new_func_data_table() {
 	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
 }
 
-cons_t *begin_local_scope(cons_t *cons) {
+cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
+	cons_t *new_environment = new_local_environment();
+	new_environment->car = new_variable_data_table();
+	new_environment->cdr = environment;
+	current_environment = new_environment;
+	return old_environment;
+}
+
+cons_t *begin_local_scope(func_t *func) {
 	cons_t *old_environment = current_environment;
-	if (cons->local_environment) {
-		//cons->local_environment->cdr = current_environment;
-		//fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
-		current_environment = cons->local_environment;
+	if (func->creates_local_scope) {
+		current_environment = new_local_environment();
 		current_environment->car = new_variable_data_table();
+		current_environment->cdr = old_environment;
 	}
+	//cons_t *old_environment = current_environment;
+	//if (cons->local_environment) {
+	//	//cons->local_environment->cdr = current_environment;
+	//	//fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
+	//	current_environment = cons->local_environment;
+	//	current_environment->car = new_variable_data_table();
+	//}
 	return old_environment;
 }
 
 cons_t *end_local_scope(cons_t *old_environment) {
-	fprintf(stderr ,"end environment %p => %p\n", old_environment, current_environment);
 	current_environment = old_environment;
 	return NULL;
 }
@@ -78,8 +91,11 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 	const char *str = cons->str;
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
-		if (p->name == NULL || strcmp(p->name,str) == 0){
+		if (p->name != NULL && strcmp(p->name,str) == 0){
 			if (p->name == NULL) {
+				p->name = (char*)malloc(strlen(str)+1);
+			} else {
+				free(p->name);
 				p->name = (char*)malloc(strlen(str)+1);
 			}
 			strcpy (p->name, str);
@@ -90,7 +106,13 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 			if (is_end_of_table_list) {
 				p->next = (variable_t*)malloc(sizeof(variable_t));
 				bzero(p->next, sizeof(variable_t));
-				p = p->next;
+				if (p->name == NULL) {
+					p->name = (char*)malloc(strlen(str)+1);
+				}
+				strcpy (p->name, str);
+				p->name[strlen(str)] = '\0';
+				p->cons = value;
+				return p->cons;
 			} else {
 				return NULL;
 			}
@@ -104,7 +126,12 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
-	fprintf(stderr ,"set_variable cdr  = %p\n", environment->cdr);
+	//cons_t *result = search_variable(cons->str);
+	//fprintf(stderr, "serch_variable %p\n", search_variable(cons->str));
+	//if (result) {
+	//	printf("hi\n");
+	//	printf("%d\n", result->ivalue);
+	//}
 	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
 		environment = environment->cdr;
 		table = environment->car;
@@ -130,12 +157,10 @@ struct cons_t *search_variable(char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
-	fprintf(stderr ,"search_variable cdr  = %p\n", environment->cdr);
 	while ((res = search_variable_inner(table, str)) == NULL) {
 		if (environment->cdr == NULL) {
 			return NULL;
 		} else {
-			fprintf(stderr, "not found => change environment %p => %p\n", environment, environment->cdr);
 			environment = environment->cdr;
 			table = environment->car;
 		}

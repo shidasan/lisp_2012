@@ -150,7 +150,6 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 
 static cons_t *length(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
-	fprintf(stderr, "length args: %p\n", cons);
 	if (cons->type == nil) {
 		return new_int(0);
 	}
@@ -159,8 +158,6 @@ static cons_t *length(cons_t **VSTACK, int ARGC) {
 	}
 	int res = 0;
 	while (cons->type == OPEN) {
-		fprintf(stderr, "res++\n");
-		fprintf(stderr, "cons->cdr->type: %d\n", cons->cdr->type);
 		res++;
 		cons = cons->cdr;
 	}

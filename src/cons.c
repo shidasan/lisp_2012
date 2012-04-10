@@ -170,7 +170,6 @@ cons_t *new_bool(int n) {
 }
 
 cons_t *new_func(const char *str, cons_t *environment) {
-	fprintf(stderr, "new_func %p\n", environment);
 	cons_t *cons = new_cons_cell();
 	cons->type = FUNC;
 	cons->api = &cons_func_api;

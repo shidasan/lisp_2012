@@ -57,6 +57,7 @@ extern static_mtd_data static_mtds[];
 /*hash.h*/
 void new_func_data_table();
 cons_t* begin_local_scope();
+cons_t* change_local_scope(cons_t *, cons_t *);
 cons_t *end_local_scope(cons_t *old_environment);
 struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment);

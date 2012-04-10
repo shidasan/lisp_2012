@@ -52,7 +52,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
         return (cons_t*)table;
     }
 
-	dump_vm();
+	//dump_vm();
 
     opline_t* stack_adr[STACKSIZE];
     cons_t *stack_arg[STACKSIZE];
@@ -87,7 +87,7 @@ special_mtd:
 		cons = pc->op[0].cons;
 		array = pc->op[1].a;
 		func = search_func(cons->str);
-		cons_t *old_environment = begin_local_scope(cons);
+		cons_t *old_environment = begin_local_scope(func);
 		args_num = 0;
 		sp_value[-args_num] = func->special_mtd(sp_value, 0, array);
 		end_local_scope(old_environment);
@@ -112,12 +112,14 @@ mtdcheck:
 mtdcall:
 	{
 		cons = pc->op[0].cons;
-		cons_t *old_environment = begin_local_scope(cons);
+		cons_t *old_environment = NULL;
 		args_num = pc->op[1].ivalue;
 		func = search_func(cons->str);
 		if (func->is_static) {
+			old_environment = begin_local_scope(func);
 			sp_value[-args_num] = func->mtd(sp_value, args_num);
 		} else {
+			old_environment = change_local_scope(current_environment, func->environment);
 			opline_list = func->opline_list;
 			for (a = 0; a < array_size(opline_list); a++) {
 				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+a+1);

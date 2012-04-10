@@ -21,8 +21,6 @@ static unsigned int LengthRatio;
 static int ArgsRatio = AR;
 static char** Args;
 
-static cons_t *compile_time_environment = NULL;
-
 int GetTok (void)
 {
     char* TokTemp = NULL;
@@ -687,7 +685,6 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused);
 
 static ast_t *parse_list() {
 	ast_t *ast = new_ast(ast_list, -1);
-	cons_t *old_environment = compile_time_environment;
 	ast_t *childast = parse_expression(1, 0);
 	if (childast == NULL) {
 		ast_free(ast);
@@ -705,7 +702,7 @@ static ast_t *parse_list() {
 		}
 	}
 	if (childast->type == ast_special_form) {
-		TODO("parse special form function\n");
+
 	}
 	int args_count = 1;
 	while (1) {
@@ -723,10 +720,6 @@ static ast_t *parse_list() {
 		}
 		array_add(ast->a, childast);
 		args_count++;
-	}
-	if (old_environment != compile_time_environment) {
-		fprintf(stderr ,"environment changes!!\n");
-		compile_time_environment = old_environment;
 	}
 	return ast;
 }
@@ -764,19 +757,12 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		if (is_head_of_list) {
 			func_t *func = search_func(token_str);
 			if (func != NULL && func->is_static) {
-				cons_t *environment = NULL;
-				if (func->creates_local_scope) {
-					environment = new_local_environment();
-					environment->local_environment = compile_time_environment;
-					fprintf(stderr, "change environment %p => %p\n", compile_time_environment, environment);
-					compile_time_environment = environment;
-				}
 				if (func->is_special_form) {
 					ast = new_ast(ast_special_form, -1);
-					ast->cons = new_func((const char*)token_str, environment);
+					ast->cons = new_func((const char*)token_str, NULL);
 				} else if (func->is_static) {
 					ast = new_ast(ast_static_func, -1);
-					ast->cons = new_func((const char*)token_str, environment);
+					ast->cons = new_func((const char*)token_str, NULL);
 				}
 			} else {
 				//func_t *func = search_func(token_str);
@@ -807,7 +793,7 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 }
 
 static void environment_init() {
-	compile_time_environment = current_environment;
+	//compile_time_environment = current_environment;
 }
 
 int parse_program (char *str) {
