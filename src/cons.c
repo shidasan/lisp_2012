@@ -184,3 +184,11 @@ cons_t *new_open() {
 	cons->api = &cons_open_api;
 	return cons;
 }
+cons_t *new_variable_data_table() {
+	cons_t *cons = new_cons_cell();
+	cons->type = VARIABLE_TABLE;
+	cons->api = &cons_variable_table_api;
+	cons->variable_data_table = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
+	bzero(cons->variable_data_table, sizeof(variable_t) * HASH_SIZE);
+	return cons;
+}

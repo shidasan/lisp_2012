@@ -80,6 +80,7 @@ cons_t *new_bool(int n);
 cons_t *new_func(const char *str);
 cons_t *new_variable(char *str);
 cons_t *new_open();
+cons_t *new_variable_data_table();
 
 struct array_t *new_array();
 void array_free(struct array_t *a);

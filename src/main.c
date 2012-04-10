@@ -134,9 +134,9 @@ int main (int argc, char* args[])
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
 	table = (void**)vm_exec(1, NULL, NULL);
+	gc_init();
 	new_func_data_table();
 	variable_data_table_push();
-	gc_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
 	}

@@ -14,7 +14,8 @@ void new_func_data_table() {
 }
 
 void variable_data_table_push() {
-
+	cons_t *cons = new_variable_data_table();
+	variable_data_table = cons;
 }
 
 cons_t *variable_data_table_pop() {
