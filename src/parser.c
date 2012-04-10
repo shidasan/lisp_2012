@@ -248,7 +248,7 @@ AST* ParseDefun (void)
         FreeAST(ret);
         return NULL;
     }
-    p = set_static_func(ret->s, ret->LHS->i, NULL, NULL, 0, 0, 0);
+    p = set_static_func(ret->s, ret->LHS->i, NULL, NULL, 0, 0, 0, 0);
 	/* overwriting static method */
 	if (p == NULL) {
 		PERROR
@@ -627,7 +627,7 @@ static cons_t *make_cons_single_node(int is_head_of_list) {
 		cons = new_bool(1);
 	} else if (token_type == tok_symbol) {
 		if (is_head_of_list) {
-			cons = new_func(token_str);
+			cons = new_func(token_str, NULL);
 		} else {
 			cons = new_variable(token_str);
 		}
@@ -745,7 +745,7 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		ast = new_ast(ast_list, -1);
 		get_next_token();
 		ast_t *funcast = new_ast(ast_static_func, -1);
-		funcast->cons = new_func("quote");
+		funcast->cons = new_func("quote", NULL);
 		array_add(ast->a, funcast);
 		cons_t *cons = make_cons_tree2(0);
 		ast_t *childast = new_ast(ast_atom, cons->type);
@@ -756,16 +756,22 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		if (is_head_of_list) {
 			func_t *func = search_func(token_str);
 			if (func != NULL && func->is_static) {
+				cons_t *environment = NULL;
+				if (func->creates_local_scope) {
+					environment = new_local_environment();
+					fprintf(stderr, "change environment %p\n", environment);
+				}
 				if (func->is_special_form) {
 					ast = new_ast(ast_special_form, -1);
-					ast->cons = new_func((const char*)token_str);
+					ast->cons = new_func((const char*)token_str, environment);
 				} else if (func->is_static) {
 					ast = new_ast(ast_static_func, -1);
-					ast->cons = new_func((const char*)token_str);
+					ast->cons = new_func((const char*)token_str, environment);
 				}
 			} else {
+				cons_t *environment = new_local_environment();
 				ast = new_ast(ast_func, -1);
-				ast->cons = new_func((const char*)token_str);
+				ast->cons = new_func((const char*)token_str, environment);
 			}
 		} else {
 			ast = new_ast(ast_variable, -1);

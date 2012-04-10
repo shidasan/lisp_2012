@@ -206,7 +206,6 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 }
 
 static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
-	begin_local_scope();
 	cons_t *value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *variable = NULL;
 	cons_t *list = NULL;
@@ -237,7 +236,6 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 	}
-	end_local_scope();
 	return res;
 }
 
@@ -269,8 +267,8 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, 0, length, NULL},
 	{"if", 3, 0, 1, 0, 0, NULL, _if},
-	{"defun", -1, 0, 1, 1, 2, NULL, defun},
+	{"defun", -1, 1, 1, 1, 2, NULL, defun},
 	{"setq", 2, 0, 0, 1, 0, setq, NULL},
-	{"let", -1, 0, 1, 1, 0, NULL, let},
+	{"let", -1, 1, 1, 1, 0, NULL, let},
 	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

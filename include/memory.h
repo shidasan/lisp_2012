@@ -9,8 +9,12 @@ typedef struct cons_t{
 		struct cons_t *car;
 		struct variable_t *variable_data_table;
 	};
-	/* also used as free list */
-	struct cons_t *cdr;
+	union {
+		/* also used as free list */
+		struct cons_t *cdr;
+		/* used for local scope */
+		struct cons_t *local_environment;
+	};
 	struct cons_api_t *api;
 }cons_t;
 
@@ -21,30 +25,31 @@ typedef struct cons_api_t {
 }cons_api_t;
 
 typedef struct opline_t{
-    int instruction;
-    void* instruction_ptr;
-    union{
-        int ivalue; //unused
-        char* svalue; //unused
-        struct opline_t* adr;
+	int instruction;
+	void* instruction_ptr;
+	union{
+		int ivalue; //unused
+		char* svalue; //unused
+		struct opline_t* adr;
 		cons_t *cons;
 		struct array_t *a;
-    }op[2];
+	}op[2];
 }opline_t;
 
 typedef struct variable_t{
-    char* name;
-    struct variable_t* next;
+	char* name;
+	struct variable_t* next;
 	cons_t *cons;
 }variable_t;
 
 typedef struct func_t{
-    char* name;
-    struct func_t* next;
-    int value; // size of argument (?)
+	char* name;
+	struct func_t* next;
+	int value; // size of argument (?)
 	int is_static; // cleared by bzero
 	int is_special_form;
 	int *is_quote;
+	int creates_local_scope;
 	union {
 		struct array_t *opline_list;
 		cons_t *(*mtd)(cons_t**, int);
@@ -77,10 +82,11 @@ cons_t *new_int(int n);
 cons_t *new_string(const char *str);
 cons_t *new_float(float f);
 cons_t *new_bool(int n);
-cons_t *new_func(const char *str);
+cons_t *new_func(const char *str, cons_t *environment);
 cons_t *new_variable(char *str);
 cons_t *new_open();
 cons_t *new_variable_data_table();
+cons_t *new_local_environment();
 
 struct array_t *new_array();
 void array_free(struct array_t *a);

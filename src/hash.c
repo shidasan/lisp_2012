@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include"lisp.h"
 /* list of variable_data table */
-cons_t *variable_data_table = NULL;
+cons_t *current_environment = NULL;
 /* function_data table */
 func_t *func_data_table = NULL;
 
@@ -13,20 +13,47 @@ void new_func_data_table() {
 	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
 }
 
-void begin_local_scope() {
-	cons_t *cons = new_variable_data_table();
-	cons->cdr = variable_data_table;
-	variable_data_table = cons;
+cons_t *begin_local_scope(cons_t *cons) {
+	cons_t *old_environment = current_environment;
+	if (cons->local_environment) {
+		cons->local_environment->cdr = current_environment;
+		fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
+		current_environment = cons->local_environment;
+		current_environment->car = new_variable_data_table();
+	}
+	return old_environment;
 }
 
-cons_t *end_local_scope() {
-	if (variable_data_table->cdr != NULL) {
-		variable_data_table = variable_data_table->cdr;
-	} else {
-		asm("int3");
-	}
+cons_t *end_local_scope(cons_t *old_environment) {
+	fprintf(stderr ,"end environment %p => %p\n", old_environment, current_environment);
+	current_environment = old_environment;
 	return NULL;
 }
+
+void new_global_environment() {
+	current_environment = new_local_environment();
+	current_environment->car = new_variable_data_table();
+}
+
+static void free_variable_data_table(variable_t *table) {
+	int i;
+	variable_t *tempV, *currentV;
+	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
+		free(table[i].name);
+		currentV = table[i].next;
+		while (1){
+			if (currentV != NULL){
+				tempV = currentV->next;
+				free(currentV->name);
+				free(currentV);
+				currentV = tempV;
+			} else {
+				break;
+			}
+		}
+	}
+}
+
 void free_func_data_table() {
 	func_t *tempF, *currentF;
 	int i;
@@ -44,9 +71,6 @@ void free_func_data_table() {
 			}
 		}
 	}
-}
-void free_variable_data_table(variable_t *table) {
-	TODO("free variable data table\n");
 }
 
 struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, int is_end_of_table_list)
@@ -77,10 +101,12 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 }
 
 struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
-	cons_t *table = variable_data_table;
+	cons_t *environment = current_environment;
+	cons_t *table = environment->car;
 	cons_t *res = NULL;
-	while ((res = set_variable_inner(table, cons, value, set_local_scope || table->cdr == NULL)) == NULL) {
-		table = table->cdr;
+	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
+		environment = environment->cdr;
+		table = environment->car;
 	}
 	return res;
 }
@@ -100,13 +126,15 @@ struct cons_t* search_variable_inner (cons_t *table, char* str)
 }
 
 struct cons_t *search_variable(char *str) {
-	cons_t *table = variable_data_table;
+	cons_t *environment = current_environment;
+	cons_t *table = environment->car;
 	cons_t *res = NULL;
 	while ((res = search_variable_inner(table, str)) == NULL) {
-		if (table->cdr == NULL) {
+		if (environment->cdr == NULL) {
 			return NULL;
 		} else {
-			table = table->cdr;
+			environment = environment->cdr;
+			table = environment->car;
 		}
 	}
 	return res;
@@ -126,7 +154,7 @@ struct func_t* search_func (char* str)
 	}
 }
 
-struct func_t* set_static_func (const char* str,int i, void* adr, void *special_mtd, int is_static, int is_special_form, int *is_quote)
+struct func_t* set_static_func (const char* str,int i, void* adr, void *special_mtd, int is_static, int is_special_form, int *is_quote, int creates_local_scope)
 {
 
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
@@ -143,6 +171,7 @@ struct func_t* set_static_func (const char* str,int i, void* adr, void *special_
 			p->value = i;
 			p->is_static = is_static;
 			p->is_quote = is_quote;
+			p->creates_local_scope = creates_local_scope;
 			p->is_special_form = is_special_form;
 			if (is_special_form) {
 				p->special_mtd = special_mtd;
