@@ -55,6 +55,7 @@ typedef struct func_t{
 		cons_t *(*mtd)(cons_t**, int);
 		cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
 	};
+	cons_t *environment;
 	cons_t *args;
 }func_t;
 

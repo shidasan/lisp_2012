@@ -16,8 +16,8 @@ void new_func_data_table() {
 cons_t *begin_local_scope(cons_t *cons) {
 	cons_t *old_environment = current_environment;
 	if (cons->local_environment) {
-		cons->local_environment->cdr = current_environment;
-		fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
+		//cons->local_environment->cdr = current_environment;
+		//fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
 		current_environment = cons->local_environment;
 		current_environment->car = new_variable_data_table();
 	}
@@ -104,6 +104,7 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
+	fprintf(stderr ,"set_variable cdr  = %p\n", environment->cdr);
 	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
 		environment = environment->cdr;
 		table = environment->car;
@@ -129,10 +130,12 @@ struct cons_t *search_variable(char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
+	fprintf(stderr ,"search_variable cdr  = %p\n", environment->cdr);
 	while ((res = search_variable_inner(table, str)) == NULL) {
 		if (environment->cdr == NULL) {
 			return NULL;
 		} else {
+			fprintf(stderr, "not found => change environment %p => %p\n", environment, environment->cdr);
 			environment = environment->cdr;
 			table = environment->car;
 		}
@@ -189,7 +192,7 @@ struct func_t* set_static_func (const char* str,int i, void* adr, void *special_
 	}
 }
 
-struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, cons_t *args) {
+struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment) {
 	char *str = cons->str;
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
@@ -208,6 +211,7 @@ struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, co
 			p->is_special_form = 0;
 			p->opline_list = opline_list;
 			p->args = args;
+			p->environment = current_environment;
 			return p;
 		} else if (p->next == NULL){
 			p->next = (func_t*)malloc(sizeof(func_t));

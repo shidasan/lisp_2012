@@ -191,7 +191,7 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	}
 	VSTACK[1] = args;
 	int argc = length(VSTACK+1, 1)->ivalue;
-	set_func(fcons, opline_list, argc, args);
+	set_func(fcons, opline_list, argc, args, current_environment);
 	return fcons;
 }
 
