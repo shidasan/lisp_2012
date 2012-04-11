@@ -13,6 +13,31 @@ void new_func_data_table() {
 	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
 }
 
+void mark_func_data_table(array_t *traced) {
+	func_t *table = func_data_table;
+	int i = 0;
+	for (; i < HASH_SIZE; i++) {
+		func_t *func = table + i;
+		while (func != NULL) {
+			ADDREF_NULLABLE(func->environment, traced);
+			ADDREF_NULLABLE(func->args, traced);
+			func = func->next;
+		}
+	}
+}
+
+void mark_variable_data_table(variable_t *table, array_t *traced) {
+	printf("hi table: %p\n", table);
+	int i = 0;
+	for (; i < HASH_SIZE; i++) {
+		variable_t *variable = table + i;
+		while (variable != NULL) {
+			ADDREF_NULLABLE(variable->cons, traced);
+			variable = variable->next;
+		}
+	}
+}
+
 cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 	cons_t *new_environment = new_local_environment();
 	new_environment->car = new_variable_data_table();

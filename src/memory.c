@@ -194,15 +194,18 @@ static int cons_is_marked(cons_t *cons) {
 	}
 	return 1;
 }
-
-static void mark_root(array_t *traced) {
-	/* TODO mark root */
+static void mark_stack(array_t *traced) {
 	int i = 0;
 	for (; i < STACKSIZE; i++) {
 		if (stack_value[i] != NULL) {
 			CONS_TRACE(stack_value[i], traced);
 		}
 	}
+}
+
+static void mark_root(array_t *traced) {
+	mark_stack(traced);
+	mark_func_data_table(traced);
 }
 
 static void gc_mark() {
@@ -248,6 +251,7 @@ static void gc() {
 	fprintf(stderr, "gc()\n");
 	gc_mark();
 	gc_sweep();
+	fprintf(stderr, "gc end\n");
 }
 
 cons_t *new_cons_cell() {

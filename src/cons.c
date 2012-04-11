@@ -31,7 +31,6 @@ static cons_t *eval_nil(cons_t *cons) {
 }
 
 static void trace_nil(cons_t *cons, struct array_t *traced) {
-	TODO("nil trace\n");
 }
 
 static void print_i(cons_t *cons) {
@@ -47,7 +46,7 @@ static cons_t *eval_i(cons_t *cons) {
 }
 
 static void trace_i(cons_t *cons, struct array_t *traced) {
-	array_add(traced, cons);
+	ADDREF(cons, traced);
 }
 
 static void print_func(cons_t *cons) {
@@ -63,7 +62,9 @@ static cons_t *eval_func(cons_t *cons) {
 }
 
 static void trace_func(cons_t *cons, struct array_t *traced) {
-	TODO("func trace\n");
+	ADDREF(cons, traced);
+	//ADDREF(cons->car, traced);
+	//ADDREF_NULLABLE(cons->cdr, traced);
 }
 
 static void print_variable(cons_t *cons) {
@@ -126,11 +127,8 @@ static cons_t *eval_open(cons_t *cons) {
 }
 
 static void trace_open(cons_t *cons, struct array_t *traced) {
-	TODO("open trace\n");
-	array_add(traced, cons->car);
-	if (cons->cdr != NULL) {
-		array_add(traced, cons->cdr);
-	}
+	ADDREF(cons->car, traced);
+	ADDREF_NULLABLE(cons->cdr, traced);
 }
 
 static void print_variable_table(cons_t *cons) {
@@ -162,7 +160,9 @@ static cons_t *eval_variable_table(cons_t *cons) {
 }
 
 static void trace_variable_table(cons_t *cons, struct array_t *traced) {
-	TODO("variable table trace\n");
+	fprintf(stderr, "mark variable table%p\n", cons);
+	ADDREF(cons, traced);
+	mark_variable_data_table(cons->variable_data_table, traced);
 }
 
 static void print_local_environment(cons_t *cons) {
@@ -178,7 +178,11 @@ static cons_t *eval_local_environment(cons_t *cons) {
 }
 
 static void trace_local_environment(cons_t *cons, struct array_t *traced) {
-	TODO("local environment trace\n");
+	fprintf(stderr, "mark local_environment %p\n", cons);
+	fprintf(stderr, "mark cons->car %p\n", cons->car);
+	ADDREF(cons, traced);
+	ADDREF_NULLABLE(cons->cdr, traced);
+	ADDREF(cons->car, traced);
 }
 
 struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};
