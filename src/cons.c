@@ -171,6 +171,7 @@ static void print_local_environment(cons_t *cons) {
 }
 
 static void free_local_environment(cons_t *cons) {
+	
 }
 
 static cons_t *eval_local_environment(cons_t *cons) {
@@ -182,7 +183,7 @@ static void trace_local_environment(cons_t *cons, struct array_t *traced) {
 	fprintf(stderr, "mark cons->car %p\n", cons->car);
 	ADDREF(cons, traced);
 	ADDREF_NULLABLE(cons->cdr, traced);
-	ADDREF(cons->car, traced);
+	ADDREF_NULLABLE(cons->car, traced);
 }
 
 struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};
@@ -244,7 +245,7 @@ cons_t *new_variable_data_table() {
 	cons->type = VARIABLE_TABLE;
 	cons->api = &cons_variable_table_api;
 	cons->variable_data_table = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
-	//bzero(cons->variable_data_table, sizeof(variable_t) * HASH_SIZE);
+	memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
 	return cons;
 }
 

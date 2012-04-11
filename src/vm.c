@@ -133,9 +133,9 @@ mtdcall:
 			opline_list = func->opline_list;
 			set_args(sp_value, args_num, func);
 			for (a = 0; a < array_size(opline_list); a++) {
-				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+a+1);
+				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value + 1);
 			}
-			environment_list_pop();
+			cons_t *tmp = environment_list_pop();
 			sp_value[-args_num] = cons;
 		}
 		end_local_scope(old_environment);

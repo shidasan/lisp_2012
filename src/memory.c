@@ -72,7 +72,7 @@ void array_free(array_t *a) {
 
 ast_t *new_ast(int type, int sub_type) {
 	ast_t *ast = (ast_t *)malloc(sizeof(ast_t));
-	bzero(ast, sizeof(ast_t));
+	memset(ast, 0, sizeof(ast_t));
 	ast->type = type;
 	ast->sub_type = sub_type;
 	ast->a = new_array();
@@ -136,11 +136,11 @@ void *valloc(size_t size) {
 	if ((uintptr_t)block % PAGESIZE != 0) {
 		char *t2 = (char*)((((uintptr_t)block / PAGESIZE) + 1) * PAGESIZE);
 		void **p = (void**)(t2/* + size */);
-		bzero(t2, size);
+		memset(t2, 0, size);
 		p[0] = block;
 		block = (void*)t2;
 	} else {
-		bzero(block, size);
+		memset(block, 0, size);
 		void **p = (void**) ((char*)block);
 		p[0] = block;
 	}
@@ -160,13 +160,13 @@ static void page_init(cons_page_t *page) {
 static cons_tbl_t *new_page_table() {
 	cons_tbl_t *tbl = NULL;
 	tbl = (cons_tbl_t *)malloc(sizeof(cons_tbl_t));
-	bzero(tbl, sizeof(cons_tbl_t));
+	memset(tbl, 0, sizeof(cons_tbl_t));
 	cons_page_t *page = (cons_page_t *)valloc(ARENASIZE);
 	tbl->head = page;
 	tbl->bottom = (cons_page_t *)(((char *)page) + ARENASIZE);
 	size_t bitmapsize = (ARENASIZE/sizeof(cons_t));
 	uintptr_t *bitmap = (uintptr_t *)malloc(bitmapsize);
-	bzero(bitmap, bitmapsize);
+	memset(bitmap, 0, bitmapsize);
 	tbl->bitmap = bitmap;
 	tbl->bitmapsize = bitmapsize;
 	fprintf(stderr, "pageconssize: %d\N", PAGECONSSIZE);
@@ -209,7 +209,9 @@ static void mark_stack(array_t *traced) {
 	int i = 0;
 	for (; i < STACKSIZE; i++) {
 		if (stack_value[i] != NULL) {
-			CONS_TRACE(stack_value[i], traced);
+			fprintf(stderr, "stack addref %p\n", stack_value[i]);
+			ADDREF(stack_value[i], traced);
+			//CONS_TRACE(stack_value[i], traced);
 		}
 	}
 }
@@ -238,10 +240,10 @@ static void mark_opline(array_t *traced) {
 }
 
 static void mark_root(array_t *traced) {
+	fprintf(stderr, "current_environment %p\n", current_environment->type);
 	fprintf(stderr, "root num: %d\n", array_size(traced));
 	ADDREF(current_environment, traced);
 	fprintf(stderr, "root num: %d\n", array_size(traced));
-	fprintf(stderr, "current_environment %p\n", current_environment->type);
 	mark_stack(traced);
 	fprintf(stderr, "root num: %d\n", array_size(traced));
 	mark_func_data_table(traced);
@@ -263,17 +265,22 @@ static void gc_mark() {
 	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
 		CONS_TRACE(cons, traced);
 		LOOP:
-		for (i = 0; i < array_size(traced); i++) {
-			cons_t *tmp = (cons_t*)array_pop(traced);
+		{
+		cons_t *tmp = NULL;
+		while((tmp = (cons_t*)array_pop(traced)) != NULL) {
+		//for (i = 0; i < array_size(traced); i++) {
+			//cons_t *tmp = (cons_t*)array_pop(traced);
 			if (!cons_is_marked(tmp)) {
 				array_add(ostack, tmp);
 			}
 		}
+		}
 	}
 }
-
+static int count = 0;
 static void gc_sweep() {
 	size_t i, j;
+	count = 0;
 	cons_page_t *page;
 	for (i = 0; i < array_size(cons_arena->a); i++) {
 		array_t *a = cons_arena->a;
@@ -282,23 +289,25 @@ static void gc_sweep() {
 			for (j = 1; j < PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & (uintptr_t)1 << (j % (sizeof(uintptr_t) * 8)))) {
-					CONS_FREE(page->slots + j-1);
-					//bzero(page->slots + j-1, sizeof(cons_t));
-					page->slots[j-1].cdr = free_list;
-					free_list = &page->slots[j-1];
+					CONS_FREE(page->slots + j);
+					memset(page->slots + j, 0, sizeof(cons_t));
+					page->slots[j].cdr = free_list;
+					free_list = &page->slots[j];
 					unused_object++;
 				} else {
+					count++;
 				}
 			}
 		}
 	}
+	fprintf(stderr, "survived count %d\n", count);
 }
 
 static void clear_bitmap() {
 	int i = 0;
 	for (; i < array_size(cons_arena->a); i++) {
 		cons_tbl_t *tbl = (cons_tbl_t*)array_get(cons_arena->a, i);
-		bzero(tbl->bitmap, tbl->bitmapsize);
+		memset(tbl->bitmap, 0, tbl->bitmapsize);
 	}
 }
 
@@ -325,11 +334,12 @@ cons_t *new_cons_cell() {
 	cons = free_list;
 	free_list = free_list->cdr;
 	unused_object--;
-	bzero(cons, sizeof(cons_t));
+	memset(cons, 0, sizeof(cons_t));
 	return cons;
 }
 
 void gc_init() {
+	fprintf(stderr, "sizeof page_h_t %d\n", sizeof(cons_page_h_t));
 	new_cons_arena();
 }
 

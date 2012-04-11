@@ -120,6 +120,6 @@ ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);
 
 extern cons_t *stack_value[];
-#define PAGESIZE (4096 * 8)
+#define PAGESIZE (4096)
 #define ARENASIZE (PAGESIZE * 16)
 #define PAGECONSSIZE ((PAGESIZE/sizeof(cons_t)) - 1)

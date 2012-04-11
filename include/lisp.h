@@ -2,8 +2,8 @@
 #define MAIN
 #include "memory.h"
 #include "config.h"
-#define HASH_SIZE 64
-#define STACKSIZE 1000
+#define HASH_SIZE 8
+#define STACKSIZE 50000
 #define INSTSIZE 100000
 #define ARGC _argc
 #define VSTACK _vstack

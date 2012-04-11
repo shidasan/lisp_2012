@@ -11,7 +11,7 @@ func_t *func_data_table = NULL;
 void new_func_data_table() {
 	int i;
 	func_data_table = (func_t*)malloc(sizeof(func_t) * HASH_SIZE);
-	bzero(func_data_table, sizeof(func_t) * HASH_SIZE);
+	memset(func_data_table, 0, sizeof(func_t) * HASH_SIZE);
 }
 
 void mark_func_data_table(array_t *traced) {
@@ -44,7 +44,6 @@ void mark_variable_data_table(variable_t *table, array_t *traced) {
 void mark_environment_list(array_t *traced) {
 	int i = 0;
 	for (; i < array_size(environment_list); i++) {
-		fprintf(stderr, "hihi\n");
 		ADDREF((cons_t*)array_get(environment_list, i), traced);
 	}
 }
@@ -67,13 +66,6 @@ cons_t *begin_local_scope(func_t *func) {
 		}
 		current_environment->cdr = old_environment;
 	}
-	//cons_t *old_environment = current_environment;
-	//if (cons->local_environment) {
-	//	//cons->local_environment->cdr = current_environment;
-	//	//fprintf(stderr ,"begin environment %p => %p\n", current_environment, cons->local_environment);
-	//	current_environment = cons->local_environment;
-	//	current_environment->car = new_variable_data_table();
-	//}
 	return old_environment;
 }
 
@@ -153,7 +145,7 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 		} else if (p->next == NULL){
 			if (is_end_of_table_list) {
 				p->next = (variable_t*)malloc(sizeof(variable_t));
-				bzero(p->next, sizeof(variable_t));
+				memset(p->next, 0, sizeof(variable_t));
 				if (p->name == NULL) {
 					p->name = (char*)malloc(strlen(str)+1);
 				}
@@ -253,7 +245,7 @@ struct func_t* set_static_func (const char* str,int i, void* adr, void *special_
 			return p;
 		} else if (p->next == NULL){
 			p->next = (func_t*)malloc(sizeof(func_t));
-			bzero(p->next, sizeof(variable_t));
+			memset(p->next, 0, sizeof(variable_t));
 			p = p->next;
 		} else {
 			p = p->next;
@@ -284,7 +276,7 @@ struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, co
 			return p;
 		} else if (p->next == NULL){
 			p->next = (func_t*)malloc(sizeof(func_t));
-			bzero(p->next, sizeof(variable_t));
+			memset(p->next, 0, sizeof(variable_t));
 			p = p->next;
 		} else {
 			p = p->next;
