@@ -27,15 +27,17 @@ void mark_func_data_table(array_t *traced) {
 }
 
 void mark_variable_data_table(variable_t *table, array_t *traced) {
-	printf("hi table: %p\n", table);
+	printf("mark table: %p\n", table);
 	int i = 0;
 	for (; i < HASH_SIZE; i++) {
 		variable_t *variable = table + i;
 		while (variable != NULL) {
+			fprintf(stderr, "add value!!!!!!!! %p\n", variable->cons);
 			ADDREF_NULLABLE(variable->cons, traced);
 			variable = variable->next;
 		}
 	}
+	printf("mark table end: %p\n", table);
 }
 
 cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {

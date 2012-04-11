@@ -204,6 +204,8 @@ static void mark_stack(array_t *traced) {
 }
 
 static void mark_root(array_t *traced) {
+	ADDREF(current_environment, traced);
+	fprintf(stderr, "current_environment %p\n", current_environment->type);
 	mark_stack(traced);
 	mark_func_data_table(traced);
 }
@@ -238,9 +240,11 @@ static void gc_sweep() {
 			for (j = 0; j < PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & 1 << (j % (sizeof(uintptr_t) * 8)))) {
+					CONS_FREE(page->slots + j);
 					page->slots[j].cdr = free_list;
 					free_list = &page->slots[j];
 					unused_object++;
+				} else {
 				}
 			}
 		}

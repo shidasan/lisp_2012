@@ -89,6 +89,10 @@ typedef struct ast_t {
 		fprintf(stderr ,"addref %p\n", CONS);\
 	}\
 
+#define FREE(PTR)\
+	free(PTR);\
+	(PTR) = NULL\
+
 #define CONS_TRACE(CONS, A) (CONS)->api->trace(CONS, A)
 #define CONS_PRINT(CONS) (CONS)->api->print(CONS)
 #define CONS_FREE(CONS) (CONS)->api->free(CONS)

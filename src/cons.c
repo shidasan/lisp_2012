@@ -15,7 +15,7 @@ static cons_t *eval_T(cons_t *cons) {
 }
 
 static void trace_T(cons_t *cons, struct array_t *traced) {
-	TODO("T trace\n");
+	ADDREF(cons, traced);
 }
 
 static void print_nil(cons_t *cons) {
@@ -31,6 +31,7 @@ static cons_t *eval_nil(cons_t *cons) {
 }
 
 static void trace_nil(cons_t *cons, struct array_t *traced) {
+	ADDREF(cons, traced);
 }
 
 static void print_i(cons_t *cons) {
@@ -38,7 +39,7 @@ static void print_i(cons_t *cons) {
 }
 
 static void free_i(cons_t *cons) {
-
+	fprintf(stderr, "free int\n");
 }
 
 static cons_t *eval_i(cons_t *cons) {
@@ -54,7 +55,7 @@ static void print_func(cons_t *cons) {
 }
 
 static void free_func(cons_t *cons) {
-	free(cons->str);
+	FREE(cons->str);
 }
 
 static cons_t *eval_func(cons_t *cons) {
@@ -72,7 +73,7 @@ static void print_variable(cons_t *cons) {
 }
 
 static void free_variable(cons_t *cons) {
-	free(cons->str);
+	FREE(cons->str);
 }
 
 static cons_t *eval_variable(cons_t *cons) {
@@ -80,7 +81,7 @@ static cons_t *eval_variable(cons_t *cons) {
 }
 
 static void trace_variable(cons_t *cons, struct array_t *traced) {
-	TODO("variable trace\n");
+	ADDREF(cons, traced);
 }
 
 static void print_open(cons_t *cons) {
@@ -170,7 +171,7 @@ static void print_local_environment(cons_t *cons) {
 }
 
 static void free_local_environment(cons_t *cons) {
-
+	fprintf(stderr, "free local environment\n");
 }
 
 static cons_t *eval_local_environment(cons_t *cons) {
