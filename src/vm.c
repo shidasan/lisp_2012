@@ -129,11 +129,13 @@ mtdcall:
 			sp_value[-args_num] = func->mtd(sp_value, args_num);
 		} else {
 			old_environment = change_local_scope(current_environment, func->environment);
+			environment_list_push(old_environment);
 			opline_list = func->opline_list;
 			set_args(sp_value, args_num, func);
 			for (a = 0; a < array_size(opline_list); a++) {
 				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value+a+1);
 			}
+			environment_list_pop();
 			sp_value[-args_num] = cons;
 		}
 		end_local_scope(old_environment);

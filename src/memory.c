@@ -48,6 +48,13 @@ void *array_pop(array_t *a) {
 	return a->list[a->size];
 }
 
+void array_trace(array_t *a, array_t *traced) {
+	int i = 0;
+	for (; i < array_size(a); i++) {
+		ADDREF(((cons_t*)array_get(a, i)), traced);
+	}
+}
+
 array_t *new_array() {
 	array_t *a = (array_t *)malloc(sizeof(array_t));
 	a->capacity = 8;
@@ -162,6 +169,7 @@ static cons_tbl_t *new_page_table() {
 	bzero(bitmap, bitmapsize);
 	tbl->bitmap = bitmap;
 	tbl->bitmapsize = bitmapsize;
+	fprintf(stderr, "pageconssize: %d\N", PAGECONSSIZE);
 	unused_object += PAGECONSSIZE * 16;
 	object_capacity += PAGECONSSIZE * 16;
 	for (; page < tbl->bottom; page++) {
@@ -169,6 +177,7 @@ static cons_tbl_t *new_page_table() {
 		page->h.bitmap = bitmap;
 		fprintf(stderr, "bitmap%p\n", bitmap);
 		bitmap += (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t);
+		fprintf(stderr, "bitmapsize: %d, %d\n", bitmapsize, (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t));
 		page_init(page);
 	}
 	/* last slot in last page of cons_tbl */
@@ -187,9 +196,11 @@ static cons_arena_t *new_cons_arena() {
 static int cons_is_marked(cons_t *cons) {
 	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) / PAGESIZE) * PAGESIZE);
 	size_t offset = (((uintptr_t)cons) / sizeof(cons_t)) % (PAGESIZE / sizeof(cons_t));
+	//int x = offset / (sizeof(uintptr_t));
 	int x = offset / (sizeof(uintptr_t) * 8);
-	if (!(page->h.bitmap[x] & 1 << (offset % (sizeof(uintptr_t) * 8)))) {
-		page->h.bitmap[x] |= 1 << offset;
+	fprintf(stderr, "is_marked cons: %p, page: %p, offset: %d, x: %d shift: %d\n", cons, page, offset, x, (offset % (sizeof(uintptr_t) * 8)));
+	if (!(page->h.bitmap[x] & (uintptr_t)1 << (offset % (sizeof(uintptr_t) * 8)))) {
+		page->h.bitmap[x] |= (uintptr_t)1 << (offset % (sizeof(uintptr_t) * 8));
 		return 0;
 	}
 	return 1;
@@ -203,11 +214,42 @@ static void mark_stack(array_t *traced) {
 	}
 }
 
+static void mark_opline(array_t *traced) {
+	int i = 0;
+	fprintf(stderr, "mark opline\n");
+	for (; i < NextIndex; i++) {
+		opline_t *op = memory + i;
+		switch(op->instruction) {
+			case PUSH:
+			case VARIABLE_PUSH:
+			case MTDCHECK:
+			case MTDCALL:
+				ADDREF(op->op[0].cons, traced);
+				break;
+			case SPECIAL_MTD:
+				ADDREF(op->op[0].cons, traced);
+				//array_trace(op->op[1].a, traced);
+				break;
+			default:
+				break;
+		}
+	}
+	fprintf(stderr, "mark opline end\n");
+}
+
 static void mark_root(array_t *traced) {
+	fprintf(stderr, "root num: %d\n", array_size(traced));
 	ADDREF(current_environment, traced);
+	fprintf(stderr, "root num: %d\n", array_size(traced));
 	fprintf(stderr, "current_environment %p\n", current_environment->type);
 	mark_stack(traced);
+	fprintf(stderr, "root num: %d\n", array_size(traced));
 	mark_func_data_table(traced);
+	fprintf(stderr, "root num: %d\n", array_size(traced));
+	mark_opline(traced);
+	fprintf(stderr, "root num: %d\n", array_size(traced));
+	mark_environment_list(traced);
+	fprintf(stderr, "root num: %d\n", array_size(traced));
 }
 
 static void gc_mark() {
@@ -222,7 +264,7 @@ static void gc_mark() {
 		CONS_TRACE(cons, traced);
 		LOOP:
 		for (i = 0; i < array_size(traced); i++) {
-			cons_t *tmp = (cons_t*)array_get(traced, i);
+			cons_t *tmp = (cons_t*)array_pop(traced);
 			if (!cons_is_marked(tmp)) {
 				array_add(ostack, tmp);
 			}
@@ -237,12 +279,13 @@ static void gc_sweep() {
 		array_t *a = cons_arena->a;
 		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
 		for (page = tbl->head; page < tbl->bottom; page++) {
-			for (j = 0; j < PAGECONSSIZE; j++) {
+			for (j = 1; j < PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
-				if (!(page->h.bitmap[x] & 1 << (j % (sizeof(uintptr_t) * 8)))) {
-					CONS_FREE(page->slots + j);
-					page->slots[j].cdr = free_list;
-					free_list = &page->slots[j];
+				if (!(page->h.bitmap[x] & (uintptr_t)1 << (j % (sizeof(uintptr_t) * 8)))) {
+					CONS_FREE(page->slots + j-1);
+					//bzero(page->slots + j-1, sizeof(cons_t));
+					page->slots[j-1].cdr = free_list;
+					free_list = &page->slots[j-1];
 					unused_object++;
 				} else {
 				}
@@ -251,8 +294,19 @@ static void gc_sweep() {
 	}
 }
 
+static void clear_bitmap() {
+	int i = 0;
+	for (; i < array_size(cons_arena->a); i++) {
+		cons_tbl_t *tbl = (cons_tbl_t*)array_get(cons_arena->a, i);
+		bzero(tbl->bitmap, tbl->bitmapsize);
+	}
+}
+
 static void gc() {
+	fprintf(stderr, "PAGECONSSIZE %d\n", PAGECONSSIZE);
+	fprintf(stderr, "PAGESIZE %d\n", PAGESIZE);
 	fprintf(stderr, "gc()\n");
+	clear_bitmap();
 	gc_mark();
 	gc_sweep();
 	fprintf(stderr, "gc end\n");

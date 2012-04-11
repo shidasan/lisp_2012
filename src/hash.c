@@ -4,6 +4,7 @@
 #include"lisp.h"
 /* list of variable_data table */
 cons_t *current_environment = NULL;
+array_t *environment_list = NULL;
 /* function_data table */
 func_t *func_data_table = NULL;
 
@@ -40,6 +41,14 @@ void mark_variable_data_table(variable_t *table, array_t *traced) {
 	printf("mark table end: %p\n", table);
 }
 
+void mark_environment_list(array_t *traced) {
+	int i = 0;
+	for (; i < array_size(environment_list); i++) {
+		fprintf(stderr, "hihi\n");
+		ADDREF((cons_t*)array_get(environment_list, i), traced);
+	}
+}
+
 cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 	cons_t *new_environment = new_local_environment();
 	new_environment->car = new_variable_data_table();
@@ -53,6 +62,9 @@ cons_t *begin_local_scope(func_t *func) {
 	if (func->creates_local_scope) {
 		current_environment = new_local_environment();
 		current_environment->car = new_variable_data_table();
+		if (current_environment->car == current_environment->car->car) {
+			asm("int3");
+		}
 		current_environment->cdr = old_environment;
 	}
 	//cons_t *old_environment = current_environment;
@@ -73,19 +85,28 @@ cons_t *end_local_scope(cons_t *old_environment) {
 void new_global_environment() {
 	current_environment = new_local_environment();
 	current_environment->car = new_variable_data_table();
+	environment_list = new_array();
+}
+
+void environment_list_push(cons_t *environment) {
+	array_add(environment_list, environment);
+}
+
+cons_t *environment_list_pop(cons_t *environment) {
+	return array_pop(environment_list);
 }
 
 static void free_variable_data_table(variable_t *table) {
 	int i;
 	variable_t *tempV, *currentV;
 	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
-		free(table[i].name);
+		FREE(table[i].name);
 		currentV = table[i].next;
 		while (1){
 			if (currentV != NULL){
 				tempV = currentV->next;
-				free(currentV->name);
-				free(currentV);
+				FREE(currentV->name);
+				FREE(currentV);
 				currentV = tempV;
 			} else {
 				break;
@@ -98,13 +119,13 @@ void free_func_data_table() {
 	func_t *tempF, *currentF;
 	int i;
 	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
-		free(func_data_table[i].name);
+		FREE(func_data_table[i].name);
 		currentF = func_data_table[i].next;
 		while (1){
 			if (currentF != NULL){
 				tempF = currentF->next;
-				free(currentF->name);
-				free(currentF);
+				FREE(currentF->name);
+				FREE(currentF);
 				currentF = tempF;
 			} else {
 				break;
@@ -122,7 +143,7 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 			if (p->name == NULL) {
 				p->name = (char*)malloc(strlen(str)+1);
 			} else {
-				free(p->name);
+				FREE(p->name);
 				p->name = (char*)malloc(strlen(str)+1);
 			}
 			strcpy (p->name, str);
@@ -153,13 +174,9 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
-	//cons_t *result = search_variable(cons->str);
-	//fprintf(stderr, "serch_variable %p\n", search_variable(cons->str));
-	//if (result) {
-	//	printf("hi\n");
-	//	printf("%d\n", result->ivalue);
-	//}
+	fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
+	fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 		environment = environment->cdr;
 		table = environment->car;
 	}

@@ -61,6 +61,7 @@ static cons_t *sub(cons_t** VSTACK, int ARGC) {
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
+			asm("int3");
 		}
 		if (i == 0) {
 			res = cons->ivalue;

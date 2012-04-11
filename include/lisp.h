@@ -65,6 +65,10 @@ struct func_t* set_static_func (const char* str, int i , void* adr, void* specia
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment);
 void new_global_environment();
 extern cons_t *current_environment;
+void mark_environment_list(array_t*);
+void environment_list_push(cons_t *);
+cons_t *environment_list_pop();
+
 struct cons_t* set_variable (cons_t *cons, cons_t *value, int set_local_scope);
 struct cons_t* search_variable (char* str);
 

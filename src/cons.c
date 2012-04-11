@@ -39,7 +39,6 @@ static void print_i(cons_t *cons) {
 }
 
 static void free_i(cons_t *cons) {
-	fprintf(stderr, "free int\n");
 }
 
 static cons_t *eval_i(cons_t *cons) {
@@ -140,20 +139,21 @@ static void free_variable_table(cons_t *cons) {
 	int i;
 	variable_t *table = cons->variable_data_table;
 	variable_t *tempV, *currentV;
-	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
-		free(table[i].name);
+	for (i = 0;i < HASH_SIZE; i++){
+		FREE(table[i].name);
 		currentV = table[i].next;
 		while (1){
 			if (currentV != NULL){
 				tempV = currentV->next;
-				free(currentV->name);
-				free(currentV);
+				FREE(currentV->name);
+				FREE(currentV);
 				currentV = tempV;
 			} else {
 				break;
 			}
 		}
 	}
+	FREE(cons->variable_data_table);
 }
 
 static cons_t *eval_variable_table(cons_t *cons) {
@@ -171,7 +171,6 @@ static void print_local_environment(cons_t *cons) {
 }
 
 static void free_local_environment(cons_t *cons) {
-	fprintf(stderr, "free local environment\n");
 }
 
 static cons_t *eval_local_environment(cons_t *cons) {
@@ -245,7 +244,7 @@ cons_t *new_variable_data_table() {
 	cons->type = VARIABLE_TABLE;
 	cons->api = &cons_variable_table_api;
 	cons->variable_data_table = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
-	bzero(cons->variable_data_table, sizeof(variable_t) * HASH_SIZE);
+	//bzero(cons->variable_data_table, sizeof(variable_t) * HASH_SIZE);
 	return cons;
 }
 
