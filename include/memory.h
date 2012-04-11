@@ -9,6 +9,7 @@ typedef struct array_t {
 
 typedef struct cons_t{
     int type;
+	//void *unused_ptr;
 	union {
 		int ivalue;
 		char* str;

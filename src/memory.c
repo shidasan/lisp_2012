@@ -96,6 +96,7 @@ typedef struct cons_page_h_t {
 	uintptr_t allocated_ptr;
 	uintptr_t *bitmap;
 	uintptr_t *tenure;
+	uintptr_t *unused;
 }cons_page_h_t;	
 
 typedef struct cons_page_t {
@@ -163,8 +164,10 @@ static cons_tbl_t *new_page_table() {
 	tbl->bitmapsize = bitmapsize;
 	unused_object += PAGECONSSIZE * 16;
 	object_capacity += PAGECONSSIZE * 16;
-	for (; page < tbl->bottom - 1; page++) {
+	for (; page < tbl->bottom; page++) {
+		fprintf(stderr ,"page: %p\n", page);
 		page->h.bitmap = bitmap;
+		fprintf(stderr, "bitmap%p\n", bitmap);
 		bitmap += (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t);
 		page_init(page);
 	}
@@ -182,7 +185,7 @@ static cons_arena_t *new_cons_arena() {
 }
 
 static int cons_is_marked(cons_t *cons) {
-	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) % PAGESIZE) * PAGESIZE);
+	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) / PAGESIZE) * PAGESIZE);
 	size_t offset = (((uintptr_t)cons) / sizeof(cons_t)) % (PAGESIZE / sizeof(cons_t));
 	int x = offset / (sizeof(uintptr_t) * 8);
 	if (!(page->h.bitmap[x] & 1 << (offset % (sizeof(uintptr_t) * 8)))) {
@@ -192,9 +195,14 @@ static int cons_is_marked(cons_t *cons) {
 	return 1;
 }
 
-static void mark_root(array_t *ostack) {
+static void mark_root(array_t *traced) {
 	/* TODO mark root */
-	//fprintf(stderr, "stack_value: %p, sp_value: %p\n", stack_value, sp_value);
+	int i = 0;
+	for (; i < STACKSIZE; i++) {
+		if (stack_value[i] != NULL) {
+			CONS_TRACE(stack_value[i], traced);
+		}
+	}
 }
 
 static void gc_mark() {
@@ -203,7 +211,7 @@ static void gc_mark() {
 	cons_t *cons = NULL;
 	array_t *a = cons_arena->a;
 	array_t *traced = new_array();
-	mark_root(ostack);
+	mark_root(traced);
 	goto LOOP;
 	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
 		CONS_TRACE(cons, traced);
@@ -223,7 +231,7 @@ static void gc_sweep() {
 	for (i = 0; i < array_size(cons_arena->a); i++) {
 		array_t *a = cons_arena->a;
 		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
-		for (page = tbl->head; page < tbl->bottom-1; page++) {
+		for (page = tbl->head; page < tbl->bottom; page++) {
 			for (j = 0; j < PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & 1 << (j % (sizeof(uintptr_t) * 8)))) {

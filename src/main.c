@@ -129,6 +129,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 
 int main (int argc, char* args[])
 {
+	fprintf(stderr, "sizeof(cons_t): %d\n", sizeof(cons_t));
 	FILE* file = NULL;
 	int StrSize = STRLEN;
 	int StrIndex = 0;

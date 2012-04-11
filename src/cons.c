@@ -47,7 +47,7 @@ static cons_t *eval_i(cons_t *cons) {
 }
 
 static void trace_i(cons_t *cons, struct array_t *traced) {
-	TODO("i trace\n");
+	array_add(traced, cons);
 }
 
 static void print_func(cons_t *cons) {
@@ -127,6 +127,10 @@ static cons_t *eval_open(cons_t *cons) {
 
 static void trace_open(cons_t *cons, struct array_t *traced) {
 	TODO("open trace\n");
+	array_add(traced, cons->car);
+	if (cons->cdr != NULL) {
+		array_add(traced, cons->cdr);
+	}
 }
 
 static void print_variable_table(cons_t *cons) {
