@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include"lisp.h"
+cons_t** sp_value = NULL;
 const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "VARIABLE_PUSH"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
@@ -64,13 +65,11 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
 
 	//dump_vm();
 
-    opline_t* stack_adr[STACKSIZE];
-    cons_t *stack_arg[STACKSIZE];
     //cons_t *stack_value[STACKSIZE];
 
-    cons_t** sp_value = stack_value;
-    cons_t** sp_arg = stack_arg;
-    opline_t** sp_adr = stack_adr;
+    cons_t** sp_arg = NULL;
+    opline_t** sp_adr = NULL;
+	cons_t **sp_value = stack_value;
     //register opline_t* pc = memory + CurrentIndex;
     int a = 0, args_num = 0; 
     struct cons_t *a_ptr = NULL,*ret_ptr = NULL;

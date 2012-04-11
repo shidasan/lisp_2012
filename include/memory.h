@@ -1,6 +1,12 @@
 struct cons_api_t;
 struct variable_t;
 
+typedef struct array_t {
+	void **list;
+	size_t size;
+	size_t capacity;
+}array_t;
+
 typedef struct cons_t{
     int type;
 	union {
@@ -22,6 +28,7 @@ typedef struct cons_api_t {
 	void (* print)(cons_t *);
 	void (* free)(cons_t *);
 	cons_t* (* eval)(cons_t *);
+	void (* trace)(cons_t *, struct array_t *);
 }cons_api_t;
 
 typedef struct opline_t{
@@ -72,6 +79,7 @@ typedef struct ast_t {
 	};
 }ast_t;
 
+#define CONS_TRACE(CONS, A) (CONS)->api->trace(CONS, A)
 #define CONS_PRINT(CONS) (CONS)->api->print(CONS)
 #define CONS_FREE(CONS) (CONS)->api->free(CONS)
 #define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
@@ -94,6 +102,8 @@ void array_free(struct array_t *a);
 
 ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);
+
+extern cons_t *stack_value[];
 #define PAGESIZE 4096
 #define ARENASIZE (PAGESIZE * 16)
 #define PAGECONSSIZE ((PAGESIZE/sizeof(cons_t)) - 1)

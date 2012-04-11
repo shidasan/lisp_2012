@@ -14,6 +14,10 @@ static cons_t *eval_T(cons_t *cons) {
 	return cons;
 }
 
+static void trace_T(cons_t *cons, struct array_t *traced) {
+	TODO("T trace\n");
+}
+
 static void print_nil(cons_t *cons) {
 	printf("nil");
 }
@@ -24,6 +28,10 @@ static void free_nil(cons_t *cons) {
 
 static cons_t *eval_nil(cons_t *cons) {
 	return cons;
+}
+
+static void trace_nil(cons_t *cons, struct array_t *traced) {
+	TODO("nil trace\n");
 }
 
 static void print_i(cons_t *cons) {
@@ -38,6 +46,10 @@ static cons_t *eval_i(cons_t *cons) {
 	return cons;
 }
 
+static void trace_i(cons_t *cons, struct array_t *traced) {
+	TODO("i trace\n");
+}
+
 static void print_func(cons_t *cons) {
 	printf("%s", cons->str);
 }
@@ -50,6 +62,10 @@ static cons_t *eval_func(cons_t *cons) {
 	func_t *func = search_func(cons->str);
 }
 
+static void trace_func(cons_t *cons, struct array_t *traced) {
+	TODO("func trace\n");
+}
+
 static void print_variable(cons_t *cons) {
 	printf("%s", cons->str);
 }
@@ -60,6 +76,10 @@ static void free_variable(cons_t *cons) {
 
 static cons_t *eval_variable(cons_t *cons) {
 
+}
+
+static void trace_variable(cons_t *cons, struct array_t *traced) {
+	TODO("variable trace\n");
 }
 
 static void print_open(cons_t *cons) {
@@ -105,6 +125,10 @@ static cons_t *eval_open(cons_t *cons) {
 	CONS_EVAL(cons->car);
 }
 
+static void trace_open(cons_t *cons, struct array_t *traced) {
+	TODO("open trace\n");
+}
+
 static void print_variable_table(cons_t *cons) {
 	TODO("print variable table\n");
 }
@@ -133,6 +157,10 @@ static cons_t *eval_variable_table(cons_t *cons) {
 	/* do nothing */
 }
 
+static void trace_variable_table(cons_t *cons, struct array_t *traced) {
+	TODO("variable table trace\n");
+}
+
 static void print_local_environment(cons_t *cons) {
 
 }
@@ -145,14 +173,18 @@ static cons_t *eval_local_environment(cons_t *cons) {
 
 }
 
-struct cons_api_t cons_T_api = {print_T, free_T, eval_T};
-struct cons_api_t cons_nil_api = {print_nil, free_nil, eval_nil};
-struct cons_api_t cons_int_api = {print_i, free_i, eval_i};
-struct cons_api_t cons_func_api = {print_func, free_func, eval_func};
-struct cons_api_t cons_variable_api = {print_variable, free_variable, eval_variable};
-struct cons_api_t cons_open_api = {print_open, free_open, eval_open};
-struct cons_api_t cons_variable_table_api = {print_variable_table, free_variable_table, eval_variable_table};
-struct cons_api_t cons_local_environment_api = {print_local_environment, free_local_environment, eval_local_environment};
+static void trace_local_environment(cons_t *cons, struct array_t *traced) {
+	TODO("local environment trace\n");
+}
+
+struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};
+struct cons_api_t cons_nil_api = {print_nil, free_nil, eval_nil, trace_nil};
+struct cons_api_t cons_int_api = {print_i, free_i, eval_i, trace_i};
+struct cons_api_t cons_func_api = {print_func, free_func, eval_func, trace_func};
+struct cons_api_t cons_variable_api = {print_variable, free_variable, eval_variable, trace_variable};
+struct cons_api_t cons_open_api = {print_open, free_open, eval_open, trace_open};
+struct cons_api_t cons_variable_table_api = {print_variable_table, free_variable_table, eval_variable_table, trace_variable_table};
+struct cons_api_t cons_local_environment_api = {print_local_environment, free_local_environment, eval_local_environment, trace_local_environment};
 
 cons_t *new_int(int n) {
 	cons_t *cons = new_cons_cell();

@@ -5,12 +5,6 @@
 
 /* Array */
 
-typedef struct array_t {
-	void **list;
-	size_t size;
-	size_t capacity;
-}array_t;
-
 void *array_get(array_t *a, size_t n) {
 	if (n < 0 || n >= a->size) {
 		fprintf(stderr, "out of bounds\n");
@@ -187,10 +181,6 @@ static cons_arena_t *new_cons_arena() {
 	cons_arena = arena;
 }
 
-static void reftrace(cons_t *cons, array_t *traced) {
-
-}
-
 static int cons_is_marked(cons_t *cons) {
 	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) % PAGESIZE) * PAGESIZE);
 	size_t offset = (((uintptr_t)cons) / sizeof(cons_t)) % (PAGESIZE / sizeof(cons_t));
@@ -202,16 +192,9 @@ static int cons_is_marked(cons_t *cons) {
 	return 1;
 }
 
-static void mark_root(array_t *ostack, array_t *traced) {
+static void mark_root(array_t *ostack) {
 	/* TODO mark root */
-
-	size_t i;
-	for (i = 0; i < array_size(traced); i++) {
-		cons_t *tmp = (cons_t*)array_get(traced, i);
-		if (!cons_is_marked(tmp)) {
-			array_add(ostack, tmp);
-		}
-	}
+	//fprintf(stderr, "stack_value: %p, sp_value: %p\n", stack_value, sp_value);
 }
 
 static void gc_mark() {
@@ -220,9 +203,11 @@ static void gc_mark() {
 	cons_t *cons = NULL;
 	array_t *a = cons_arena->a;
 	array_t *traced = new_array();
-	mark_root(ostack, traced);
+	mark_root(ostack);
+	goto LOOP;
 	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
-		reftrace(cons, traced);
+		CONS_TRACE(cons, traced);
+		LOOP:
 		for (i = 0; i < array_size(traced); i++) {
 			cons_t *tmp = (cons_t*)array_get(traced, i);
 			if (!cons_is_marked(tmp)) {
@@ -252,6 +237,7 @@ static void gc_sweep() {
 }
 
 static void gc() {
+	fprintf(stderr, "gc()\n");
 	gc_mark();
 	gc_sweep();
 }
