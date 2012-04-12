@@ -211,7 +211,7 @@ static void mark_stack(array_t *traced) {
 		if (stack_value[i] != NULL) {
 			fprintf(stderr, "stack addref %p\n", stack_value[i]);
 			ADDREF(stack_value[i], traced);
-			//CONS_TRACE(stack_value[i], traced);
+			CONS_TRACE(stack_value[i], traced);
 		}
 	}
 }
@@ -288,7 +288,7 @@ static void gc_sweep() {
 		for (page = tbl->head; page < tbl->bottom; page++) {
 			for (j = 1; j < PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
-				if (!(page->h.bitmap[x] & (uintptr_t)1 << (j % (sizeof(uintptr_t) * 8)))) {
+				if (!(page->h.bitmap[x] & ((uintptr_t)1 << (j % (sizeof(uintptr_t) * 8))))) {
 					CONS_FREE(page->slots + j);
 					memset(page->slots + j, 0, sizeof(cons_t));
 					page->slots[j].cdr = free_list;
@@ -335,6 +335,10 @@ cons_t *new_cons_cell() {
 	free_list = free_list->cdr;
 	unused_object--;
 	memset(cons, 0, sizeof(cons_t));
+	if ((uintptr_t)cons == 0x10080fc20) {
+		asm("int3");
+	}
+	fprintf(stderr, "new_cons_tree() %p\n", cons);
 	return cons;
 }
 

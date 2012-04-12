@@ -7,9 +7,14 @@ static void dump_vm() {
 	int i = 0;
 	while (pc < memory + NextIndex-1) {
 		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
+		if (pc->instruction == PUSH) {
+			CONS_PRINT(pc->op[0].cons);
+			fprintf(stdout, "\n");
+		}
 		pc++;
 	}
 	fprintf(stdout, "op: END\n");
+	fprintf(stdout, "op: DUMP END\n");
 }
 static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
 	int i = 0;
@@ -21,7 +26,7 @@ static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
 		args = args->cdr;
 	}
 }
-cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
+cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 {
     static void *table [] = {
         &&push,
@@ -69,7 +74,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **stack_value)
 
     cons_t** sp_arg = NULL;
     opline_t** sp_adr = NULL;
-	cons_t **sp_value = stack_value;
+	cons_t **sp_value = _stack_value;
     //register opline_t* pc = memory + CurrentIndex;
     int a = 0, args_num = 0; 
     struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
@@ -135,8 +140,8 @@ mtdcall:
 			for (a = 0; a < array_size(opline_list); a++) {
 				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), sp_value + 1);
 			}
-			cons_t *tmp = environment_list_pop();
 			sp_value[-args_num] = cons;
+			cons_t *tmp = environment_list_pop();
 		}
 		end_local_scope(old_environment);
 		sp_value -= (args_num - 1);
@@ -168,10 +173,8 @@ funcdef:
 	return NULL;
 
 end:
-	//if (stack_value[0] != 0) {
-	//	stack_value[0]->api->print(stack_value[0]);
-	//}
-    return stack_value[0];
+	fprintf(stderr, "call end\n");
+    return _stack_value[0];
 
 push:
     //sp_value[0]->type = NUM;

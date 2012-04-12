@@ -183,7 +183,7 @@ static void trace_local_environment(cons_t *cons, struct array_t *traced) {
 	fprintf(stderr, "mark cons->car %p\n", cons->car);
 	ADDREF(cons, traced);
 	ADDREF_NULLABLE(cons->cdr, traced);
-	ADDREF_NULLABLE(cons->car, traced);
+	ADDREF(cons->car, traced);
 }
 
 struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};

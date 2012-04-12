@@ -32,15 +32,9 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 
 set(GC_TEST
 		src/gc_test.c
-		src/vm.c
-		src/codegen.c
-		src/hash.c
-		src/parser.c
-		src/mtddata.c
-		src/_main.c
-		src/cons.c
    )
 set(LISP_SRC
+		src/shell.c
 		src/vm.c
 		src/codegen.c
 		src/hash.c
@@ -53,8 +47,8 @@ set(LISP_BIN src/main.c)
 set(GC_BIN src/memory.c)
 add_library(lisp ${LISP_SRC})
 add_executable(lisp ${LISP_BIN})
+add_library(gc_test ${LISP_SRC})
 add_executable(gc_test ${GC_TEST})
-#add_executable(gc_test ${GC_BIN})
 
 enable_testing()
 set(ktest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lisp)
