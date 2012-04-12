@@ -125,6 +125,14 @@ static cons_t *gt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static cons_t *zerop(cons_t **VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
+	if (cons->type == INT && cons->ivalue == 0) {
+		return new_bool(1);
+	}
+	return new_bool(0);
+}
+
 static cons_t *quote(cons_t ** VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	return cons;
@@ -261,6 +269,7 @@ static_mtd_data static_mtds[] = {
 	{"/", -1, 0, 0, 0, 0, div, NULL},
 	{"<", -1, 0, 0, 0, 0, lt, NULL},
 	{">", -1, 0, 0, 0, 0, gt, NULL},
+	{"zerop", 1, 0, 0, 0, 0, zerop, NULL},
 	{"quote", 1, 0, 0, 1, 1, quote, NULL},
 	{"list", -1, 0, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, 0, length, NULL},
