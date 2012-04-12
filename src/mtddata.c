@@ -125,6 +125,24 @@ static cons_t *gt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static cons_t *eq(cons_t** VSTACK, int ARGC) {
+	int i;
+	int current_number = ARGS(0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number != next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
 static cons_t *zerop(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type == INT && cons->ivalue == 0) {
@@ -144,6 +162,7 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 		return new_bool(0);
 	}
 	cons_t *res = new_open();
+	cstack_cons_cell_push(res);
 	cons_t *tmp = res;
 	for (i = 0; i < ARGC; i++) {
 		tmp->car = ARGS(i);
@@ -154,6 +173,7 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 			tmp = tmp->cdr;
 		}
 	}
+	cstack_cons_cell_pop();
 	return res;
 }
 
@@ -269,6 +289,7 @@ static_mtd_data static_mtds[] = {
 	{"/", -1, 0, 0, 0, 0, div, NULL},
 	{"<", -1, 0, 0, 0, 0, lt, NULL},
 	{">", -1, 0, 0, 0, 0, gt, NULL},
+	{"=", -1, 0, 0, 0, 0, eq, NULL},
 	{"zerop", 1, 0, 0, 0, 0, zerop, NULL},
 	{"quote", 1, 0, 0, 1, 1, quote, NULL},
 	{"list", -1, 0, 0, 0, 0, list, NULL},
