@@ -4,5 +4,8 @@
 #include "lisp.h"
 
 int main() {
-	fprintf(stderr, "hi\n");
+	gc_init();
+	while (1) {
+		cons_t *cons = new_cons_cell();
+	}
 }

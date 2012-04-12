@@ -82,13 +82,11 @@ typedef struct ast_t {
 
 #define ADDREF(CONS, A) (array_add((A), (CONS)));\
 	fprintf(stderr ,"addref %p\n", CONS);\
-	fprintf(stderr, "type: %d\n", (CONS)->type);\
 
 #define ADDREF_NULLABLE(CONS, A)\
 	if ((CONS) != NULL) {\
 		array_add((A), (CONS));\
 		fprintf(stderr ,"addref %p\n", CONS);\
-		fprintf(stderr, "type: %d\n", (CONS)->type);\
 	}\
 
 #define FREE(PTR)\
