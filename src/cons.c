@@ -139,15 +139,20 @@ static void free_variable_table(cons_t *cons) {
 	int i;
 	variable_t *table = cons->variable_data_table;
 	variable_t *tempV, *currentV;
+	fprintf(stderr, "free_variable_table %p\n", table);
 	for (i = 0;i < HASH_SIZE; i++){
-		FREE(table[i].name);
-		currentV = table[i].next;
-		while (1){
-			if (currentV != NULL){
+		currentV = table + i;
+		//FREE(table[i].name);
+		//currentV = table[i].next;
+		while (currentV != NULL){
+			if (currentV->name != NULL){
 				tempV = currentV->next;
 				FREE(currentV->name);
-				FREE(currentV);
+				if (currentV > table + HASH_SIZE) {
+					FREE(currentV);
+				}
 				currentV = tempV;
+				fprintf(stderr, "next %p\n", tempV);
 			} else {
 				break;
 			}

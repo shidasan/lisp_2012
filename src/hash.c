@@ -33,7 +33,6 @@ void mark_variable_data_table(variable_t *table, array_t *traced) {
 	for (; i < HASH_SIZE; i++) {
 		variable_t *variable = table + i;
 		while (variable != NULL) {
-			fprintf(stderr, "add value!!!!!!!! %p\n", variable->cons);
 			ADDREF_NULLABLE(variable->cons, traced);
 			variable = variable->next;
 		}
@@ -201,6 +200,7 @@ struct cons_t *search_variable(char *str) {
 			table = environment->car;
 		}
 	}
+	fprintf(stderr, "search_variable: %p type: %d\n", res, res->type);
 	return res;
 }
 

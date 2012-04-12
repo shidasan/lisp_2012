@@ -2,7 +2,7 @@
 #define MAIN
 #include "memory.h"
 #include "config.h"
-#define HASH_SIZE 8
+#define HASH_SIZE 16
 #define STACKSIZE 50000
 #define INSTSIZE 100000
 #define ARGC _argc
@@ -82,4 +82,7 @@ int ParseProgram(char *);
 int parse_program(char *);
 /*eval.h*/
 cons_t* vm_exec (int, opline_t *, cons_t **);
+
+/* gc test */
+cons_t *root;
 #endif

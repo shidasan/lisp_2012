@@ -5,7 +5,10 @@
 
 int main() {
 	gc_init();
+	new_func_data_table();
+	new_global_environment();
+	root = NULL;
 	while (1) {
-		cons_t *cons = new_cons_cell();
+		root = new_int(1);
 	}
 }

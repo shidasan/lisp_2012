@@ -240,6 +240,7 @@ static void mark_opline(array_t *traced) {
 }
 
 static void mark_root(array_t *traced) {
+	//ADDREF_NULLABLE(root, traced);
 	fprintf(stderr, "current_environment %d\n", current_environment->type);
 	fprintf(stderr, "root num: %zd\n", array_size(traced));
 	ADDREF(current_environment, traced);
@@ -279,23 +280,26 @@ static void gc_mark() {
 }
 static int count = 0;
 static void gc_sweep() {
-	size_t i, j;
+	uintptr_t i, j;
 	count = 0;
 	cons_page_t *page;
 	for (i = 0; i < array_size(cons_arena->a); i++) {
 		array_t *a = cons_arena->a;
 		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
 		for (page = tbl->head; page < tbl->bottom; page++) {
-			for (j = 1; j < PAGECONSSIZE; j++) {
+			for (j = 1; j <= PAGECONSSIZE; j++) {
 				int x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & ((uintptr_t)1 << (j % (sizeof(uintptr_t) * 8))))) {
-					CONS_FREE(page->slots + j);
-					memset(page->slots + j, 0, sizeof(cons_t));
-					page->slots[j].cdr = free_list;
-					free_list = &page->slots[j];
+					if ((page->slots+j-1)->api) {
+						CONS_FREE(page->slots + j-1);
+					}
+					memset(page->slots + j-1, 0, sizeof(cons_t));
+					page->slots[j-1].cdr = free_list;
+					free_list = &page->slots[j-1];
 					unused_object++;
 				} else {
 					count++;
+					fprintf(stderr, "survive: %p\n", page->slots + j-1);
 				}
 			}
 		}
@@ -312,13 +316,14 @@ static void clear_bitmap() {
 }
 
 static void gc() {
-	fprintf(stderr, "PAGECONSSIZE %zd\n", PAGECONSSIZE);
-	fprintf(stderr, "PAGESIZE %d\n", PAGESIZE);
+	fprintf(stderr, "root: %p\n", root);
+	//fprintf(stderr, "PAGECONSSIZE %zd\n", PAGECONSSIZE);
+	//fprintf(stderr, "PAGESIZE %d\n", PAGESIZE);
 	fprintf(stderr, "gc()\n");
 	clear_bitmap();
 	gc_mark();
 	gc_sweep();
-	fprintf(stderr, "gc end\n");
+	fprintf(stderr, "gc end object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
 }
 
 cons_t *new_cons_cell() {
@@ -338,7 +343,7 @@ cons_t *new_cons_cell() {
 	//if ((uintptr_t)cons == 0x10080fc20) {
 	//	asm("int3");
 	//}
-	fprintf(stderr, "new_cons_tree() %p\n", cons);
+	//fprintf(stderr, "new_cons_tree() %p\n", cons);
 	return cons;
 }
 
