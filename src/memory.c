@@ -64,8 +64,8 @@ array_t *new_array() {
 }
 
 void array_free(array_t *a) {
-	free(a->list);
-	free(a);
+	FREE(a->list);
+	FREE(a);
 }
 
 /* AST */
@@ -94,7 +94,8 @@ void ast_free(ast_t *ast) {
 
 /* allocator */
 
-cons_t *free_list = NULL;
+static cons_t *free_list = NULL;
+static array_t *cstack_cons_cell_list = NULL;
 static size_t unused_object;
 static size_t object_capacity;
 
@@ -169,15 +170,11 @@ static cons_tbl_t *new_page_table() {
 	memset(bitmap, 0, bitmapsize);
 	tbl->bitmap = bitmap;
 	tbl->bitmapsize = bitmapsize;
-	fprintf(stderr, "pageconssize: %zd\n", PAGECONSSIZE);
 	unused_object += PAGECONSSIZE * 16;
 	object_capacity += PAGECONSSIZE * 16;
 	for (; page < tbl->bottom; page++) {
-		fprintf(stderr ,"page: %p\n", page);
 		page->h.bitmap = bitmap;
-		fprintf(stderr, "bitmap%p\n", bitmap);
 		bitmap += (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t);
-		fprintf(stderr, "bitmapsize: %zd, %zd\n", bitmapsize, (PAGESIZE / sizeof(cons_t)) / sizeof(uintptr_t));
 		page_init(page);
 	}
 	/* last slot in last page of cons_tbl */
@@ -192,33 +189,32 @@ static cons_arena_t *new_cons_arena() {
 	free_list = ((cons_tbl_t*)array_get(arena->a, 0))->head->slots;
 	cons_arena = arena;
 }
-
+static int mark_count = 0;
 static int cons_is_marked(cons_t *cons) {
 	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) / PAGESIZE) * PAGESIZE);
 	size_t offset = (((uintptr_t)cons) / sizeof(cons_t)) % (PAGESIZE / sizeof(cons_t));
-	//int x = offset / (sizeof(uintptr_t));
 	int x = offset / (sizeof(uintptr_t) * 8);
-	fprintf(stderr, "is_marked cons: %p, page: %p, offset: %zd, x: %d shift: %lo\n", cons, page, offset, x, (offset % (sizeof(uintptr_t) * 8)));
 	if (!(page->h.bitmap[x] & (uintptr_t)1 << (offset % (sizeof(uintptr_t) * 8)))) {
 		page->h.bitmap[x] |= (uintptr_t)1 << (offset % (sizeof(uintptr_t) * 8));
+		mark_count++;
 		return 0;
 	}
 	return 1;
 }
 static void mark_stack(array_t *traced) {
 	int i = 0;
+	cons_t **sp = stack_value;
+	size_t size = array_size(traced);
 	for (; i < STACKSIZE; i++) {
 		if (stack_value[i] != NULL) {
-			fprintf(stderr, "stack addref %p\n", stack_value[i]);
 			ADDREF(stack_value[i], traced);
-			CONS_TRACE(stack_value[i], traced);
 		}
 	}
 }
 
 static void mark_opline(array_t *traced) {
 	int i = 0;
-	fprintf(stderr, "mark opline\n");
+	//fprintf(stderr, "mark opline\n");
 	for (; i < NextIndex; i++) {
 		opline_t *op = memory + i;
 		switch(op->instruction) {
@@ -236,23 +232,23 @@ static void mark_opline(array_t *traced) {
 				break;
 		}
 	}
-	fprintf(stderr, "mark opline end\n");
+	//fprintf(stderr, "mark opline end\n");
+}
+
+static void mark_cstack_cons_cell(array_t *traced) {
+	int i = 0;
+	for (; i < array_size(cstack_cons_cell_list); i++) {
+		ADDREF((cons_t*)array_get(cstack_cons_cell_list, i), traced);
+	}
 }
 
 static void mark_root(array_t *traced) {
-	//ADDREF_NULLABLE(root, traced);
-	fprintf(stderr, "current_environment %d\n", current_environment->type);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
 	ADDREF(current_environment, traced);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
+	mark_cstack_cons_cell(traced);
 	mark_stack(traced);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
 	mark_func_data_table(traced);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
 	mark_opline(traced);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
 	mark_environment_list(traced);
-	fprintf(stderr, "root num: %zd\n", array_size(traced));
 }
 
 static void gc_mark() {
@@ -262,26 +258,25 @@ static void gc_mark() {
 	array_t *a = cons_arena->a;
 	array_t *traced = new_array();
 	mark_root(traced);
+	cons_t *tmp;
 	goto LOOP;
 	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
 		CONS_TRACE(cons, traced);
-		LOOP:
-		{
-		cons_t *tmp = NULL;
+LOOP:
+		tmp = NULL;
 		while((tmp = (cons_t*)array_pop(traced)) != NULL) {
-		//for (i = 0; i < array_size(traced); i++) {
-			//cons_t *tmp = (cons_t*)array_pop(traced);
 			if (!cons_is_marked(tmp)) {
 				array_add(ostack, tmp);
 			}
 		}
-		}
 	}
+	array_free(traced);
+	array_free(ostack);
 }
-static int count = 0;
 static void gc_sweep() {
 	uintptr_t i, j;
-	count = 0;
+	int count = 0;
+	int marked = 0;
 	cons_page_t *page;
 	for (i = 0; i < array_size(cons_arena->a); i++) {
 		array_t *a = cons_arena->a;
@@ -293,18 +288,17 @@ static void gc_sweep() {
 					if ((page->slots+j-1)->api) {
 						CONS_FREE(page->slots + j-1);
 					}
-					memset(page->slots + j-1, 0, sizeof(cons_t));
+					memset((page->slots + j-1), 0, sizeof(cons_t));
 					page->slots[j-1].cdr = free_list;
 					free_list = &page->slots[j-1];
 					unused_object++;
+					marked++;
 				} else {
 					count++;
-					fprintf(stderr, "survive: %p\n", page->slots + j-1);
 				}
 			}
 		}
 	}
-	fprintf(stderr, "survived count %d\n", count);
 }
 
 static void clear_bitmap() {
@@ -316,14 +310,11 @@ static void clear_bitmap() {
 }
 
 static void gc() {
-	fprintf(stderr, "root: %p\n", root);
-	//fprintf(stderr, "PAGECONSSIZE %zd\n", PAGECONSSIZE);
-	//fprintf(stderr, "PAGESIZE %d\n", PAGESIZE);
-	fprintf(stderr, "gc()\n");
 	clear_bitmap();
+	mark_count = 0;
 	gc_mark();
 	gc_sweep();
-	fprintf(stderr, "gc end object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
+	//fprintf(stderr, "gc end marked: %d, object_capacity: %zd, unused_object: %zd\n", mark_count, object_capacity, unused_object);
 }
 
 cons_t *new_cons_cell() {
@@ -340,22 +331,18 @@ cons_t *new_cons_cell() {
 	free_list = free_list->cdr;
 	unused_object--;
 	memset(cons, 0, sizeof(cons_t));
-	//if ((uintptr_t)cons == 0x10080fc20) {
-	//	asm("int3");
-	//}
-	//fprintf(stderr, "new_cons_tree() %p\n", cons);
 	return cons;
 }
 
-void gc_init() {
-	fprintf(stderr, "sizeof page_h_t %zd\n", sizeof(cons_page_h_t));
-	new_cons_arena();
+void cstack_cons_cell_push(cons_t *cons) {
+	array_add(cstack_cons_cell_list, cons);
 }
 
-//int main() {
-//	new_cons_arena();
-//	while(1) {
-//		cons_t *cons = new_cons_cell();
-//		fprintf(stderr, "object_capacity: %zd, unused_object: %zd\n", object_capacity, unused_object);
-//	}
-//}
+cons_t *cstack_cons_cell_pop(cons_t *cons) {
+	return array_pop(cstack_cons_cell_list);
+}
+
+void gc_init() {
+	cstack_cons_cell_list = new_array();
+	new_cons_arena();
+}

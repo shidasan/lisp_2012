@@ -20,24 +20,28 @@ void mark_func_data_table(array_t *traced) {
 	for (; i < HASH_SIZE; i++) {
 		func_t *func = table + i;
 		while (func != NULL) {
-			ADDREF_NULLABLE(func->environment, traced);
-			ADDREF_NULLABLE(func->args, traced);
+			if (func->name) {
+				ADDREF_NULLABLE(func->environment, traced);
+				ADDREF_NULLABLE(func->args, traced);
+			}
 			func = func->next;
 		}
 	}
 }
 
 void mark_variable_data_table(variable_t *table, array_t *traced) {
-	printf("mark table: %p\n", table);
+	//printf("mark table: %p\n", table);
 	int i = 0;
 	for (; i < HASH_SIZE; i++) {
 		variable_t *variable = table + i;
 		while (variable != NULL) {
-			ADDREF_NULLABLE(variable->cons, traced);
+			if (variable->name) {
+				ADDREF_NULLABLE(variable->cons, traced);
+			}
 			variable = variable->next;
 		}
 	}
-	printf("mark table end: %p\n", table);
+	//printf("mark table end: %p\n", table);
 }
 
 void mark_environment_list(array_t *traced) {
@@ -49,9 +53,18 @@ void mark_environment_list(array_t *traced) {
 
 cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 	cons_t *new_environment = new_local_environment();
-	new_environment->car = new_variable_data_table();
+	cstack_cons_cell_push(new_environment);
+	cons_t *table = new_variable_data_table();
+	if (table == table->car) {
+		asm("int3");
+	}
+	new_environment->car = table;
+	if (table == table->car) {
+		asm("int3");
+	}
 	new_environment->cdr = environment;
 	current_environment = new_environment;
+	cstack_cons_cell_pop();
 	return old_environment;
 }
 
@@ -60,9 +73,6 @@ cons_t *begin_local_scope(func_t *func) {
 	if (func->creates_local_scope) {
 		current_environment = new_local_environment();
 		current_environment->car = new_variable_data_table();
-		if (current_environment->car == current_environment->car->car) {
-			asm("int3");
-		}
 		current_environment->cdr = old_environment;
 	}
 	return old_environment;
@@ -165,9 +175,9 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
-	fprintf(stderr, "set_variable, car->type: %d\n", table->type);
+	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
-	fprintf(stderr, "set_variable, car->type: %d\n", table->type);
+	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 		environment = environment->cdr;
 		table = environment->car;
 	}
@@ -200,7 +210,7 @@ struct cons_t *search_variable(char *str) {
 			table = environment->car;
 		}
 	}
-	fprintf(stderr, "search_variable: %p type: %d\n", res, res->type);
+	//fprintf(stderr, "search_variable: %p type: %d\n", res, res->type);
 	return res;
 }
 

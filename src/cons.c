@@ -15,7 +15,7 @@ static cons_t *eval_T(cons_t *cons) {
 }
 
 static void trace_T(cons_t *cons, struct array_t *traced) {
-	ADDREF(cons, traced);
+	//ADDREF(cons, traced);
 }
 
 static void print_nil(cons_t *cons) {
@@ -31,7 +31,7 @@ static cons_t *eval_nil(cons_t *cons) {
 }
 
 static void trace_nil(cons_t *cons, struct array_t *traced) {
-	ADDREF(cons, traced);
+	//ADDREF(cons, traced);
 }
 
 static void print_i(cons_t *cons) {
@@ -46,7 +46,7 @@ static cons_t *eval_i(cons_t *cons) {
 }
 
 static void trace_i(cons_t *cons, struct array_t *traced) {
-	ADDREF(cons, traced);
+	//ADDREF(cons, traced);
 }
 
 static void print_func(cons_t *cons) {
@@ -62,9 +62,9 @@ static cons_t *eval_func(cons_t *cons) {
 }
 
 static void trace_func(cons_t *cons, struct array_t *traced) {
-	ADDREF(cons, traced);
+	//ADDREF(cons, traced);
 	//ADDREF(cons->car, traced);
-	//ADDREF_NULLABLE(cons->cdr, traced);
+	ADDREF_NULLABLE(cons->cdr, traced);
 }
 
 static void print_variable(cons_t *cons) {
@@ -80,7 +80,7 @@ static cons_t *eval_variable(cons_t *cons) {
 }
 
 static void trace_variable(cons_t *cons, struct array_t *traced) {
-	ADDREF(cons, traced);
+	//ADDREF(cons, traced);
 }
 
 static void print_open(cons_t *cons) {
@@ -139,7 +139,7 @@ static void free_variable_table(cons_t *cons) {
 	int i;
 	variable_t *table = cons->variable_data_table;
 	variable_t *tempV, *currentV;
-	fprintf(stderr, "free_variable_table %p\n", table);
+	//fprintf(stderr, "free_variable_table %p\n", table);
 	for (i = 0;i < HASH_SIZE; i++){
 		currentV = table + i;
 		//FREE(table[i].name);
@@ -152,12 +152,13 @@ static void free_variable_table(cons_t *cons) {
 					FREE(currentV);
 				}
 				currentV = tempV;
-				fprintf(stderr, "next %p\n", tempV);
+				//fprintf(stderr, "next %p\n", tempV);
 			} else {
 				break;
 			}
 		}
 	}
+	memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
 	FREE(cons->variable_data_table);
 }
 
@@ -166,8 +167,8 @@ static cons_t *eval_variable_table(cons_t *cons) {
 }
 
 static void trace_variable_table(cons_t *cons, struct array_t *traced) {
-	fprintf(stderr, "mark variable table%p\n", cons);
-	ADDREF(cons, traced);
+	//fprintf(stderr, "mark variable table%p\n", cons);
+	//ADDREF(cons, traced);
 	mark_variable_data_table(cons->variable_data_table, traced);
 }
 
@@ -184,8 +185,8 @@ static cons_t *eval_local_environment(cons_t *cons) {
 }
 
 static void trace_local_environment(cons_t *cons, struct array_t *traced) {
-	fprintf(stderr, "mark local_environment %p\n", cons);
-	fprintf(stderr, "mark cons->car %p\n", cons->car);
+	//fprintf(stderr, "mark local_environment %p\n", cons);
+	//fprintf(stderr, "mark cons->car %p\n", cons->car);
 	ADDREF(cons, traced);
 	ADDREF_NULLABLE(cons->cdr, traced);
 	ADDREF(cons->car, traced);
@@ -249,8 +250,11 @@ cons_t *new_variable_data_table() {
 	cons_t *cons = new_cons_cell();
 	cons->type = VARIABLE_TABLE;
 	cons->api = &cons_variable_table_api;
-	cons->variable_data_table = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
+	cons->car = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
 	memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
+	if (cons->car == cons->car->car) {
+		asm("int3");
+	}
 	return cons;
 }
 

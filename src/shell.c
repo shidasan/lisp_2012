@@ -13,6 +13,7 @@ void** table;
 static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
 cons_t *stack_value[STACKSIZE];
+cons_t **esp = NULL;
 
 static int add_history(const char *line) {
 	return 0;

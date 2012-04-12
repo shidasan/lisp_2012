@@ -81,12 +81,10 @@ typedef struct ast_t {
 }ast_t;
 
 #define ADDREF(CONS, A) (array_add((A), (CONS)));\
-	fprintf(stderr ,"addref %p\n", CONS);\
 
 #define ADDREF_NULLABLE(CONS, A)\
 	if ((CONS) != NULL) {\
 		array_add((A), (CONS));\
-		fprintf(stderr ,"addref %p\n", CONS);\
 	}\
 
 #define FREE(PTR)\
@@ -99,6 +97,8 @@ typedef struct ast_t {
 #define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
 
 void gc_init();
+void cstack_cons_cell_push();
+cons_t *cstack_cons_cell_pop();
 
 cons_t *new_cons_cell();
 cons_t *new_int(int n);
@@ -118,6 +118,7 @@ ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);
 
 extern cons_t *stack_value[];
-#define PAGESIZE (4096)
+extern cons_t **esp;
+#define PAGESIZE (4096*8)
 #define ARENASIZE (PAGESIZE * 16)
 #define PAGECONSSIZE ((PAGESIZE/sizeof(cons_t)) - 1)
