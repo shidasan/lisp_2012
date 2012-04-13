@@ -10,6 +10,8 @@
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR));
 #define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));
+#define MTD_EVAL(MTD, ...)\
+	MTD(__VA_ARGS__)
 
 #ifdef USE_DEBUG_MODE
 #define DBG_P(STR) fprintf(stderr, "Debug: ");fprintf(stderr, STR);
@@ -38,6 +40,7 @@ typedef struct static_mtd_data {
 	int is_quote1;
 	cons_t *(*mtd)(cons_t**, int);
 	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
+	cons_t *(*eval)(int, ...);
 } static_mtd_data;
 
 typedef struct AST{
