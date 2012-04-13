@@ -737,6 +737,7 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		ast = new_ast(ast_atom, nil);
 		ast->cons = new_bool(0);
 	} else if (token_type == tok_T) {
+	return new_int(res);
 		ast = new_ast(ast_atom, T);
 		ast->cons = new_bool(1);
 	} else if (token_type == tok_open) {
@@ -765,17 +766,7 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 					ast->cons = new_func((const char*)token_str, NULL);
 				}
 			} else {
-				//func_t *func = search_func(token_str);
-				//cons_t *environment = NULL;
-				//if (func == NULL) {
-				//	environment = new_local_environment();
-				//} else {
-				//	environment = func->environment;
-				//}
-				//environment->local_environment = compile_time_environment;
-				//compile_time_environment = environment;
 				ast = new_ast(ast_func, -1);
-				//ast->cons = new_func((const char*)token_str, environment);
 				ast->cons = new_func((const char*)token_str, NULL);
 			}
 		} else {
