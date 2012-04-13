@@ -32,7 +32,7 @@ void array_add(array_t *a, void *v) {
 		size_t newcapacity = a->capacity * 2;
 		void **newlist = (void**)malloc(sizeof(void**) * newcapacity);
 		memcpy(newlist, a->list, sizeof(void**) * newcapacity);
-		free(a->list);
+		FREE(a->list);
 		a->list = newlist;
 		a->capacity = newcapacity;
 		a->list[a->size] = v;
@@ -178,7 +178,7 @@ static cons_tbl_t *new_page_table() {
 		page_init(page);
 	}
 	/* last slot in last page of cons_tbl */
-	(page-1)->slots[PAGECONSSIZE-1].cdr = NULL;
+	(page-1)->slots[PAGECONSSIZE-1].cdr = free_list;
 	return tbl;
 }
 
@@ -286,7 +286,9 @@ static void gc_sweep() {
 				int x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & ((uintptr_t)1 << (j % (sizeof(uintptr_t) * 8))))) {
 					if ((page->slots+j-1)->api) {
-						CONS_FREE(page->slots + j-1);
+						//CONS_PRINT(page->slots+j-1);
+						//fprintf(stderr, "\n");
+						CONS_FREE(page->slots+j-1);
 					}
 					memset((page->slots + j-1), 0, sizeof(cons_t));
 					page->slots[j-1].cdr = free_list;
@@ -310,11 +312,23 @@ static void clear_bitmap() {
 }
 
 static void gc() {
+	//fprintf(stderr, "gc()\n");
 	clear_bitmap();
 	mark_count = 0;
 	gc_mark();
 	gc_sweep();
+	//fprintf(stderr, "gc end\n");
 	//fprintf(stderr, "gc end marked: %d, object_capacity: %zd, unused_object: %zd\n", mark_count, object_capacity, unused_object);
+}
+
+static void expand_arena() {
+	int size = array_size(cons_arena->a);
+	int newsize = size * 2;
+	for (; size < newsize; size++) {
+		cons_tbl_t *tbl = new_page_table();
+		array_add(cons_arena->a, tbl);
+		free_list = tbl->head->slots;
+	}
 }
 
 cons_t *new_cons_cell() {
@@ -322,9 +336,12 @@ cons_t *new_cons_cell() {
 	if (free_list == NULL) {
 		gc();
 		if ((object_capacity / 4) > unused_object) {
-			cons_tbl_t *tbl = new_page_table();
-			array_add(cons_arena->a, tbl);
-			free_list = tbl->head->slots;
+			fprintf(stderr, "expand arena\n");
+			expand_arena();
+			//fprintf(stderr, "expand\n");
+			//cons_tbl_t *tbl = new_page_table();
+			//array_add(cons_arena->a, tbl);
+			//free_list = tbl->head->slots;
 		}
 	}
 	cons = free_list;

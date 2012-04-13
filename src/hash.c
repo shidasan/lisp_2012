@@ -140,28 +140,24 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 	const char *str = cons->str;
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
-		if (p->name != NULL && strcmp(p->name,str) == 0){
-			if (p->name == NULL) {
-				p->name = (char*)malloc(strlen(str)+1);
-			} else {
-				FREE(p->name);
-				p->name = (char*)malloc(strlen(str)+1);
-			}
+		if (p->name == NULL) {
+			p->name = (char*)malloc(strlen(str)+1);
 			strcpy (p->name, str);
 			p->name[strlen(str)] = '\0';
 			p->cons = value;
 			return p->cons;
-		} else if (p->next == NULL){
+		} else if (strcmp(p->name, str) == 0) {
+			FREE(p->name);
+			p->name = (char*)malloc(strlen(str)+1);
+			strcpy (p->name, str);
+			p->name[strlen(str)] = '\0';
+			p->cons = value;
+			return p->cons;
+		} else if (p->next == NULL) {
 			if (is_end_of_table_list) {
 				p->next = (variable_t*)malloc(sizeof(variable_t));
 				memset(p->next, 0, sizeof(variable_t));
-				if (p->name == NULL) {
-					p->name = (char*)malloc(strlen(str)+1);
-				}
-				strcpy (p->name, str);
-				p->name[strlen(str)] = '\0';
-				p->cons = value;
-				return p->cons;
+				p = p->next;
 			} else {
 				return NULL;
 			}
@@ -188,9 +184,11 @@ struct cons_t* search_variable_inner (cons_t *table, char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
-		if (p->name != NULL && strcmp (p->name, str) == 0){
+		if (p->name == NULL) {
+			return NULL;
+		} else if (strcmp(p->name, str) == 0) {
 			return p->cons;
-		} else if (p->next != NULL){
+		} else if (p->next != NULL) {
 			p = p->next;
 		} else {
 			return NULL;
@@ -223,7 +221,6 @@ struct func_t* search_func (char* str)
 		} else if (p->next != NULL){
 			p = p->next;
 		} else {
-			TODO("function not found\n");
 			return NULL;
 		}
 	}
@@ -239,7 +236,7 @@ struct func_t* set_static_func (const char* str,int i, void* adr, void *special_
 				return NULL;
 			}
 			if (p->name == NULL){
-				p->name = (char*)malloc(strlen(str));
+				p->name = (char*)malloc(strlen(str)+1);
 				strncpy (p->name, str, strlen(str));
 				p->name[strlen(str)] = '\0';
 			}

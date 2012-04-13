@@ -144,10 +144,10 @@ static void free_variable_table(cons_t *cons) {
 	//fprintf(stderr, "free_variable_table %p\n", table);
 	for (i = 0;i < HASH_SIZE; i++){
 		currentV = table + i;
-		//FREE(table[i].name);
+		FREE(table[i].name);
 		//currentV = table[i].next;
 		while (currentV != NULL){
-			if (currentV->name != NULL){
+			if (currentV->name != NULL) {
 				tempV = currentV->next;
 				FREE(currentV->name);
 				if (currentV > table + HASH_SIZE) {
@@ -160,7 +160,7 @@ static void free_variable_table(cons_t *cons) {
 			}
 		}
 	}
-	memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
+	//memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
 	FREE(cons->variable_data_table);
 }
 
@@ -175,7 +175,7 @@ static void trace_variable_table(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_local_environment(cons_t *cons) {
-
+	TODO("print local environment\n");
 }
 
 static void free_local_environment(cons_t *cons) {
