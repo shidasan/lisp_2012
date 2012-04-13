@@ -199,6 +199,11 @@ static cons_t *zerop(cons_t **VSTACK, int ARGC) {
 	return new_bool(0);
 }
 
+
+static cons_t *atom(cons_t **VSTACK, int ARGC) {
+	cons_t *cons = ARGS(0);
+	return new_bool((cons->type != OPEN));
+}
 static cons_t *eval_quote(int ARGC, ...) {
 
 }
@@ -388,6 +393,7 @@ static_mtd_data static_mtds[] = {
 	{">", -1, 0, 0, 0, 0, gt, NULL, eval_gt},
 	{"=", -1, 0, 0, 0, 0, eq, NULL, eval_eq},
 	{"zerop", 1, 0, 0, 0, 0, zerop, NULL, eval_zerop},
+	{"atom", 1, 0, 0, 0, 0, atom, NULL, NULL},
 	{"quote", 1, 0, 0, 1, 1, quote, NULL, eval_quote},
 	{"list", -1, 0, 0, 0, 0, list, NULL, eval_list},
 	{"length", 1, 0, 0, 0, 0, length, NULL, eval_length},

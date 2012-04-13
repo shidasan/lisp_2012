@@ -21,6 +21,10 @@ static unsigned int LengthRatio;
 static int ArgsRatio = AR;
 static char** Args;
 
+int is_open_space_close(char c) {
+	return c == '(' || c == ' ' || c == ')';
+}
+
 int GetTok (void)
 {
     char* TokTemp = NULL;
@@ -90,67 +94,67 @@ int GetTok (void)
 			TODO("float tokinizing\n");
 		}
 	} else if (*current_char == '<') {
-		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+		if (current_char[1] == '=' && is_open_space_close(current_char[2])) {
 			current_char+=2;
 			token_str[0] = '<';
 			token_str[1] = '=';
 			token_str[2] = '\0';
 			return tok_symbol;
-		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '<';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '>') {
-		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
 			current_char+=2;
 			token_str[0] = '>';
 			token_str[1] = '=';
 			token_str[2] = '\0';
 			return tok_symbol;
-		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '>';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '=') {
-		if (current_char[1] == '=' && (current_char[2] == '(' || current_char[2] == ' ')) {
+		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
 			current_char+=2;
 			token_str[0] = '=';
 			token_str[1] = '=';
 			token_str[2] = '\0';
 			return tok_symbol;
-		} else if (current_char[1] == '(' || current_char[1] == ' ') {
+		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '=';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '+') {
-		if (current_char[1] == '(' || current_char[1] == ' ') {
+		if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '+';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '-') {
-		if (current_char[1] == '(' || current_char[1] == ' ') {
+		if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '-';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '*') {
-		if (current_char[1] == '(' || current_char[1] == ' ') {
+		if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '*';
 			token_str[1] = '\0';
 			return tok_symbol;
 		}
 	} else if (*current_char == '/') {
-		if (current_char[1] == '(' || current_char[1] == ' ') {
+		if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '/';
 			token_str[1] = '\0';
