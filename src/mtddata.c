@@ -265,6 +265,14 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
+static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
+
+}
+
+static cons_t *eval(cons_t **VSTACK, int ARGC) {
+	cons_t *cons = CONS_EVAL(ARGS(0));
+}
+
 /*
 typedef struct static_mtd_data {
 	const char *name;
@@ -298,5 +306,7 @@ static_mtd_data static_mtds[] = {
 	{"defun", -1, 1, 1, 1, 2, NULL, defun},
 	{"setq", 2, 0, 0, 1, 0, setq, NULL},
 	{"let", -1, 1, 1, 1, 0, NULL, let},
+	{"cond", -1, 0, 1, 0, 0, NULL, cond},
+	{"eval", 1, 0, 0, 1, 0, eval, NULL},
 	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

@@ -796,7 +796,12 @@ static void environment_init() {
 	//compile_time_environment = current_environment;
 }
 
+void init_opline() {
+	CurrentIndex = NextIndex;
+}
+
 int parse_program (char *str) {
+	init_opline();
 	environment_init();
 	tokenizer_init(str);
 	ast_t *ast = parse_expression(0, 0);

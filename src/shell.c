@@ -19,10 +19,6 @@ static int add_history(const char *line) {
 	return 0;
 }
 
-static void init_opline() {
-	CurrentIndex = NextIndex;
-}
-
 static void init_opline_first() {
 	CurrentIndex = NextIndex = 0;
 }
@@ -71,7 +67,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 	int next_point = 0;
 	char *leftover = NULL;
 	while ((next_point = get_split_point(tmpstr, prev_point)) != -1) {
-		init_opline();
 		str = (char*)malloc(next_point - prev_point + 2);
 		memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
 		str[next_point - prev_point + 1] = '\0';

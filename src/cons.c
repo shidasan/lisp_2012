@@ -58,7 +58,7 @@ static void free_func(cons_t *cons) {
 }
 
 static cons_t *eval_func(cons_t *cons) {
-	func_t *func = search_func(cons->str);
+	return cons;
 }
 
 static void trace_func(cons_t *cons, struct array_t *traced) {
@@ -76,7 +76,7 @@ static void free_variable(cons_t *cons) {
 }
 
 static cons_t *eval_variable(cons_t *cons) {
-
+	return search_variable(cons->str);
 }
 
 static void trace_variable(cons_t *cons, struct array_t *traced) {
@@ -123,7 +123,9 @@ static void free_open(cons_t *cons) {
 }
 
 static cons_t *eval_open(cons_t *cons) {
-	CONS_EVAL(cons->car);
+	TODO("eval list\n");
+	cons_t *car = CONS_EVAL(cons->car);
+	func_t *func = search_func(car->str);
 }
 
 static void trace_open(cons_t *cons, struct array_t *traced) {
@@ -250,7 +252,7 @@ cons_t *new_variable_data_table() {
 	cons_t *cons = new_cons_cell();
 	cons->type = VARIABLE_TABLE;
 	cons->api = &cons_variable_table_api;
-	cons->car = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
+	cons->variable_data_table = (variable_t*)malloc(sizeof(variable_t) * HASH_SIZE);
 	memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
 	if (cons->car == cons->car->car) {
 		asm("int3");

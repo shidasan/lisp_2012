@@ -223,6 +223,7 @@ struct func_t* search_func (char* str)
 		} else if (p->next != NULL){
 			p = p->next;
 		} else {
+			TODO("function not found\n");
 			return NULL;
 		}
 	}
