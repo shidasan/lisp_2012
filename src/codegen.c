@@ -322,7 +322,75 @@ static void gen_expression(ast_t *ast, int list_length) {
 	}
 }
 
+void init_opline() {
+	CurrentIndex = NextIndex;
+}
+
 void codegen(ast_t *ast) {
+	init_opline();
 	gen_expression(ast, 0);
+	new_opline(END, NULL);
+}
+
+static int cons_length(cons_t *cons) {
+	if (cons->type == nil) {
+		return 0;
+	}
+	if (cons->type != OPEN) {
+		return -1;
+	}
+	int res = 0;
+	while (cons->type == OPEN) {
+		res++;
+		cons = cons->cdr;
+	}
+	if (cons->type != nil) {
+		return -1;
+	}
+	return res;
+}
+
+static void cons_atom(cons_t *cons) {
+	new_opline(PUSH, cons);
+}
+
+static void cons_variable(cons_t *cons) {
+	new_opline(VARIABLE_PUSH, cons);
+}
+
+static void cons_mtd_check(cons_t *cons, int list_length) {
+	new_opline(MTDCHECK, cons);
+	memory[NextIndex-1].op[1].ivalue = list_length-1;
+}
+
+static void cons_expression(cons_t *cons);
+
+static void cons_list (cons_t *cons) {
+	int i = 1, size = cons_length(cons);
+	cons_t *car = cons->car;
+	cons_mtd_check(car, size);
+	cons_t *cdr = cons->cdr;
+	for (; i < size; i++) {
+		cons_expression(cdr->car);
+		cdr = cdr->cdr;
+	}
+	new_opline(MTDCALL, car);
+	memory[NextIndex-1].op[1].ivalue = size-1;
+}
+static void cons_expression(cons_t *cons) {
+	if (cons->type == VARIABLE) {
+		cons_variable(cons);
+	}
+	if (cons->type != OPEN) {
+		cons_atom(cons);
+	}
+	if (cons->type == OPEN) {
+		cons_list(cons);
+	}
+}
+
+void cons_codegen(cons_t *cons) {
+	init_opline();
+	cons_expression(cons);
 	new_opline(END, NULL);
 }

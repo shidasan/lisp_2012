@@ -354,7 +354,12 @@ static cons_t *eval_eval(int ARGC, ...) {
 }
 
 static cons_t *eval(cons_t **VSTACK, int ARGC) {
-	cons_t *cons = CONS_EVAL(ARGS(0));
+	//cons_t *cons = CONS_EVAL(ARGS(0));
+	cons_t *cons = ARGS(0);
+	cons_codegen(cons);
+	cons_t *res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+	fprintf(stderr, "res %p\n", res);
+	return res;
 }
 
 /*
@@ -391,6 +396,6 @@ static_mtd_data static_mtds[] = {
 	{"setq", 2, 0, 0, 1, 0, setq, NULL, eval_setq},
 	{"let", -1, 1, 1, 1, 0, NULL, let, eval_let},
 	{"cond", -1, 0, 1, 0, 0, NULL, cond, eval_cond},
-	{"eval", 1, 0, 0, 1, 0, eval, NULL, eval_eval},
+	{"eval", 1, 0, 0, 0, 0, eval, NULL, eval_eval},
 	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

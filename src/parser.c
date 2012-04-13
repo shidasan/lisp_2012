@@ -737,7 +737,6 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		ast = new_ast(ast_atom, nil);
 		ast->cons = new_bool(0);
 	} else if (token_type == tok_T) {
-	return new_int(res);
 		ast = new_ast(ast_atom, T);
 		ast->cons = new_bool(1);
 	} else if (token_type == tok_open) {
@@ -787,12 +786,7 @@ static void environment_init() {
 	//compile_time_environment = current_environment;
 }
 
-void init_opline() {
-	CurrentIndex = NextIndex;
-}
-
 int parse_program (char *str) {
-	init_opline();
 	environment_init();
 	tokenizer_init(str);
 	ast_t *ast = parse_expression(0, 0);

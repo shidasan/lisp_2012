@@ -81,6 +81,7 @@ struct func_t* search_func (char* str);
 /*generator.h*/
 void GenerateProgram (AST*);
 void codegen(ast_t *);
+void cons_codegen(cons_t *);
 /*parser.h*/
 int ParseProgram(char *);
 int parse_program(char *);
