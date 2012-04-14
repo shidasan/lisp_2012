@@ -368,10 +368,19 @@ static void cons_expression(cons_t *cons);
 static void cons_list (cons_t *cons) {
 	int i = 1, size = cons_length(cons);
 	cons_t *car = cons->car;
+	func_t *func = search_func(car->str);
+	int *quote_position = NULL;
+	if (func != NULL && func->is_quote[0]) {
+		quote_position = func->is_quote;
+	}
 	cons_mtd_check(car, size);
 	cons_t *cdr = cons->cdr;
 	for (; i < size; i++) {
-		cons_expression(cdr->car);
+		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1])) {
+			new_opline(PUSH, cdr->car);
+		} else {
+			cons_expression(cdr->car);
+		}
 		cdr = cdr->cdr;
 	}
 	new_opline(MTDCALL, car);

@@ -680,6 +680,16 @@ static cons_t *make_cons_list() {
 static cons_t *make_cons_tree2(int is_head_of_list) {
 	if (token_type == tok_open) {
 		return make_cons_list();
+	}else if (token_type == tok_quote) {	
+		cons_t *root = new_open();
+		cstack_cons_cell_push(root);
+		root->car = new_func("quote", NULL);
+		root->cdr = new_open();
+		root->cdr->cdr = new_bool(0);
+		get_next_token();
+		root->cdr->car = make_cons_tree2(0);
+		cstack_cons_cell_pop();
+		return root;
 	} else {
 		return make_cons_single_node(is_head_of_list);
 	}
