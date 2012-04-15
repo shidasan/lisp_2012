@@ -283,6 +283,38 @@ static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
+static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a), i = 0;
+	if (size == 0) {
+		return new_bool(0);
+	}
+	cons_t *res = NULL;
+	for (; i < size; i++) {
+		cons_t *cons = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+		VSTACK[1] = cons;
+		int _length = length(VSTACK+1, 1)->ivalue;
+		if (_length == 0) {
+			EXCEPTION("clause NIL should be a list");
+		}
+		cons_codegen(cons->car);
+		cons_t *res = vm_exec(2, memory+CurrentIndex, VSTACK);
+		if (res->type == nil) {
+			continue;
+		}
+		int j = 1;
+		cons_t *cdr = cons->cdr;
+		cons_t *car = cdr->car;
+		for (; j < _length; j++) {
+			cons_codegen(car);
+			res = vm_exec(2, memory+CurrentIndex, VSTACK);
+			cdr = cdr->cdr;
+			car = cdr->car;
+		}
+		return res;
+	}
+	return new_bool(0);
+}
+
 static cons_t *progn(cons_t **VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
 	cons_t *res = NULL;
@@ -394,14 +426,6 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
-static cons_t *eval_cond(int ARGC, ...) {
-
-}
-
-static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
-
-}
-
 static cons_t *eval_eval(int ARGC, ...) {
 
 }
@@ -447,13 +471,13 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, 0, list, NULL, eval_list},
 	{"length", 1, 0, 0, 0, 0, length, NULL, eval_length},
 	{"if", 3, 0, 1, 0, 0, NULL, _if, eval_if},
+	{"cond", -1, 0, 1, -1, 0, NULL, cond, NULL},
 	{"progn", -1, 0, 1, 0, 0, NULL, progn, NULL},
 	{"when", -1, 0, 1, 0, 0, NULL, when, NULL},
 	{"unless", -1, 0, 1, 0, 0, NULL, unless, NULL},
 	{"defun", -1, 1, 1, 1, 2, NULL, defun, eval_defun},
 	{"setq", 2, 0, 0, 1, 0, setq, NULL, eval_setq},
 	{"let", -1, 1, 1, 1, 0, NULL, let, eval_let},
-	{"cond", -1, 0, 1, 0, 0, NULL, cond, eval_cond},
 	{"eval", 1, 0, 0, 0, 0, eval, NULL, eval_eval},
 	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

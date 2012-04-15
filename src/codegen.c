@@ -376,7 +376,7 @@ static void cons_list (cons_t *cons) {
 	cons_mtd_check(car, size);
 	cons_t *cdr = cons->cdr;
 	for (; i < size; i++) {
-		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1])) {
+		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1]) || quote_position[0] == -1) {
 			new_opline(PUSH, cdr->car);
 		} else {
 			cons_expression(cdr->car);
