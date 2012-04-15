@@ -199,6 +199,13 @@ static cons_t *zerop(cons_t **VSTACK, int ARGC) {
 	return new_bool(0);
 }
 
+static cons_t *null(cons_t **VSTACK, int ARGC) {
+	return new_bool(ARGS(0)->type == nil);
+}
+
+static cons_t *not(cons_t **VSTACK, int ARGC) {
+	return new_bool(ARGS(0)->type == nil);
+}
 
 static cons_t *atom(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
@@ -272,6 +279,47 @@ static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 		res = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	} else {
 		res = vm_exec(2, (opline_t*)array_get(a, 2), VSTACK);
+	}
+	return res;
+}
+
+static cons_t *progn(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a), i = 0;
+	cons_t *res = NULL;
+	for (; i < size; i++) {
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+	}
+	return res;
+}
+
+static cons_t *when(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a);
+	if (size == 0) {
+		EXCEPTION("argument length does not match!!\n");
+	}
+	cons_t *res = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (res->type == nil || size == 1) {
+		return new_bool(0);
+	}
+	int i = 1;
+	for (; i < size; i++) {
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+	}
+	return res;
+}
+
+static cons_t *unless(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a);
+	if (size == 0) {
+		EXCEPTION("argument length does not match!!\n");
+	}
+	cons_t *res = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (res->type == T || size == 1) {
+		return new_bool(0);
+	}
+	int i = 1;
+	for (; i < size; i++) {
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 	}
 	return res;
 }
@@ -363,7 +411,6 @@ static cons_t *eval(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	cons_codegen(cons);
 	cons_t *res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
-	fprintf(stderr, "res %p\n", res);
 	return res;
 }
 
@@ -393,11 +440,16 @@ static_mtd_data static_mtds[] = {
 	{">", -1, 0, 0, 0, 0, gt, NULL, eval_gt},
 	{"=", -1, 0, 0, 0, 0, eq, NULL, eval_eq},
 	{"zerop", 1, 0, 0, 0, 0, zerop, NULL, eval_zerop},
+	{"null", 1, 0, 0, 0, 0, null, NULL, NULL},
+	{"not", 1, 0, 0, 0, 0, not, NULL, NULL},
 	{"atom", 1, 0, 0, 0, 0, atom, NULL, NULL},
 	{"quote", 1, 0, 0, 1, 1, quote, NULL, eval_quote},
 	{"list", -1, 0, 0, 0, 0, list, NULL, eval_list},
 	{"length", 1, 0, 0, 0, 0, length, NULL, eval_length},
 	{"if", 3, 0, 1, 0, 0, NULL, _if, eval_if},
+	{"progn", -1, 0, 1, 0, 0, NULL, progn, NULL},
+	{"when", -1, 0, 1, 0, 0, NULL, when, NULL},
+	{"unless", -1, 0, 1, 0, 0, NULL, unless, NULL},
 	{"defun", -1, 1, 1, 1, 2, NULL, defun, eval_defun},
 	{"setq", 2, 0, 0, 1, 0, setq, NULL, eval_setq},
 	{"let", -1, 1, 1, 1, 0, NULL, let, eval_let},
