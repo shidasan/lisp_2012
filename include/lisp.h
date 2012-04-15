@@ -44,13 +44,13 @@ typedef struct static_mtd_data {
 } static_mtd_data;
 
 typedef struct AST{
-    int type;
+	int type;
 	union {
 		int i;
 		char* s;
 		cons_t *cons;
 	};
-    struct AST *LHS,*RHS,*COND;
+	struct AST *LHS,*RHS,*COND;
 }AST;
 
 extern opline_t memory[INSTSIZE];

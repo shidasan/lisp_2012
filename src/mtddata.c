@@ -296,14 +296,20 @@ static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
 		if (_length == 0) {
 			EXCEPTION("clause NIL should be a list");
 		}
-		cons_codegen(cons->car);
-		cons_t *res = vm_exec(2, memory+CurrentIndex, VSTACK);
-		if (res->type == nil) {
-			continue;
+		cons_t *car = cons->car;
+		if (i == size-1 && (car->type == FUNC || car->type == VARIABLE) 
+				&& strcmp(car->str, "otherwise") == 0) {
+			/* default */
+		} else {
+			cons_codegen(cons->car);
+			cons_t *res = vm_exec(2, memory+CurrentIndex, VSTACK);
+			if (res->type == nil) {
+				continue;
+			}
 		}
 		int j = 1;
 		cons_t *cdr = cons->cdr;
-		cons_t *car = cdr->car;
+		car = cdr->car;
 		for (; j < _length; j++) {
 			cons_codegen(car);
 			res = vm_exec(2, memory+CurrentIndex, VSTACK);
@@ -439,17 +445,17 @@ static cons_t *eval(cons_t **VSTACK, int ARGC) {
 }
 
 /*
-typedef struct static_mtd_data {
-	const char *name;
-	int num_args;
-	int creates_local_scope;
-	int is_special_form;
-	int is_quote0;
-	int is_quote1;
-	cons_t *(*mtd)(cons_t**, int);
-	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
-} static_mtd_data;
-*/
+   typedef struct static_mtd_data {
+   const char *name;
+   int num_args;
+   int creates_local_scope;
+   int is_special_form;
+   int is_quote0;
+   int is_quote1;
+   cons_t *(*mtd)(cons_t**, int);
+   cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
+   } static_mtd_data;
+   */
 
 static_mtd_data static_mtds[] = {
 	{"print", 1, 0, 0, 0, 0, print, NULL, eval_print},
