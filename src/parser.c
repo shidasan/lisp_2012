@@ -720,7 +720,7 @@ static ast_t *parse_list() {
 	}
 	int args_count = 1;
 	while (1) {
-		if (quote_position != NULL && (args_count == quote_position[0] || args_count == quote_position[1]) || quote_position[0] == -1) {
+		if (quote_position != NULL && ((args_count == quote_position[0] || args_count == quote_position[1]) || quote_position[0] == -1)) {
 			/* make_cons_tree2 must not eat any token */
 			get_next_token();
 			if (token_type == tok_close) {
