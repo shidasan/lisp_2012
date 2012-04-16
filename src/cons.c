@@ -94,15 +94,17 @@ static void print_open(cons_t *cons) {
 		printf(")");
 	}
 	if (cdr->type == OPEN) {
-		if (cdr->type != nil) {
+		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
+			printf(" . ");
+		} else {
 			printf(" ");
-			if (cdr->car->type == OPEN) {
-				printf("(");
-			}
-			CONS_PRINT(cons->cdr);
-			if (cdr->car->type == OPEN) {
-				printf(")");
-			}
+		}
+		if (cdr->cdr->type != nil) {
+			printf("(");
+		}
+		CONS_PRINT(cons->cdr);
+		if (cdr->cdr->type != nil) {
+			printf(")");
 		}
 	} else {
 		if (cdr->type != nil) {
