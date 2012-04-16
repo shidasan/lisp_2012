@@ -6,4 +6,5 @@
      (print (getcount))
      (print (getcount))
      (print (getcount))
-     (print (getcount))))
+     (assert (= 4 (print (getcount))))
+	 ))

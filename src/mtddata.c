@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "lisp.h"
 
 static cons_t *eval_print(int ARGC, ...) {
@@ -117,7 +118,7 @@ static cons_t *eval_div(int ARGC, ...) {
 
 }
 
-static cons_t *div(cons_t** VSTACK, int ARGC) {
+static cons_t *_div(cons_t** VSTACK, int ARGC) {
 
 }
 
@@ -281,6 +282,15 @@ static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 		res = vm_exec(2, (opline_t*)array_get(a, 2), VSTACK);
 	}
 	return res;
+}
+
+static cons_t *assert(cons_t **VSTACK, int ARGC, array_t *a) {
+	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (cons->type == nil) {
+		EXCEPTION("NIL must evalueate to a non-NIL value\n");
+		exit(1);
+	}
+	return cons;
 }
 
 static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
@@ -465,7 +475,7 @@ static_mtd_data static_mtds[] = {
 	{"+", -1, 0, 0, 0, 0, add, NULL, eval_add},
 	{"-", -1, 0, 0, 0, 0, sub, NULL, eval_sub},
 	{"*", -1, 0, 0, 0, 0, mul, NULL, eval_mul},
-	{"/", -1, 0, 0, 0, 0, div, NULL, eval_div},
+	{"/", -1, 0, 0, 0, 0, _div, NULL, eval_div},
 	{"<", -1, 0, 0, 0, 0, lt, NULL, eval_lt},
 	{">", -1, 0, 0, 0, 0, gt, NULL, eval_gt},
 	{"=", -1, 0, 0, 0, 0, eq, NULL, eval_eq},
@@ -477,6 +487,7 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, 0, list, NULL, eval_list},
 	{"length", 1, 0, 0, 0, 0, length, NULL, eval_length},
 	{"if", 3, 0, 1, 0, 0, NULL, _if, eval_if},
+	{"assert", 1, 0, 1, 0, 0, NULL, assert, NULL},
 	{"cond", -1, 0, 1, -1, 0, NULL, cond, NULL},
 	{"progn", -1, 0, 1, 0, 0, NULL, progn, NULL},
 	{"when", -1, 0, 1, 0, 0, NULL, when, NULL},

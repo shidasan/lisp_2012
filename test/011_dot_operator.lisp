@@ -1,1 +1,1 @@
-(quote (1 . (2 . (3 . nil))))
+(assert (= 3 (length (quote (1 . (2 . (3 . nil)))))))

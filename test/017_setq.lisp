@@ -1,2 +1,2 @@
 (setq x 1)
-x
+(assert (= 1 x))

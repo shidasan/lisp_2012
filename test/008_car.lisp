@@ -1,1 +1,1 @@
-(car (quote (1 2)))
+(assert (= 1 (car (quote (1 2)))))

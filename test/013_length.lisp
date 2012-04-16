@@ -1,1 +1,1 @@
-(length (quote (1 2)))
+(assert (= 2 (length (quote (1 2)))))

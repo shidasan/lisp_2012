@@ -1,1 +1,1 @@
-(list 1 2 3 (quote (4 5)))
+(assert (= 4 (length (list 1 2 3 (quote (4 5))))))

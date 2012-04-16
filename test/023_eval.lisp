@@ -1,1 +1,1 @@
-(eval (eval '(cons '+ '(1 2))))
+(assert (= 3 (eval (eval '(cons '+ '(1 2))))))
