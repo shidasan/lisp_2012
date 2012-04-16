@@ -99,11 +99,11 @@ static void print_open(cons_t *cons) {
 		} else {
 			printf(" ");
 		}
-		if (cdr->cdr->type != nil) {
+		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
 			printf("(");
 		}
 		CONS_PRINT(cons->cdr);
-		if (cdr->cdr->type != nil) {
+		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
 			printf(")");
 		}
 	} else {

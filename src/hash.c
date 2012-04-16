@@ -141,11 +141,15 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL) {
-			p->name = (char*)malloc(strlen(str)+1);
-			strcpy (p->name, str);
-			p->name[strlen(str)] = '\0';
-			p->cons = value;
-			return p->cons;
+			if (is_end_of_table_list) {
+				p->name = (char*)malloc(strlen(str)+1);
+				strcpy (p->name, str);
+				p->name[strlen(str)] = '\0';
+				p->cons = value;
+				return p->cons;
+			} else {
+				return NULL;
+			}
 		} else if (strcmp(p->name, str) == 0) {
 			FREE(p->name);
 			p->name = (char*)malloc(strlen(str)+1);
@@ -172,7 +176,7 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
-	while ((res = set_variable_inner(table, cons, value, set_local_scope || environment->cdr == NULL)) == NULL) {
+	while ((res = set_variable_inner(table, cons, value, set_local_scope | environment->cdr == NULL)) == NULL) {
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 		environment = environment->cdr;
 		table = environment->car;
