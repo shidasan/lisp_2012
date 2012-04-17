@@ -73,7 +73,7 @@ int GetTok (void)
         }
     }
     if (isalpha(*current_char)){
-        while (isalnum(*current_char)){
+        while (!is_open_space_close(*current_char)){
             token_str[TokSize] = *current_char;
             TokSize++;
             current_char++;
@@ -173,7 +173,13 @@ int GetTok (void)
 			return tok_symbol;
 		}
 	} else if (*current_char == '/') {
-		if (is_open_space_close(current_char[1])) {
+		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
+			current_char+=2;
+			token_str[0] = '/';
+			token_str[1] = '=';
+			token_str[2] = '\0';
+			return tok_symbol;
+		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
 			token_str[0] = '/';
 			token_str[1] = '\0';

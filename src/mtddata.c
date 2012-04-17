@@ -145,6 +145,60 @@ static cons_t *lt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static cons_t *string_lt(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) >= 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
+	}
+	return new_bool(1);
+}
+
+static cons_t *lte(cons_t **VSTACK, int ARGC) {
+	int i;
+	int current_number = ARGS(0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number > next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
+static cons_t *string_lte(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) > 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
+	}
+	return new_bool(1);
+}
+
 static cons_t *eval_gt(int ARGC, ...) {
 
 }
@@ -167,6 +221,60 @@ static cons_t *gt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static cons_t *string_gt(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) <= 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
+	}
+	return new_bool(1);
+}
+
+static cons_t *gte(cons_t** VSTACK, int ARGC) {
+	int i;
+	int current_number = ARGS(0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number < next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
+static cons_t *string_gte(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) < 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
+	}
+	return new_bool(1);
+}
+
 static cons_t *eval_eq(int ARGC, ...) {
 
 }
@@ -185,6 +293,60 @@ static cons_t *eq(cons_t** VSTACK, int ARGC) {
 			return new_bool(0);
 		}
 		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
+static cons_t *string_eq(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) != 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
+	}
+	return new_bool(1);
+}
+
+static cons_t *neq(cons_t** VSTACK, int ARGC) {
+	int i;
+	int current_number = ARGS(0)->ivalue;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != INT) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		int next_number = cons->ivalue;
+		if (current_number == next_number) {
+			return new_bool(0);
+		}
+		current_number = next_number;
+	}
+	return new_bool(1);
+}
+
+static cons_t *string_neq(cons_t** VSTACK, int ARGC) {
+	int i;
+	const char* current_str = ARGS(0)->str;
+	for (i = 1; i < ARGC; i++) {
+		cons_t *cons = ARGS(i);
+		if (cons->type != STRING) {
+			fprintf(stderr, "type error!\n");
+			TODO("exception\n");
+		}
+		const char  *next_str = cons->str;
+		if (strcmp(current_str, next_str) == 0) {
+			return new_bool(0);
+		}
+		current_str = next_str;
 	}
 	return new_bool(1);
 }
@@ -480,8 +642,17 @@ static_mtd_data static_mtds[] = {
 	{"*", -1, 0, 0, 0, 0, mul, NULL, eval_mul},
 	{"/", -1, 0, 0, 0, 0, _div, NULL, eval_div},
 	{"<", -1, 0, 0, 0, 0, lt, NULL, eval_lt},
+	{"string<", -1, 0, 0, 0, 0, string_lt, NULL, NULL},
+	{"<=", -1, 0, 0, 0, 0, lte, NULL, eval_lt},
+	{"string<=", -1, 0, 0, 0, 0, string_lte, NULL, NULL},
 	{">", -1, 0, 0, 0, 0, gt, NULL, eval_gt},
+	{"string>", -1, 0, 0, 0, 0, string_gt, NULL, NULL},
+	{">=", -1, 0, 0, 0, 0, gte, NULL, eval_gt},
+	{"string>=", -1, 0, 0, 0, 0, string_gte, NULL, NULL},
 	{"=", -1, 0, 0, 0, 0, eq, NULL, eval_eq},
+	{"string=", -1, 0, 0, 0, 0, string_eq, NULL, NULL},
+	{"/=", -1, 0, 0, 0, 0, neq, NULL, NULL},
+	{"string/=", -1, 0, 0, 0, 0, string_neq, NULL, NULL},
 	{"zerop", 1, 0, 0, 0, 0, zerop, NULL, eval_zerop},
 	{"null", 1, 0, 0, 0, 0, null, NULL, NULL},
 	{"not", 1, 0, 0, 0, 0, not, NULL, NULL},
