@@ -31,12 +31,31 @@ int GetTok (void)
     int ALT = 1;
     token_int = 0;
     unsigned int TokSize = 0;
-    if (*current_char == '\0' || *current_char == '\n'){
-        return tok_eof;
-    }
     while (isspace(*current_char) || *current_char == ','){
         current_char++;
     }
+    if (*current_char == '\0' || *current_char == '\n'){
+        return tok_eof;
+    }
+	if (*current_char == '\"') {
+		current_char++;
+		int len = 0;
+		while (*current_char != '\"') {
+			token_str[TokSize] = *current_char;
+			TokSize++;
+			current_char++;
+			if (TokSize >= LengthRatio - 1) {
+                LengthRatio *= 2;
+                TokTemp = (char*)calloc(LengthRatio,sizeof(char));
+                strncpy(TokTemp,token_str,LengthRatio);
+                free(token_str);
+                token_str = TokTemp;
+			}
+		}
+		token_str[TokSize] = '\0';
+		current_char++;
+		return tok_string;
+	}
     if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
         if (*current_char == '-'){
             ALT = -1;
@@ -626,6 +645,8 @@ static cons_t *make_cons_single_node(int is_head_of_list) {
 	cons_t *cons = NULL;
 	if (token_type == tok_number) {
 		cons = new_int(token_int);
+	} else if (token_type == tok_string) {
+		cons = new_string(token_str);
 	} else if (token_type == tok_nil) {
 		cons = new_bool(0);
 	} else if (token_type == tok_T) {
@@ -750,6 +771,9 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 	if (token_type == tok_number) {
 		ast = new_ast(ast_atom, INT);
 		ast->cons = new_int(token_int);
+	} else if (token_type == tok_string) {
+		ast = new_ast(ast_atom, STRING);
+		ast->cons = new_string(token_str);
 	} else if (token_type == tok_nil) {
 		ast = new_ast(ast_atom, nil);
 		ast->cons = new_bool(0);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "lisp.h"
 
@@ -254,6 +255,8 @@ static cons_t *length(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type == nil) {
 		return new_int(0);
+	} else if (cons->type == STRING) {
+		return new_int(strlen(cons->str));
 	}
 	if (cons->type != OPEN) {
 		EXCEPTION("Not a list!!\n");
