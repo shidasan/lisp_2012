@@ -476,7 +476,7 @@ static cons_t *loop(cons_t **VSTACK, int ARGC, array_t *a) {
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
-				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + 1);
 			}
 		}
 	}

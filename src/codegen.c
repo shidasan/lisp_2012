@@ -149,7 +149,7 @@ static void cons_func(cons_t *cons) {
 	func_t *func = search_func(car->str);
 	int i = 1, size = cons_length(cons);
 	int *quote_position = NULL;
-	if (func != NULL && func->is_quote[0]) {
+	if (func != NULL && func->is_static && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
 	cons_mtd_check(car, size);

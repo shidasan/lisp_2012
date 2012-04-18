@@ -94,6 +94,7 @@ mtdcheck:
 	func = search_func(cons->str);
 	if (func == NULL) {
 		fprintf(stderr, "can't call method!!\n");
+		fprintf(stderr, "cons->str: %s\n", cons->str);
 		asm("int3");
 	}
 	if (func->value != -1 && func->value != args_num) {
