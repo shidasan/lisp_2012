@@ -1,7 +1,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include "lisp.h"
+
+typedef struct loop_frame_t {
+	jmp_buf *buf;
+	cons_t *block_name;
+}loop_frame_t;
+
+array_t *loop_frame_list = NULL;
+static cons_t *loop_return_value = NULL;
+
+static void loop_frame_push(jmp_buf *buf, cons_t *block_name) {
+	loop_frame_t *frame = (loop_frame_t*)malloc(sizeof(loop_frame_t));
+	frame->buf = buf;
+	frame->block_name = block_name;
+	array_add(loop_frame_list, frame);
+}
+
+static loop_frame_t *loop_frame_pop() {
+	loop_frame_t *frame = array_pop(loop_frame_list);
+	return frame;
+}
 
 static cons_t *print(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
@@ -441,6 +462,97 @@ static cons_t *progn(cons_t **VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
+static cons_t *loop(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a), i = 0;
+	cons_t *res = NULL;
+	jmp_buf buf;
+	if (loop_frame_list == NULL) {
+		loop_frame_list = new_array();
+	}
+	VSTACK[0] = new_bool(0);
+	loop_frame_push(&buf, VSTACK[0]);
+	int jmp = 0;
+	if ((jmp = setjmp(buf)) == 0) {
+		while (1) {
+			for (; i < size; i++) {
+				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+			}
+		}
+	}
+	res = loop_return_value;
+	loop_return_value = NULL;
+	return res;
+}
+
+static cons_t *block(cons_t **VSTACK, int ARGC, array_t *a) {
+	int size = array_size(a);
+	if (size == 0) {
+		EXCEPTION("Too few arguments!!\n");
+	} else if (size == 1) {
+		return new_bool(0);
+	}
+	cons_t *res = NULL;
+	jmp_buf buf;
+	if (loop_frame_list == NULL) {
+		loop_frame_list = new_array();
+	}
+	cons_t *block_name = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (block_name->type != nil && block_name->type != T && block_name->type != FUNC && block_name->type != VARIABLE) {
+		EXCEPTION("Excepted symbol!!\n");
+	}
+	loop_frame_push(&buf, block_name);
+	int jmp = 0;
+	if ((jmp = setjmp(buf)) == 0) {
+		int i = 1; 
+		for (; i < size; i++) {
+			res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + 1);
+		}
+		loop_frame_t *frame = loop_frame_pop();
+		FREE(frame);
+	} else {
+		res = loop_return_value;
+		loop_return_value = NULL;
+	}
+	return res;
+}
+
+static cons_t *_return(cons_t **VSTACK, int ARGC) {
+	if (ARGC > 1) {
+		EXCEPTION("too many arguments!!\n");
+	}
+	loop_frame_t *frame = NULL;
+	while ((frame = loop_frame_pop()) != NULL) {
+		jmp_buf *buf = frame->buf;
+		cons_t *block_name = frame->block_name;
+		free(frame);
+		if (block_name->type == nil) {
+			loop_return_value = (ARGC == 0) ? new_bool(0) : ARGS(0);
+			longjmp(*buf, 1);
+		}
+	}
+	EXCEPTION("No block found!!\n");
+}
+
+static cons_t *_return_from(cons_t **VSTACK, int ARGC) {
+	if (ARGC != 1 && ARGC != 2) {
+		EXCEPTION("Illegal number of arguments!!\n");
+	}
+	loop_frame_t *frame = NULL;
+	cons_t *args0 = ARGS(0);
+	while ((frame = loop_frame_pop()) != NULL) {
+		jmp_buf *buf = frame->buf;
+		cons_t *block_name = frame->block_name;
+		free(frame);
+		if (block_name->type == nil && args0->type == nil ||
+			block_name->type == T && args0->type == T ||
+			strcmp(block_name->str, args0->str) == 0) {
+			loop_return_value = (ARGC == 1) ? new_bool(0) : ARGS(1);
+			longjmp(*buf, 1);
+		}
+	}
+	EXCEPTION("No block found!!\n");
+}
+
 static cons_t *when(cons_t **VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a);
 	if (size == 0) {
@@ -586,6 +698,10 @@ static_mtd_data static_mtds[] = {
 	{"assert", 1, 0, 1, 0, 0, NULL, assert},
 	{"cond", -1, 0, 1, -1, 0, NULL, cond},
 	{"progn", -1, 0, 1, 0, 0, NULL, progn},
+	{"loop", -1, 0, 1, 0, 0, NULL, loop},
+	{"block", -1, 0, 1, 1, 0, NULL, block},
+	{"return", -1, 0, 0, 0, 0, _return, NULL},
+	{"return-from", -1, 0, 0, 1, 0, _return_from, NULL},
 	{"when", -1, 0, 1, 0, 0, NULL, when},
 	{"unless", -1, 0, 1, 0, 0, NULL, unless},
 	{"defun", -1, 0, 1, -1, 2, NULL, defun},
