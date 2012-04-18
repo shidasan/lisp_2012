@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include "lisp.h"
 
-static cons_t *eval_print(int ARGC, ...) {
-
-}
-
 static cons_t *print(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type == OPEN) {
@@ -20,10 +16,6 @@ static cons_t *print(cons_t **VSTACK, int ARGC) {
 	return cons;
 }
 
-static cons_t *eval_car(int ARGC, ...) {
-
-}
-
 static cons_t *car(cons_t** VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type != OPEN) {
@@ -31,10 +23,6 @@ static cons_t *car(cons_t** VSTACK, int ARGC) {
 		TODO("exception\n");
 	}
 	return cons->car;
-}
-
-static cons_t *eval_cdr(int ARGC, ...) {
-
 }
 
 static cons_t *cdr(cons_t** VSTACK, int ARGC) {
@@ -46,10 +34,6 @@ static cons_t *cdr(cons_t** VSTACK, int ARGC) {
 	return cons->cdr;
 }
 
-static cons_t *eval_cons(int ARGC, ...) {
-
-}
-
 static cons_t *cons(cons_t** VSTACK, int ARGC) {
 	cons_t *car = ARGS(0);
 	cons_t *cdr = ARGS(1);
@@ -57,10 +41,6 @@ static cons_t *cons(cons_t** VSTACK, int ARGC) {
 	cons->car = car;
 	cons->cdr = cdr;
 	return cons;
-}
-
-static cons_t *eval_add(int ARGC, ...) {
-
 }
 
 static cons_t *add(cons_t** VSTACK, int ARGC) {
@@ -74,10 +54,6 @@ static cons_t *add(cons_t** VSTACK, int ARGC) {
 		res += cons->ivalue;
 	}
 	return new_int(res);
-}
-
-static cons_t *eval_sub(int ARGC, ...) {
-
 }
 
 static cons_t *sub(cons_t** VSTACK, int ARGC) {
@@ -98,10 +74,6 @@ static cons_t *sub(cons_t** VSTACK, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *eval_mul(int ARGC, ...) {
-
-}
-
 static cons_t *mul(cons_t** VSTACK, int ARGC) {
 	int i, res = 1;
 	for (i = 0; i < ARGC; i++) {
@@ -115,15 +87,7 @@ static cons_t *mul(cons_t** VSTACK, int ARGC) {
 	return new_int(res);
 }
 
-static cons_t *eval_div(int ARGC, ...) {
-
-}
-
 static cons_t *_div(cons_t** VSTACK, int ARGC) {
-
-}
-
-static cons_t *eval_lt(int ARGC, ...) {
 
 }
 
@@ -199,10 +163,6 @@ static cons_t *string_lte(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static cons_t *eval_gt(int ARGC, ...) {
-
-}
-
 static cons_t *gt(cons_t** VSTACK, int ARGC) {
 	int i;
 	int current_number = ARGS(0)->ivalue;
@@ -273,10 +233,6 @@ static cons_t *string_gte(cons_t** VSTACK, int ARGC) {
 		current_str = next_str;
 	}
 	return new_bool(1);
-}
-
-static cons_t *eval_eq(int ARGC, ...) {
-
 }
 
 static cons_t *eq(cons_t** VSTACK, int ARGC) {
@@ -351,10 +307,6 @@ static cons_t *string_neq(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static cons_t *eval_zerop(int ARGC, ...) {
-
-}
-
 static cons_t *zerop(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type == INT && cons->ivalue == 0) {
@@ -375,17 +327,9 @@ static cons_t *atom(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	return new_bool((cons->type != OPEN));
 }
-static cons_t *eval_quote(int ARGC, ...) {
-
-}
-
 static cons_t *quote(cons_t ** VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	return cons;
-}
-
-static cons_t *eval_list(int ARGC, ...) {
-
 }
 
 static cons_t *list(cons_t ** VSTACK, int ARGC) {
@@ -409,10 +353,6 @@ static cons_t *list(cons_t ** VSTACK, int ARGC) {
 	return res;
 }
 
-static cons_t *eval_length(int ARGC, ...) {
-
-}
-
 static cons_t *length(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type == nil) {
@@ -432,10 +372,6 @@ static cons_t *length(cons_t **VSTACK, int ARGC) {
 		EXCEPTION("Not a list!!\n");
 	}
 	return new_int(res);
-}
-
-static cons_t *eval_if(int ARGC, ...) {
-
 }
 
 static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
@@ -537,10 +473,6 @@ static cons_t *unless(cons_t **VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
-static cons_t *eval_defun(int ARGC, ...) {
-
-}
-
 static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	cons_t *fcons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	cons_t *args = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
@@ -555,10 +487,6 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return fcons;
 }
 
-static cons_t *eval_setq(int ARGC, ...) {
-
-}
-
 static cons_t *setq(cons_t **VSTACK, int ARGC) {
 	cons_t *variable = ARGS(0);
 	cons_t *value = ARGS(1);
@@ -567,10 +495,6 @@ static cons_t *setq(cons_t **VSTACK, int ARGC) {
 	}
 	set_variable(variable, value, 0);
 	return value;
-}
-
-static cons_t *eval_let(int ARGC, ...) {
-
 }
 
 static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
@@ -607,10 +531,6 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
-static cons_t *eval_eval(int ARGC, ...) {
-
-}
-
 static cons_t *eval(cons_t **VSTACK, int ARGC) {
 	//cons_t *cons = CONS_EVAL(ARGS(0));
 	cons_t *cons = ARGS(0);
@@ -633,42 +553,42 @@ static cons_t *eval(cons_t **VSTACK, int ARGC) {
    */
 
 static_mtd_data static_mtds[] = {
-	{"print", 1, 0, 0, 0, 0, print, NULL, eval_print},
-	{"car", 1, 0, 0, 0, 0, car, NULL, eval_car},
-	{"cdr", 1, 0, 0, 0, 0, cdr, NULL, eval_cdr},
-	{"cons", 2, 0, 0, 0, 0, cons, NULL, eval_cons},
-	{"+", -1, 0, 0, 0, 0, add, NULL, eval_add},
-	{"-", -1, 0, 0, 0, 0, sub, NULL, eval_sub},
-	{"*", -1, 0, 0, 0, 0, mul, NULL, eval_mul},
-	{"/", -1, 0, 0, 0, 0, _div, NULL, eval_div},
-	{"<", -1, 0, 0, 0, 0, lt, NULL, eval_lt},
-	{"string<", -1, 0, 0, 0, 0, string_lt, NULL, NULL},
-	{"<=", -1, 0, 0, 0, 0, lte, NULL, eval_lt},
-	{"string<=", -1, 0, 0, 0, 0, string_lte, NULL, NULL},
-	{">", -1, 0, 0, 0, 0, gt, NULL, eval_gt},
-	{"string>", -1, 0, 0, 0, 0, string_gt, NULL, NULL},
-	{">=", -1, 0, 0, 0, 0, gte, NULL, eval_gt},
-	{"string>=", -1, 0, 0, 0, 0, string_gte, NULL, NULL},
-	{"=", -1, 0, 0, 0, 0, eq, NULL, eval_eq},
-	{"string=", -1, 0, 0, 0, 0, string_eq, NULL, NULL},
-	{"/=", -1, 0, 0, 0, 0, neq, NULL, NULL},
-	{"string/=", -1, 0, 0, 0, 0, string_neq, NULL, NULL},
-	{"zerop", 1, 0, 0, 0, 0, zerop, NULL, eval_zerop},
-	{"null", 1, 0, 0, 0, 0, null, NULL, NULL},
-	{"not", 1, 0, 0, 0, 0, not, NULL, NULL},
-	{"atom", 1, 0, 0, 0, 0, atom, NULL, NULL},
-	{"quote", 1, 0, 0, 1, 1, quote, NULL, eval_quote},
-	{"list", -1, 0, 0, 0, 0, list, NULL, eval_list},
-	{"length", 1, 0, 0, 0, 0, length, NULL, eval_length},
-	{"if", 3, 0, 1, 0, 0, NULL, _if, eval_if},
-	{"assert", 1, 0, 1, 0, 0, NULL, assert, NULL},
-	{"cond", -1, 0, 1, -1, 0, NULL, cond, NULL},
-	{"progn", -1, 0, 1, 0, 0, NULL, progn, NULL},
-	{"when", -1, 0, 1, 0, 0, NULL, when, NULL},
-	{"unless", -1, 0, 1, 0, 0, NULL, unless, NULL},
-	{"defun", -1, 1, 1, 1, 2, NULL, defun, eval_defun},
-	{"setq", 2, 0, 0, 1, 0, setq, NULL, eval_setq},
-	{"let", -1, 1, 1, 1, 0, NULL, let, eval_let},
-	{"eval", 1, 0, 0, 0, 0, eval, NULL, eval_eval},
+	{"print", 1, 0, 0, 0, 0, print, NULL},
+	{"car", 1, 0, 0, 0, 0, car, NULL},
+	{"cdr", 1, 0, 0, 0, 0, cdr, NULL},
+	{"cons", 2, 0, 0, 0, 0, cons, NULL},
+	{"+", -1, 0, 0, 0, 0, add, NULL},
+	{"-", -1, 0, 0, 0, 0, sub, NULL},
+	{"*", -1, 0, 0, 0, 0, mul, NULL},
+	{"/", -1, 0, 0, 0, 0, _div, NULL},
+	{"<", -1, 0, 0, 0, 0, lt, NULL},
+	{"string<", -1, 0, 0, 0, 0, string_lt, NULL},
+	{"<=", -1, 0, 0, 0, 0, lte, NULL},
+	{"string<=", -1, 0, 0, 0, 0, string_lte, NULL},
+	{">", -1, 0, 0, 0, 0, gt, NULL},
+	{"string>", -1, 0, 0, 0, 0, string_gt, NULL},
+	{">=", -1, 0, 0, 0, 0, gte, NULL},
+	{"string>=", -1, 0, 0, 0, 0, string_gte, NULL},
+	{"=", -1, 0, 0, 0, 0, eq, NULL},
+	{"string=", -1, 0, 0, 0, 0, string_eq, NULL},
+	{"/=", -1, 0, 0, 0, 0, neq, NULL},
+	{"string/=", -1, 0, 0, 0, 0, string_neq, NULL},
+	{"zerop", 1, 0, 0, 0, 0, zerop, NULL},
+	{"null", 1, 0, 0, 0, 0, null, NULL},
+	{"not", 1, 0, 0, 0, 0, not, NULL},
+	{"atom", 1, 0, 0, 0, 0, atom, NULL},
+	{"quote", 1, 0, 0, 1, 1, quote, NULL},
+	{"list", -1, 0, 0, 0, 0, list, NULL},
+	{"length", 1, 0, 0, 0, 0, length, NULL},
+	{"if", 3, 0, 1, 0, 0, NULL, _if},
+	{"assert", 1, 0, 1, 0, 0, NULL, assert},
+	{"cond", -1, 0, 1, -1, 0, NULL, cond},
+	{"progn", -1, 0, 1, 0, 0, NULL, progn},
+	{"when", -1, 0, 1, 0, 0, NULL, when},
+	{"unless", -1, 0, 1, 0, 0, NULL, unless},
+	{"defun", -1, 1, 1, 1, 2, NULL, defun},
+	{"setq", 2, 0, 0, 1, 0, setq, NULL},
+	{"let", -1, 1, 1, 1, 0, NULL, let},
+	{"eval", 1, 0, 0, 0, 0, eval, NULL},
 	{NULL, 0, 0, 0, 0, 0, NULL, NULL},
 };

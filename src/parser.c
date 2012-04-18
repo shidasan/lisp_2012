@@ -299,9 +299,6 @@ static ast_t *parse_list() {
 			quote_position = func->is_quote;
 		}
 	}
-	if (childast->type == ast_special_form) {
-
-	}
 	int args_count = 1;
 	while (1) {
 		if (quote_position != NULL && ((args_count == quote_position[0] || args_count == quote_position[1]) || quote_position[0] == -1)) {

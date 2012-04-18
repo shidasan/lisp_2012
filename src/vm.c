@@ -25,7 +25,7 @@ static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
 		args = args->cdr;
 	}
 }
-cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
+cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
 {
     static void *table [] = {
         &&push,
@@ -61,6 +61,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 		&&mtdcheck,
 		&&special_mtd,
 		&&get_variable,
+		&&get_arg,
     };
 
     if( i == 1 ){
@@ -73,7 +74,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 
     cons_t** sp_arg = NULL;
     opline_t** sp_adr = NULL;
-	cons_t **esp = _stack_value;
+	cons_t **esp = ebp;
     //register opline_t* pc = memory + CurrentIndex;
     int a = 0, args_num = 0; 
     struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
@@ -84,6 +85,11 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 
 
     goto *(pc->instruction_ptr);
+
+get_arg:
+	esp[0] = ebp[pc->op[0].ivalue];
+	esp++;
+	goto *((++pc)->instruction_ptr);
 
 get_variable:
 	cons = pc->op[0].cons;
@@ -172,7 +178,7 @@ funcdef:
 	return NULL;
 
 end:
-    return _stack_value[0];
+    return ebp[0];
 
 push:
     //esp[0]->type = NUM;

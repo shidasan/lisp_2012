@@ -40,7 +40,6 @@ typedef struct static_mtd_data {
 	int is_quote1;
 	cons_t *(*mtd)(cons_t**, int);
 	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
-	cons_t *(*eval)(int, ...);
 } static_mtd_data;
 
 typedef struct AST{
