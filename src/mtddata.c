@@ -474,6 +474,7 @@ static cons_t *loop(cons_t **VSTACK, int ARGC, array_t *a) {
 	int jmp = 0;
 	if ((jmp = setjmp(buf)) == 0) {
 		while (1) {
+			i = 0;
 			for (; i < size; i++) {
 				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 			}

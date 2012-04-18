@@ -65,14 +65,16 @@ get_arg:
 	goto *((++pc)->instruction_ptr);
 
 get_variable:
-	cons = pc->op[0].cons;
-	cons = search_variable(cons->str);
-	if (cons == NULL) {
-		fprintf(stderr, "variable not found!!\n");
+	{
+		cons = pc->op[0].cons;
+		cons_t *res = search_variable(cons->str);
+		if (res == NULL) {
+			fprintf(stderr, "variable not found!!\n");
+		}
+		esp[0] = res;
+		esp++;
+		goto *((++pc)->instruction_ptr);
 	}
-	esp[0] = cons;
-	esp++;
-	goto *((++pc)->instruction_ptr);
 
 special_mtd:
 	{
