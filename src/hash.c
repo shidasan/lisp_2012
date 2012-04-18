@@ -55,13 +55,7 @@ cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 	cons_t *new_environment = new_local_environment();
 	cstack_cons_cell_push(new_environment);
 	cons_t *table = new_variable_data_table();
-	if (table == table->car) {
-		asm("int3");
-	}
 	new_environment->car = table;
-	if (table == table->car) {
-		asm("int3");
-	}
 	new_environment->cdr = environment;
 	current_environment = new_environment;
 	cstack_cons_cell_pop();
@@ -230,9 +224,15 @@ struct func_t* search_func (char* str)
 	}
 }
 
-struct func_t* set_static_func (const char* str,int i, void* adr, void *special_mtd, int is_static, int is_special_form, int *is_quote, int creates_local_scope)
-{
-
+struct func_t* set_static_func (static_mtd_data *data) {
+	const char *str = data->name;
+	int i = data->num_args;
+	void *adr = (void*)data->mtd;
+	void *special_mtd = (void*)data->special_mtd;
+	int is_static = 1;
+	int is_special_form = data->is_special_form;
+	int *is_quote = &(data->is_quote0);
+	int creates_local_scope = data->creates_local_scope;
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){

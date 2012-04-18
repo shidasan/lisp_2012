@@ -219,7 +219,7 @@ static void mark_opline(array_t *traced) {
 		opline_t *op = memory + i;
 		switch(op->instruction) {
 			case PUSH:
-			case VARIABLE_PUSH:
+			case GET_VARIABLE:
 			case MTDCHECK:
 			case MTDCALL:
 				ADDREF(op->op[0].cons, traced);

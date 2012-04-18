@@ -19,7 +19,7 @@
 #define DBG_P(STR)
 #endif
 /* PUSH, END, JMP, GOTO, RETURN, CALL */
-enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK, SPECIAL_MTD, VARIABLE_PUSH};
+enum eINSTRUCTION { PUSH, PLUS, MINUS, MUL, DIV, GT, GTE, LT, LTE, EQ, PLUS2, MUNUS2, MUL2, DIV2, GT2, GTE2, LT2, LTE2, EQ2, END, JMP, GOTO, NGOTO, RETURN, NRETURN,  ARG, NARG, DEFUN, SETQ, MTDCALL, MTDCHECK, SPECIAL_MTD, GET_VARIABLE, GET_ARG};
 enum TokType {  tok_number, tok_plus, tok_minus, tok_mul, tok_div, tok_gt, tok_gte, tok_lt, tok_lte, tok_eq, tok_if, tok_defun, tok_str, tok_eof, tok_setq, tok_valiable, tok_func, tok_arg, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol, tok_dot, tok_quote, tok_string};
 enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7, VARIABLE_TABLE = 8, LOCAL_ENVIRONMENT = 9};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
@@ -66,7 +66,8 @@ void new_func_data_table();
 cons_t* begin_local_scope();
 cons_t* change_local_scope(cons_t *, cons_t *);
 cons_t *end_local_scope(cons_t *old_environment);
-struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
+//struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
+struct func_t* set_static_func (static_mtd_data *data);
 struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment);
 void new_global_environment();
 extern cons_t *current_environment;

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "VARIABLE_PUSH"};
+const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "GET_VARIABLE", "GET_ARG"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
@@ -60,7 +60,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 		&&mtdcall,
 		&&mtdcheck,
 		&&special_mtd,
-		&&variable_push,
+		&&get_variable,
     };
 
     if( i == 1 ){
@@ -85,7 +85,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **_stack_value)
 
     goto *(pc->instruction_ptr);
 
-variable_push:
+get_variable:
 	cons = pc->op[0].cons;
 	cons = search_variable(cons->str);
 	if (cons == NULL) {

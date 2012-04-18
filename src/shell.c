@@ -35,7 +35,7 @@ void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		set_static_func(data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, 1, data->is_special_form, &(data->is_quote0), data->creates_local_scope);
+		set_static_func(data);//data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, 1, data->is_special_form, &(data->is_quote0), data->creates_local_scope);
 		i++;
 	}
 }
