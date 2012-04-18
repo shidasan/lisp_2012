@@ -479,7 +479,9 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	int i = 2;
 	struct array_t *opline_list = new_array();
 	for (; i < array_size(a); i++) {
-		array_add(opline_list, array_get(a, i));
+		array_add(opline_list, memory + NextIndex);
+		cons_t *fbody = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
+		cons_codegen(fbody);
 	}
 	VSTACK[1] = args;
 	int argc = length(VSTACK+1, 1)->ivalue;
@@ -586,7 +588,7 @@ static_mtd_data static_mtds[] = {
 	{"progn", -1, 0, 1, 0, 0, NULL, progn},
 	{"when", -1, 0, 1, 0, 0, NULL, when},
 	{"unless", -1, 0, 1, 0, 0, NULL, unless},
-	{"defun", -1, 1, 1, 1, 2, NULL, defun},
+	{"defun", -1, 0, 1, -1, 2, NULL, defun},
 	{"setq", 2, 0, 0, 1, 0, setq, NULL},
 	{"let", -1, 1, 1, 1, 0, NULL, let},
 	{"eval", 1, 0, 0, 0, 0, eval, NULL},

@@ -144,10 +144,10 @@ static void cons_mtd_check(cons_t *cons, int list_length) {
 
 static void cons_expression(cons_t *cons);
 
-static void cons_list (cons_t *cons) {
-	int i = 1, size = cons_length(cons);
+static void cons_func(cons_t *cons) {
 	cons_t *car = cons->car;
 	func_t *func = search_func(car->str);
+	int i = 1, size = cons_length(cons);
 	int *quote_position = NULL;
 	if (func != NULL && func->is_quote[0]) {
 		quote_position = func->is_quote;
@@ -165,15 +165,47 @@ static void cons_list (cons_t *cons) {
 	new_opline(MTDCALL, car);
 	memory[NextIndex-1].op[1].ivalue = size-1;
 }
+
+void cons_codegen(cons_t *cons);
+
+static void cons_special_form(cons_t *cons) {
+	int i = 1;
+	array_t *a = new_array();
+	opline_t *pc = memory + NextIndex;
+	new_opline_special_method(SPECIAL_MTD, cons->car, a);
+	new_opline(END, NULL);
+	int length = cons_length(cons);
+	cons_t *cdr = cons->cdr;
+	for (; i < length; i++) {
+		array_add(a, memory + NextIndex);
+		cons_codegen(cdr->car);
+		if (i != length-1) {
+			new_opline(END, NULL);
+		}
+		cdr = cdr->cdr;
+	}
+}
+
+static void cons_list (cons_t *cons) {
+	func_t *func = search_func(cons->car->str);
+	if (func != NULL && func->is_special_form) {
+		cons_special_form(cons);
+	} else {
+		cons_func(cons);
+	}
+}
+
 static void cons_expression(cons_t *cons) {
-	if (cons->type == VARIABLE) {
-		cons_variable(cons);
-	}
-	if (cons->type != OPEN) {
-		cons_atom(cons);
-	}
-	if (cons->type == OPEN) {
-		cons_list(cons);
+	switch(cons->type) {
+		case OPEN:
+			cons_list(cons);
+			break;
+		case VARIABLE:
+			cons_variable(cons);
+			break;
+		default:
+			cons_atom(cons);
+			break;
 	}
 }
 
