@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "PLUS", "MINUL", "MUL", "DIV", "GT", "GTE", "LT", "LTE", "EQ", "PLUS2", "MINUS2", "MUL2", "DIV2", "GT2", "GTE2", "LT2", "LTE2", "EQ2", "END", "JMP", "GOTO", "NGOTO", "RETURN", "NRETURN", "ARG", "NARG", "DEFUN", "SETQ", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "GET_VARIABLE", "GET_ARG"};
+const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "GET_VARIABLE", "GET_ARG", "END"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
@@ -29,39 +29,12 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
 {
     static void *table [] = {
         &&push,
-        &&plus,
-        &&minus,
-        &&mul,
-        &&div,
-        &&gt,
-        &&gte,
-        &&lt,
-        &&lte,
-        &&eq,
-        &&plus2,
-        &&minus2,
-        &&mul2,
-        &&div2,
-        &&gt2,
-        &&gte2,
-        &&lt2,
-        &&lte2,
-        &&eq2,
-        &&end,
-        &&jmp,
-        &&funccall,
-        &&nfunccall,
-        &&Return,
-        &&nReturn,
-        &&arg,
-        &&narg,
-        &&funcdef,
-        &&setq,
 		&&mtdcall,
 		&&mtdcheck,
 		&&special_mtd,
 		&&get_variable,
 		&&get_arg,
+		&&end,
     };
 
     if( i == 1 ){
@@ -152,159 +125,13 @@ mtdcall:
 		esp -= (args_num - 1);
 		goto *((++pc)->instruction_ptr);
 	}
-
-plus:
-	(esp[-2])->ivalue += (esp[-1])->ivalue;
-	esp--;
-	goto *((++pc)->instruction_ptr);
-
-minus:
-    (esp[-2])->ivalue -= (esp[-1])->ivalue;
-    esp--;
-    goto *((++pc)->instruction_ptr);
-
-mul:
-    (esp[-2])->ivalue *= (esp[-1])->ivalue;
-    esp--;
-    goto *((++pc)->instruction_ptr);
-
-div:
-    (esp[-2])->ivalue /= (esp[-1])->ivalue;
-    esp--;
-    goto *((++pc)->instruction_ptr);
-
-funcdef:
-	printf("%s\n",pc->op[1].svalue);
-	return NULL;
-
 end:
     return ebp[0];
 
 push:
-    //esp[0]->type = NUM;
-	//(esp)[0] = new_int(pc->op[0].ivalue);
 	esp[0] = pc->op[0].cons;
 	esp++;
     goto *((++pc)->instruction_ptr);
-
-plus2:
-	esp[-1] = new_int(esp[-1]->ivalue + pc->op[0].ivalue);
-    goto *((++pc)->instruction_ptr);
-
-gt2:
-	esp[-1] = new_bool(pc->op[0].ivalue > esp[-1]->ivalue);
-    goto *((++pc)->instruction_ptr);
-
-gt:
-    ret_ptr = ((--esp)[0]);
-	esp[-1] = new_bool(ret_ptr->ivalue > (esp)[-1]->ivalue);
-    //ret_ptr->type = ( ret_ptr->ivalue > ((--esp)[0])->ivalue && ret_ptr->type != nil) ? T : nil;
-    goto *((++pc)->instruction_ptr);
-
-lte:
-    ret_ptr = (--esp)[0];
-    //ret_ptr->type = ( ret_ptr->ivalue <= ((--esp)->ivalue && ret_ptr->type != nil) ? T : nil;
-    *(esp++) = ret_ptr;
-    goto *((++pc)->instruction_ptr);
-
-eq:
-    ret_ptr = (--esp)[0];
-    //ret_ptr->type = ( ret_ptr->ivalue == (--esp)->ivalue ) ? T : nil;
-    *(esp++) = ret_ptr;
-    goto *((++pc)->instruction_ptr);
-
-jmp:
-    pc = pc->op[ (--esp)[0]->type ].adr;
-    goto *((pc)->instruction_ptr);
-
-funccall:
-    (sp_arg++)[0]->ivalue = (--esp)[0]->ivalue;
-    *((sp_adr++)) = pc + 1;
-    pc = pc->op[0].adr;
-    goto *((pc)->instruction_ptr);
-
-nfunccall:
-    a = pc->op[1].ivalue;
-    while (a-- != 0){
-        (sp_arg++)[0]->ivalue = (--esp)[0]->ivalue;
-    }
-    *(sp_adr++) = pc + 1;
-    pc = pc->op[0].adr;
-    goto *((pc)->instruction_ptr);
-
-sfunccall:
-	/* TODO call runtime function */
-Return:
-    --sp_arg;
-    pc = *(--sp_adr);
-    goto *((pc)->instruction_ptr);
-
-nReturn:
-    sp_arg -= pc->op[0].ivalue;
-    pc = *(--sp_adr);
-    goto *((pc)->instruction_ptr);
-
-arg:
-    //esp->type = NUM;
-    (esp++)[0] = sp_arg[-1];
-    goto *((++pc)->instruction_ptr);
-
-narg:
-    //esp->type = NUM;
-    (esp++)[0] = (sp_arg[-(pc->op[0].ivalue)]);
-    goto *((++pc)->instruction_ptr);
-
-minus2:
-	esp[-1] = new_int(esp[-1]->ivalue - pc->op[0].ivalue);
-    goto *((++pc)->instruction_ptr);
-
-mul2:
-	esp[-1] = new_int(esp[-1]->ivalue * pc->op[0].ivalue);
-    goto *((++pc)->instruction_ptr);
-
-div2:
-	esp[-1] = new_int(esp[-1]->ivalue / pc->op[0].ivalue);
-    goto *((++pc)->instruction_ptr);
-
-gte2:
-	esp[-1] = new_bool(pc->op[0].ivalue >= esp[-1]->ivalue);
-    //a_ptr = (esp - 1);
-    //a_ptr->type = ( pc->op[0].ivalue >= a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    goto *((++pc)->instruction_ptr);
-
-lt2:
-	esp[-1] = new_bool(pc->op[0].ivalue < esp[-1]->ivalue);
-    goto *((++pc)->instruction_ptr);
-
-lte2:
-	esp[-1] = new_bool(pc->op[0].ivalue <= esp[-1]->ivalue);
-    //a_ptr = (esp - 1);
-    //a_ptr->type = ( pc->op[0].ivalue <= a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    goto *((++pc)->instruction_ptr);
-
-eq2:
-    //a_ptr = (esp - 1);
-    //a_ptr->type = ( pc->op[0].ivalue == a_ptr->ivalue && a_ptr->type != nil) ? T : nil; 
-    //a_ptr->ivalue = pc->op[0].ivalue;
-    //goto *((++pc)->instruction_ptr);
-
-setq:
-    //((Variable_Data_t*)pc->op[0].adr)->value = (--esp)->ivalue;
-    //goto *((++pc)->instruction_ptr);
-
-gte:
-    //ret_ptr = (--esp);
-    //ret_ptr->type = ( ret_ptr->ivalue >= (--esp)->ivalue && ret_ptr->type != nil) ? T : nil; 
-    //*(esp++) = *ret_ptr;
-    //goto *((++pc)->instruction_ptr);
-
-lt:
-    //ret_ptr = (--esp);
-    //ret_ptr->type = ( ret_ptr->ivalue < (--esp)->ivalue && ret_ptr->type != nil) ? T : nil;
-    //*(esp++) = *ret_ptr;
-    //goto *((++pc)->instruction_ptr);
-	;
-
 }
 
 
