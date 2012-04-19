@@ -33,7 +33,7 @@ typedef struct cons_t{
 }cons_t;
 
 typedef struct cons_api_t {
-	void (* print)(cons_t *);
+	void (* to_string)(cons_t *, string_buffer_t*);
 	void (* free)(cons_t *);
 	cons_t* (* eval)(cons_t *);
 	void (* trace)(cons_t *, struct array_t *);
@@ -99,7 +99,14 @@ typedef struct ast_t {
 	(PTR) = NULL\
 
 #define CONS_TRACE(CONS, A) (CONS)->api->trace(CONS, A)
-#define CONS_PRINT(CONS) (CONS)->api->print(CONS)
+#define CONS_TO_STRING(CONS, BUFFER) (CONS)->api->to_string(CONS, BUFFER)
+#define CONS_PRINT(CONS, BUFFER)\
+	string_buffer_t* BUFFER = new_string_buffer();\
+	CONS_TO_STRING(CONS, BUFFER);\
+	fprintf(stdout, "%s", (BUFFER)->str);\
+	FREE(BUFFER);\
+
+
 #define CONS_FREE(CONS) (CONS)->api->free(CONS)
 #define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
 

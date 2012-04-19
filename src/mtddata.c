@@ -29,7 +29,7 @@ static cons_t *print(cons_t **VSTACK, int ARGC) {
 	if (cons->type == OPEN) {
 		printf("(");
 	}
-	CONS_PRINT(cons);
+	CONS_PRINT(cons, _buffer);
 	if (cons->type == OPEN) {
 		printf(")");
 	}

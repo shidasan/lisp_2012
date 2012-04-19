@@ -91,7 +91,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 					if (cons->type == OPEN) {
 						printf("(");
 					}
-					CONS_PRINT(cons);
+					CONS_PRINT(cons, _buffer);
 					if (cons->type == OPEN) {
 						printf(")");
 					}

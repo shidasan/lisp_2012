@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "lisp.h"
-static void print_T(cons_t *cons) {
+static void print_T(cons_t *cons, string_buffer_t *buffer) {
 	printf("T");
 }
 
@@ -18,7 +18,7 @@ static void trace_T(cons_t *cons, struct array_t *traced) {
 	//ADDREF(cons, traced);
 }
 
-static void print_nil(cons_t *cons) {
+static void print_nil(cons_t *cons, string_buffer_t *buffer) {
 	printf("nil");
 }
 
@@ -34,7 +34,7 @@ static void trace_nil(cons_t *cons, struct array_t *traced) {
 	//ADDREF(cons, traced);
 }
 
-static void print_i(cons_t *cons) {
+static void print_i(cons_t *cons, string_buffer_t *buffer) {
 	printf("%d", cons->ivalue);
 }
 
@@ -49,7 +49,7 @@ static void trace_i(cons_t *cons, struct array_t *traced) {
 	//ADDREF(cons, traced);
 }
 
-static void print_func(cons_t *cons) {
+static void print_func(cons_t *cons, string_buffer_t *buffer) {
 	printf("%s", cons->str);
 }
 
@@ -67,7 +67,7 @@ static void trace_func(cons_t *cons, struct array_t *traced) {
 	ADDREF_NULLABLE(cons->cdr, traced);
 }
 
-static void print_variable(cons_t *cons) {
+static void print_variable(cons_t *cons, string_buffer_t *buffer) {
 	printf("%s", cons->str);
 }
 
@@ -83,13 +83,13 @@ static void trace_variable(cons_t *cons, struct array_t *traced) {
 	//ADDREF(cons, traced);
 }
 
-static void print_open(cons_t *cons) {
+static void print_open(cons_t *cons, string_buffer_t *buffer) {
 	cons_t *car = cons->car;
 	cons_t *cdr = cons->cdr;
 	if (car->type == OPEN) {
 		printf("(");
 	}
-	CONS_PRINT(car);
+	CONS_PRINT(car, _buffer);
 	if (car->type == OPEN) {
 		printf(")");
 	}
@@ -102,7 +102,7 @@ static void print_open(cons_t *cons) {
 		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
 			printf("(");
 		}
-		CONS_PRINT(cons->cdr);
+		CONS_PRINT(cons->cdr, _buffer);
 		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
 			printf(")");
 		}
@@ -112,7 +112,7 @@ static void print_open(cons_t *cons) {
 			if (cdr->type == OPEN) {
 				printf("(");
 			}
-			CONS_PRINT(cons->cdr);
+			CONS_PRINT(cons->cdr, _buffer);
 			if (cdr->type == OPEN) {
 				printf(")");
 			}
@@ -135,7 +135,7 @@ static void trace_open(cons_t *cons, struct array_t *traced) {
 	ADDREF_NULLABLE(cons->cdr, traced);
 }
 
-static void print_variable_table(cons_t *cons) {
+static void print_variable_table(cons_t *cons, string_buffer_t *buffer) {
 	TODO("print variable table\n");
 }
 
@@ -176,7 +176,7 @@ static void trace_variable_table(cons_t *cons, struct array_t *traced) {
 	mark_variable_data_table(cons->variable_data_table, traced);
 }
 
-static void print_local_environment(cons_t *cons) {
+static void print_local_environment(cons_t *cons, string_buffer_t *buffer) {
 	TODO("print local environment\n");
 }
 
@@ -196,7 +196,7 @@ static void trace_local_environment(cons_t *cons, struct array_t *traced) {
 	ADDREF(cons->car, traced);
 }
 
-static void print_string(cons_t *cons) {
+static void print_string(cons_t *cons, string_buffer_t *buffer) {
 	printf("\"%s\"", cons->str);
 }
 
