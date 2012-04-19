@@ -20,7 +20,7 @@ const char *string_buffer_to_string(string_buffer_t *buffer) {
 	return res;
 }
 
-void string_buffer_append(string_buffer_t *buffer, const char *str) {
+void string_buffer_append_s(string_buffer_t *buffer, const char *str) {
 	size_t length = strlen(str);
 	if (length + buffer->size >= buffer->capacity) {
 		size_t newcapacity = buffer->capacity * 2;
@@ -33,7 +33,13 @@ void string_buffer_append(string_buffer_t *buffer, const char *str) {
 		buffer->size += length;
 	} else {
 		memcpy(buffer->str + buffer->size, str, length);
+		buffer->size += length;
 	}
+}
+
+void string_buffer_append_i(string_buffer_t *buffer, int i) {
+	sprintf(buffer->str + buffer->size, "%d", i);
+	string_buffer_append_s(buffer, buffer->str + buffer->size);
 }
 
 void string_buffer_free(string_buffer_t *buffer) {

@@ -2,6 +2,7 @@
 #define MAIN
 #include "memory.h"
 #include "config.h"
+#define LOG_INT_MAX 11
 #define HASH_SIZE 16
 #define STACKSIZE 50000
 #define INSTSIZE 100000
@@ -30,7 +31,8 @@ size_t array_size(struct array_t *);
 void array_set(struct array_t *, size_t, void *);
 void array_add(struct array_t *, void *);
 void *array_pop(struct array_t *);
-void string_buffer_append(string_buffer_t *buffer, const char *str);
+void string_buffer_append_s(string_buffer_t *buffer, const char *str);
+void string_buffer_append_i(string_buffer_t *buffer, int i);
 const char *string_buffer_to_string(string_buffer_t *buffer);
 
 typedef struct static_mtd_data {

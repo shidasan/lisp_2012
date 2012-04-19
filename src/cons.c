@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "lisp.h"
 static void print_T(cons_t *cons, string_buffer_t *buffer) {
-	printf("T");
+	string_buffer_append_s(buffer, "T");
 }
 
 static void free_T(cons_t *cons) {
@@ -19,7 +19,7 @@ static void trace_T(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_nil(cons_t *cons, string_buffer_t *buffer) {
-	printf("nil");
+	string_buffer_append_s(buffer, "nil");
 }
 
 static void free_nil(cons_t *cons) {
@@ -35,7 +35,7 @@ static void trace_nil(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_i(cons_t *cons, string_buffer_t *buffer) {
-	printf("%d", cons->ivalue);
+	string_buffer_append_i(buffer, cons->ivalue);
 }
 
 static void free_i(cons_t *cons) {
@@ -50,7 +50,7 @@ static void trace_i(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_func(cons_t *cons, string_buffer_t *buffer) {
-	printf("%s", cons->str);
+	string_buffer_append_s(buffer, cons->str);
 }
 
 static void free_func(cons_t *cons) {
@@ -68,7 +68,7 @@ static void trace_func(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_variable(cons_t *cons, string_buffer_t *buffer) {
-	printf("%s", cons->str);
+	string_buffer_append_s(buffer, cons->str);
 }
 
 static void free_variable(cons_t *cons) {
@@ -87,34 +87,34 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 	cons_t *car = cons->car;
 	cons_t *cdr = cons->cdr;
 	if (car->type == OPEN) {
-		printf("(");
+		string_buffer_append_s(buffer, "(");
 	}
-	CONS_PRINT(car, _buffer);
+	CONS_TO_STRING(car, buffer);
 	if (car->type == OPEN) {
-		printf(")");
+		string_buffer_append_s(buffer, ")");
 	}
 	if (cdr->type == OPEN) {
 		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
-			printf(" . ");
+			string_buffer_append_s(buffer, " . ");
 		} else {
-			printf(" ");
+			string_buffer_append_s(buffer, " ");
 		}
 		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
-			printf("(");
+			string_buffer_append_s(buffer, "(");
 		}
-		CONS_PRINT(cons->cdr, _buffer);
+		CONS_TO_STRING(cons->cdr, buffer);
 		if (cdr->cdr->type != nil && cdr->cdr->type != OPEN) {
-			printf(")");
+			string_buffer_append_s(buffer, ")");
 		}
 	} else {
 		if (cdr->type != nil) {
-			printf(" . ");
+			string_buffer_append_s(buffer, " . ");
 			if (cdr->type == OPEN) {
-				printf("(");
+				string_buffer_append_s(buffer, "(");
 			}
-			CONS_PRINT(cons->cdr, _buffer);
+			CONS_TO_STRING(cons->cdr, buffer);
 			if (cdr->type == OPEN) {
-				printf(")");
+				string_buffer_append_s(buffer, ")");
 			}
 		}
 	}
