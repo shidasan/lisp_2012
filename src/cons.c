@@ -197,7 +197,7 @@ static void trace_local_environment(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_string(cons_t *cons, string_buffer_t *buffer) {
-	printf("\"%s\"", cons->str);
+	printf("%s", cons->str);
 }
 
 static void free_string(cons_t *cons) {

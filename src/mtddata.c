@@ -37,8 +37,87 @@ static cons_t *print(cons_t **VSTACK, int ARGC) {
 	return cons;
 }
 
-static cons_t *format(cons_t **VSTACK, int ARGC) {
-	
+static cons_t *format(cons_t **VSTACK, int ARGC, array_t *a) {
+	int length = array_size(a), location = 0, evaluate = 2;
+	if (length < 2) {
+		EXCEPTION("Too few arguments!!\n");
+	}
+	cons_t *destination = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	switch (destination->type) {
+		case T:
+		case nil:
+			break;
+		default:
+			EXCEPTION("Invalid file stream!!\n");
+			break;
+	}
+	cons_t *format_string = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
+	if (format_string->type != STRING) {
+		EXCEPTION("The control-string must be a string!!\n");
+	}
+	const char *str = format_string->str;
+	int str_len = strlen(str);
+	string_buffer_t *buffer = new_string_buffer();
+	cons_t *cons = NULL;
+	while (location <= str_len) {
+		switch(str[location]) {
+			case '~':
+				switch(str[location+1]) {
+					case '%':
+						string_buffer_append_s(buffer, "\n");
+						location += 2;
+						break;
+
+					case 'A':
+						if (evaluate >= length) {
+							EXCEPTION("There are not enough arguments left for format directive!!\n");
+						}
+						cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+						CONS_TO_STRING(cons, buffer);
+						location += 2;
+						evaluate++;
+						break;
+
+					case 'C':
+						if (evaluate >= length) {
+							EXCEPTION("There are not enough arguments left for format directive!!\n");
+						}
+						cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+						if (cons->type == STRING) {
+							string_buffer_append_s(buffer, "\"");
+						}
+						CONS_TO_STRING(cons, buffer);
+						if (cons->type == STRING) {
+							string_buffer_append_s(buffer, "\"");
+						}
+						location += 2;
+						evaluate++;
+						break;
+
+					default:
+						string_buffer_append_c(buffer, str[location]);
+						location++;
+						break;
+				}
+			default:
+				string_buffer_append_c(buffer, str[location]);
+				location++;
+		}
+	}
+	for (; evaluate < length; evaluate++) {
+		cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+	}
+	cons_t *res = NULL;
+	char *res_str = string_buffer_to_string(buffer);
+	if (destination->type == nil) {
+		res = new_string(res_str);
+	} else {
+		fprintf(stdout, "%s\n", res_str);
+		res = new_bool(0);
+	}
+	string_buffer_free(buffer);
+	FREE(res_str);
+	return res;
 }
 
 static cons_t *car(cons_t** VSTACK, int ARGC) {
@@ -673,7 +752,7 @@ static cons_t *eval(cons_t **VSTACK, int ARGC) {
 
 static_mtd_data static_mtds[] = {
 	{"print", 1, 0, 0, 0, 0, print, NULL},
-	{"format", -1, 0, 1, 0, 0, format, NULL},
+	{"format", -1, 0, 1, 0, 0, NULL, format},
 	{"car", 1, 0, 0, 0, 0, car, NULL},
 	{"cdr", 1, 0, 0, 0, 0, cdr, NULL},
 	{"cons", 2, 0, 0, 0, 0, cons, NULL},

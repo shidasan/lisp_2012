@@ -13,7 +13,7 @@ string_buffer_t *new_string_buffer() {
 	return buffer;
 }
 
-const char *string_buffer_to_string(string_buffer_t *buffer) {
+char *string_buffer_to_string(string_buffer_t *buffer) {
 	char *res = (char*)malloc(buffer->size + 1);
 	memcpy(res, buffer->str, buffer->size);
 	res[buffer->size] = '\0';
@@ -22,19 +22,29 @@ const char *string_buffer_to_string(string_buffer_t *buffer) {
 
 void string_buffer_append_s(string_buffer_t *buffer, const char *str) {
 	size_t length = strlen(str);
-	if (length + buffer->size >= buffer->capacity) {
+	if (length + buffer->size > buffer->capacity) {
 		size_t newcapacity = buffer->capacity * 2;
 		char *tmp = (char*)malloc(newcapacity);
 		memcpy(tmp, buffer->str, buffer->capacity);
 		FREE(buffer->str);
 		buffer->str = tmp;
 		buffer->capacity = newcapacity;
-		memcpy(buffer->str + buffer->size, str, length);
-		buffer->size += length;
-	} else {
-		memcpy(buffer->str + buffer->size, str, length);
-		buffer->size += length;
 	}
+	memcpy(buffer->str + buffer->size, str, length);
+	buffer->size += length;
+}
+
+void string_buffer_append_c(string_buffer_t *buffer, char c) {
+	if (buffer->size >= buffer->capacity) {
+		size_t newcapacity = buffer->capacity * 2;
+		char *tmp = (char*)malloc(newcapacity);
+		memcpy(tmp, buffer->str, buffer->capacity);
+		FREE(buffer->str);
+		buffer->str = tmp;
+		buffer->capacity = newcapacity;
+	}
+	buffer->str[buffer->size] = c;
+	buffer->size++;
 }
 
 void string_buffer_append_i(string_buffer_t *buffer, int i) {
