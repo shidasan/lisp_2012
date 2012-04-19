@@ -30,6 +30,8 @@ size_t array_size(struct array_t *);
 void array_set(struct array_t *, size_t, void *);
 void array_add(struct array_t *, void *);
 void *array_pop(struct array_t *);
+void string_buffer_append(string_buffer_t *buffer, const char *str);
+const char *string_buffer_to_string(string_buffer_t *buffer);
 
 typedef struct static_mtd_data {
 	const char *name;

@@ -1,6 +1,13 @@
 struct cons_api_t;
 struct variable_t;
 
+#define STRING_BUFFER_INIT_SIZE 256
+typedef struct string_buffer_t {
+	char *str;
+	size_t size;
+	size_t capacity;
+}string_buffer_t;
+
 typedef struct array_t {
 	void **list;
 	size_t size;
@@ -113,6 +120,8 @@ cons_t *new_local_environment();
 
 struct array_t *new_array();
 void array_free(struct array_t *a);
+string_buffer_t *new_string_buffer();
+void string_buffer_free(string_buffer_t *buffer);
 
 ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);

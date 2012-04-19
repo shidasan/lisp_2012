@@ -3,6 +3,44 @@
 #include <string.h>
 #include "lisp.h"
 
+/* String Buffer */
+
+string_buffer_t *new_string_buffer() {
+	string_buffer_t *buffer = (string_buffer_t*)malloc(sizeof(string_buffer_t));
+	buffer->capacity = STRING_BUFFER_INIT_SIZE;
+	buffer->size = 0;
+	buffer->str = (char*)malloc(STRING_BUFFER_INIT_SIZE);
+	return buffer;
+}
+
+const char *string_buffer_to_string(string_buffer_t *buffer) {
+	char *res = (char*)malloc(buffer->size + 1);
+	memcpy(res, buffer->str, buffer->size);
+	res[buffer->size] = '\0';
+	return res;
+}
+
+void string_buffer_append(string_buffer_t *buffer, const char *str) {
+	size_t length = strlen(str);
+	if (length + buffer->size >= buffer->capacity) {
+		size_t newcapacity = buffer->capacity * 2;
+		char *tmp = (char*)malloc(newcapacity);
+		memcpy(tmp, buffer->str, buffer->capacity);
+		FREE(buffer->str);
+		buffer->str = tmp;
+		buffer->capacity = newcapacity;
+		memcpy(buffer->str + buffer->size, str, length);
+		buffer->size += length;
+	} else {
+		memcpy(buffer->str + buffer->size, str, length);
+	}
+}
+
+void string_buffer_free(string_buffer_t *buffer) {
+	FREE(buffer->str);
+	FREE(buffer);
+}
+
 /* Array */
 
 void *array_get(array_t *a, size_t n) {

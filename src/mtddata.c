@@ -37,6 +37,10 @@ static cons_t *print(cons_t **VSTACK, int ARGC) {
 	return cons;
 }
 
+static cons_t *format(cons_t **VSTACK, int ARGC) {
+	
+}
+
 static cons_t *car(cons_t** VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
 	if (cons->type != OPEN) {
@@ -669,6 +673,7 @@ static cons_t *eval(cons_t **VSTACK, int ARGC) {
 
 static_mtd_data static_mtds[] = {
 	{"print", 1, 0, 0, 0, 0, print, NULL},
+	{"format", -1, 0, 1, 0, 0, format, NULL},
 	{"car", 1, 0, 0, 0, 0, car, NULL},
 	{"cdr", 1, 0, 0, 0, 0, cdr, NULL},
 	{"cons", 2, 0, 0, 0, 0, cons, NULL},
