@@ -26,6 +26,7 @@ enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, V
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
 
 int shell(int , char**);
+void print_return_value(cons_t *);
 void *array_get(struct array_t*, size_t);
 size_t array_size(struct array_t *);
 void array_set(struct array_t *, size_t, void *);

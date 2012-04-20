@@ -35,7 +35,7 @@ void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
-		set_static_func(data);//data->name, data->num_args, (void*)data->mtd, (void*)data->special_mtd, 1, data->is_special_form, &(data->is_quote0), data->creates_local_scope);
+		set_static_func(data);
 		i++;
 	}
 }
@@ -59,8 +59,32 @@ int get_split_point(char *src, int start) {
 	}
 	return strlen(src);
 }
-int is_unexpected_input(char *str) {
+static int is_unexpected_input(char *str) {
 	return (strcmp(str, " ") != 0 && strcmp(str, "\n") != 0 && strcmp(str, "\0") != 0);
+}
+
+void print_return_value(cons_t *cons) {
+	switch(cons->type) {
+	case OPEN:
+		printf("(");
+		break;
+	case STRING:
+		printf("\"");
+		break;
+	default:
+		break;
+	}
+	CONS_PRINT(cons, _buffer);
+	switch(cons->type) {
+	case OPEN:
+		printf(")");
+		break;
+	case STRING:
+		printf("\"");
+		break;
+	default:
+		break;
+	}
 }
 char *split_and_eval(int argc, char **args, char *tmpstr) {
 	int prev_point = 0;
@@ -71,7 +95,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 		memcpy(str, tmpstr + prev_point, next_point - prev_point + 1);
 		str[next_point - prev_point + 1] = '\0';
 		prev_point = next_point + 1;
-		//str = tmpstr;
 		if (strncmp(str,"exit", 3) == 0){
 			printf("bye\n");
 			free(str);
@@ -87,14 +110,8 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			if (status == 0){
 				myadd_history(str);
 				cons_t *cons = (cons_t*)vm_exec(argc + 1, memory + CurrentIndex, stack_value);
-				if (cons != NULL) {
-					if (cons->type == OPEN) {
-						printf("(");
-					}
-					CONS_PRINT(cons, _buffer);
-					if (cons->type == OPEN) {
-						printf(")");
-					}
+				if (cons != NULL && argc == 1) {
+					print_return_value(cons);
 					printf("\n");
 				}
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
@@ -105,7 +122,6 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 					exit(1);
 				}
 				/* exit when error occers while reading FILE* */
-				//argc = 1;
 			}
 		}
 		free(str);
@@ -135,6 +151,10 @@ int shell (int argc, char* args[])
 	new_global_environment();
 	if (argc > 1){
 		file = fopen(args[1],"r");
+		if (!file) {
+			EXCEPTION("Script not found!!\n");
+			exit(1);
+		}
 	}
 	init_opline_first();
 	int i;
@@ -161,17 +181,10 @@ int shell (int argc, char* args[])
 				tmpstr[StrIndex] = '\0';
 				fclose(file);
 				break;
-				//free(tmpstr);
-				//exit(0);
 			}
 			if (tmpstr[StrIndex] == '\n') {
 				tmpstr[StrIndex] = ' ';
 			}
-			//if (tmpstr[StrIndex] == '\n' || tmpstr[StrIndex] == '\0'){
-			//	tmpstr[StrIndex] = '\n';
-			//	tmpstr[StrIndex + 1] = '\0';
-			//	break;
-			//}
 			StrIndex++;
 		}
 		split_and_eval(argc, args, tmpstr);
@@ -194,9 +207,3 @@ int shell (int argc, char* args[])
 	free(tmpstr);
 	return 0;
 }
-
-/*
-void Clean (void)
-{
-}
-*/

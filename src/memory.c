@@ -366,13 +366,10 @@ static void clear_bitmap() {
 }
 
 static void gc() {
-	//fprintf(stderr, "gc()\n");
 	clear_bitmap();
 	mark_count = 0;
 	gc_mark();
 	gc_sweep();
-	//fprintf(stderr, "gc end\n");
-	//fprintf(stderr, "gc end marked: %d, object_capacity: %zd, unused_object: %zd\n", mark_count, object_capacity, unused_object);
 }
 
 static void expand_arena() {
@@ -392,10 +389,6 @@ cons_t *new_cons_cell() {
 		if ((object_capacity / 4) > unused_object) {
 			fprintf(stderr, "expand arena\n");
 			expand_arena();
-			//fprintf(stderr, "expand\n");
-			//cons_tbl_t *tbl = new_page_table();
-			//array_add(cons_arena->a, tbl);
-			//free_list = tbl->head->slots;
 		}
 	}
 	cons = free_list;

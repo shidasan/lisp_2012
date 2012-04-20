@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <setjmp.h>
@@ -26,13 +27,14 @@ static loop_frame_t *loop_frame_pop() {
 
 static cons_t *print(cons_t **VSTACK, int ARGC) {
 	cons_t *cons = ARGS(0);
-	if (cons->type == OPEN) {
-		printf("(");
-	}
-	CONS_PRINT(cons, _buffer);
-	if (cons->type == OPEN) {
-		printf(")");
-	}
+	print_return_value(cons);
+	//if (cons->type == OPEN) {
+	//	printf("(");
+	//}
+	//CONS_PRINT(cons, _buffer);
+	//if (cons->type == OPEN) {
+	//	printf(")");
+	//}
 	printf("\n");
 	return cons;
 }
@@ -490,11 +492,11 @@ static cons_t *_if(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
-static cons_t *assert(cons_t **VSTACK, int ARGC, array_t *a) {
+static cons_t *_assert(cons_t **VSTACK, int ARGC, array_t *a) {
 	cons_t *cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	if (cons->type == nil) {
 		EXCEPTION("NIL must evalueate to a non-NIL value\n");
-		exit(1);
+		assert(0);
 	}
 	return cons;
 }
@@ -781,7 +783,7 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, 0, length, NULL},
 	{"if", 3, 0, 1, 0, 0, NULL, _if},
-	{"assert", 1, 0, 1, 0, 0, NULL, assert},
+	{"assert", 1, 0, 1, 0, 0, NULL, _assert},
 	{"cond", -1, 0, 1, -1, 0, NULL, cond},
 	{"progn", -1, 0, 1, 0, 0, NULL, progn},
 	{"loop", -1, 0, 1, 0, 0, NULL, loop},
