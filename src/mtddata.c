@@ -99,6 +99,7 @@ static cons_t *format(cons_t **VSTACK, int ARGC, array_t *a) {
 						location++;
 						break;
 				}
+				break;
 			default:
 				string_buffer_append_c(buffer, str[location]);
 				location++;
@@ -112,7 +113,7 @@ static cons_t *format(cons_t **VSTACK, int ARGC, array_t *a) {
 	if (destination->type == nil) {
 		res = new_string(res_str);
 	} else {
-		fprintf(stdout, "%s\n", res_str);
+		fprintf(stdout, "%s", res_str);
 		res = new_bool(0);
 	}
 	string_buffer_free(buffer);
