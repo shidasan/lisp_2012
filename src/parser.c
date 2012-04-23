@@ -385,9 +385,12 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 
 int parse_program (char *str) {
 	tokenizer_init(str);
-	ast_t *ast = parse_expression(0, 0);
-	if (ast != NULL) {
-		codegen(ast);
+	get_next_token();
+	cons_t *cons = make_cons_tree2(0);
+	CONS_PRINT(cons, _buffer);
+	printf("\n");
+	if (cons != NULL) {
+		cons_codegen(cons);
 		return 0;
 	}
 	printf("Syntax Error\n");

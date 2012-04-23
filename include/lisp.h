@@ -1,5 +1,6 @@
 #ifndef MAIN
 #define MAIN
+#include <assert.h>
 #include "memory.h"
 #include "config.h"
 #define LOG_INT_MAX 11
@@ -10,7 +11,7 @@
 #define VSTACK _vstack
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR));
-#define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));
+#define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));assert(0)
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 

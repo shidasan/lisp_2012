@@ -174,11 +174,20 @@ static void cons_special_form(cons_t *cons) {
 	opline_t *pc = memory + NextIndex;
 	new_opline_special_method(SPECIAL_MTD, cons->car, a);
 	new_opline(END, NULL);
+	func_t *func = search_func(cons->car->str);
+	int *quote_position = NULL;
+	if (func != NULL && func->is_static && func->is_quote[0]) {
+		quote_position = func->is_quote;
+	}
 	int length = cons_length(cons);
 	cons_t *cdr = cons->cdr;
 	for (; i < length; i++) {
 		array_add(a, memory + NextIndex);
-		cons_codegen(cdr->car);
+		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
+			new_opline(PUSH, cdr->car);
+		} else {
+			cons_expression(cdr->car);
+		}
 		if (i != length-1) {
 			new_opline(END, NULL);
 		}

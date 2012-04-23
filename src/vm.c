@@ -93,14 +93,11 @@ mtdcheck:
 	args_num = pc->op[1].ivalue;
 	func = search_func(cons->str);
 	if (func == NULL) {
-		fprintf(stderr, "can't call method!!\n");
 		fprintf(stderr, "cons->str: %s\n", cons->str);
-		asm("int3");
+		EXCEPTION("can't call method!!\n");
 	}
 	if (func->value != -1 && func->value != args_num) {
-		fprintf(stderr, "argument length does not match!!\n");
-		fprintf(stderr, "correct number: %d, this time: %d\n", func->value, args_num);
-		asm("int3");
+		EXCEPTION("argument length does not match!!\n");
 	}
 	goto *((++pc)->instruction_ptr);
 
