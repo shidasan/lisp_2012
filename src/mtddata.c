@@ -170,7 +170,6 @@ static cons_t *sub(cons_t** VSTACK, int ARGC) {
 		if (cons->type != INT) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
-			asm("int3");
 		}
 		if (i == 0) {
 			res = cons->ivalue;
@@ -712,10 +711,12 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 				if (argc == 2) {
 					variable = list->car;
 					value = list->cdr->car;
-					set_variable(variable, value, 1);
+					cons_codegen(value);
+					cons_t *res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+					set_variable(variable, res, 1);
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
-					asm("int3");
+					assert(0);
 				}
 			} else {
 				cons_t *p = set_variable(list, new_bool(0), 1);

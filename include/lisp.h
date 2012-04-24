@@ -10,7 +10,7 @@
 #define ARGC _argc
 #define VSTACK _vstack
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
-#define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR));
+#define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR)); assert(0)
 #define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));assert(0)
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
