@@ -15,13 +15,14 @@
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 
-#define FLAG_MACRO (1 << 0)
-#define FLAG_STATIC (1 << 1)
-#define FLAG_SPECIAL_FORM (1 << 2)
-#define FLAG_LOCAL_SCOPE (1 << 3)
-#define FLAG_IS_MACRO(FLAG) (FLAG & FLAG_MACRO)
-#define FLAG_IS_STATIC(FLAG) (FLAG & FLAG_STATIC)
-#define FLAG_IS_SPECIAL_FORM(FLAG) (FLAG & FLAG_SPECIAL_FORM)
+#define FLAG_MACRO                     (1 << 0)
+#define FLAG_STATIC                    (1 << 1)
+#define FLAG_SPECIAL_FORM              (1 << 2)
+#define FLAG_LOCAL_SCOPE               (1 << 3)
+
+#define FLAG_IS_MACRO(FLAG)            (FLAG & FLAG_MACRO)
+#define FLAG_IS_STATIC(FLAG)           (FLAG & FLAG_STATIC)
+#define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
 #ifdef USE_DEBUG_MODE
@@ -94,11 +95,8 @@ struct cons_t* search_variable (char* str);
 
 struct func_t* search_func (char* str);
 /*generator.h*/
-void GenerateProgram (AST*);
-void codegen(ast_t *);
-void cons_codegen(cons_t *);
+void codegen(cons_t *);
 /*parser.h*/
-int ParseProgram(char *);
 int parse_program(char *);
 /*eval.h*/
 cons_t* vm_exec (int, opline_t *, cons_t **);

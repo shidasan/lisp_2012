@@ -279,116 +279,12 @@ static cons_t *make_cons_tree2(int is_head_of_list) {
 	}
 }
 
-static ast_t *parse_expression(int is_head_of_list, int is_quote_unused);
-
-static ast_t *parse_list() {
-	ast_t *ast = new_ast(ast_list, -1);
-	ast_t *childast = parse_expression(1, 0);
-	if (childast == NULL) {
-		ast_free(ast);
-		ast = new_ast(ast_atom, nil);
-		ast->cons = new_bool(0);
-		return ast;
-	}
-	array_add(ast->a, childast);
-	func_t *func;
-	int* quote_position = NULL;
-	if (childast->type == ast_static_func || childast->type == ast_special_form) {
-		func = search_func(childast->cons->str);
-		if (func != NULL && func->is_quote[0]) {
-			quote_position = func->is_quote;
-		}
-	}
-	int args_count = 1;
-	while (1) {
-		if (quote_position != NULL && ((args_count == quote_position[0] || args_count == quote_position[1]) || quote_position[0] == -1)) {
-			/* make_cons_tree2 must not eat any token */
-			get_next_token();
-			if (token_type == tok_close) {
-				break;
-			}
-			cons_t *cons = make_cons_tree2(0);
-			childast = new_ast(ast_atom, cons->type);
-			childast->cons = cons;
-		} else {
-			childast = parse_expression(0, 0);
-		}
-		if (childast == NULL) {
-			break;
-		}
-		array_add(ast->a, childast);
-		args_count++;
-	}
-	return ast;
-}
-
-static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
-	get_next_token();
-	ast_t *ast = NULL;
-	if (token_type == tok_eof) {
-		return NULL;
-	}
-	if (token_type == tok_number) {
-		ast = new_ast(ast_atom, INT);
-		ast->cons = new_int(token_int);
-	} else if (token_type == tok_string) {
-		ast = new_ast(ast_atom, STRING);
-		ast->cons = new_string(token_str);
-	} else if (token_type == tok_nil) {
-		ast = new_ast(ast_atom, nil);
-		ast->cons = new_bool(0);
-	} else if (token_type == tok_T) {
-		ast = new_ast(ast_atom, T);
-		ast->cons = new_bool(1);
-	} else if (token_type == tok_open) {
-		ast =  parse_list();
-	} else if (token_type == tok_quote) {
-		/* quote macro */
-		ast = new_ast(ast_list, -1);
-		get_next_token();
-		ast_t *funcast = new_ast(ast_static_func, -1);
-		funcast->cons = new_func("quote", NULL);
-		array_add(ast->a, funcast);
-		cons_t *cons = make_cons_tree2(0);
-		ast_t *childast = new_ast(ast_atom, cons->type);
-		childast->cons = cons;
-		array_add(ast->a, childast);
-	} else if (token_type == tok_symbol) {
-		ast = NULL;
-		if (is_head_of_list) {
-			func_t *func = search_func(token_str);
-			if (func != NULL && FLAG_IS_STATIC(func->flag)) {
-				if (FLAG_IS_SPECIAL_FORM(func->flag)) {
-					ast = new_ast(ast_special_form, -1);
-					ast->cons = new_func((const char*)token_str, NULL);
-				} else if (FLAG_IS_STATIC(func->flag)) {
-					ast = new_ast(ast_static_func, -1);
-					ast->cons = new_func((const char*)token_str, NULL);
-				}
-			} else {
-				ast = new_ast(ast_func, -1);
-				ast->cons = new_func((const char*)token_str, NULL);
-			}
-		} else {
-			ast = new_ast(ast_variable, -1);
-			ast->cons = new_variable(token_str);
-		}
-	} else if (token_type == tok_close) {
-		//ast_t *ast = new_ast(ast_list_close, -1);
-		ast = NULL;
-	} else {
-		TODO("parsing error or does not implemented\n");
-		fprintf(stderr, "token_type: %d\n", token_type);
-	}
-	return ast;
-}
-
 int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
 	cons_t *cons = make_cons_tree2(0);
 	if (cons != NULL) {
-		cons_codegen(cons);
+		codegen(cons);
 		return 0;
 	}
 	printf("Syntax Error\n");

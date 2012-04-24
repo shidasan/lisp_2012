@@ -518,7 +518,7 @@ static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
 				&& strcmp(car->str, "otherwise") == 0) {
 			/* default */
 		} else {
-			cons_codegen(cons->car);
+			codegen(cons->car);
 			cons_t *res = vm_exec(2, memory+CurrentIndex, VSTACK);
 			if (res->type == nil) {
 				continue;
@@ -528,7 +528,7 @@ static cons_t *cond(cons_t **VSTACK, int ARGC, array_t *a) {
 		cons_t *cdr = cons->cdr;
 		car = cdr->car;
 		for (; j < _length; j++) {
-			cons_codegen(car);
+			codegen(car);
 			res = vm_exec(2, memory+CurrentIndex, VSTACK);
 			cdr = cdr->cdr;
 			car = cdr->car;
@@ -679,7 +679,7 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 	for (; i < array_size(a); i++) {
 		array_add(opline_list, memory + NextIndex);
 		cons_t *fbody = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
-		cons_codegen(fbody);
+		codegen(fbody);
 	}
 	VSTACK[1] = args;
 	int argc = length(VSTACK+1, 1)->ivalue;
@@ -688,7 +688,19 @@ static cons_t *defun(cons_t **VSTACK, int ARGC, struct array_t *a) {
 }
 
 static cons_t *defmacro(cons_t **VSTACK, int ARGC, array_t *a) {
-
+	cons_t *fcons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	cons_t *args = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
+	int i = 2;
+	struct array_t *opline_list = new_array();
+	for (; i < array_size(a); i++) {
+		array_add(opline_list, memory + NextIndex);
+		cons_t *fbody = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
+		codegen(fbody);
+	}
+	VSTACK[1] = args;
+	int argc = length(VSTACK+1, 1)->ivalue;
+	set_func(fcons, opline_list, argc, args, current_environment, FLAG_MACRO | FLAG_SPECIAL_FORM);
+	return fcons;
 }
 
 static cons_t *setq(cons_t **VSTACK, int ARGC) {
@@ -715,7 +727,7 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 				if (argc == 2) {
 					variable = list->car;
 					value = list->cdr->car;
-					cons_codegen(value);
+					codegen(value);
 					cons_t *res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
 					set_variable(variable, res, 1);
 				} else {
@@ -740,7 +752,7 @@ static cons_t *let(cons_t **VSTACK, int ARGC, struct array_t *a) {
 static cons_t *eval(cons_t **VSTACK, int ARGC) {
 	//cons_t *cons = CONS_EVAL(ARGS(0));
 	cons_t *cons = ARGS(0);
-	cons_codegen(cons);
+	codegen(cons);
 	cons_t *res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
 	return res;
 }
