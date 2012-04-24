@@ -15,6 +15,15 @@
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 
+#define FLAG_MACRO (1 << 0)
+#define FLAG_STATIC (1 << 1)
+#define FLAG_SPECIAL_FORM (1 << 2)
+#define FLAG_LOCAL_SCOPE (1 << 3)
+#define FLAG_IS_MACRO(FLAG) (FLAG & FLAG_MACRO)
+#define FLAG_IS_STATIC(FLAG) (FLAG & FLAG_STATIC)
+#define FLAG_IS_SPECIAL_FORM(FLAG) (FLAG & FLAG_SPECIAL_FORM)
+#define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
+
 #ifdef USE_DEBUG_MODE
 #define DBG_P(STR) fprintf(stderr, "Debug: ");fprintf(stderr, STR);
 #else
@@ -41,8 +50,7 @@ char *string_buffer_to_string(string_buffer_t *buffer);
 typedef struct static_mtd_data {
 	const char *name;
 	int num_args;
-	int creates_local_scope;
-	int is_special_form;
+	int flag;
 	int is_quote0;
 	int is_quote1;
 	cons_t *(*mtd)(cons_t**, int);
@@ -74,7 +82,7 @@ cons_t* change_local_scope(cons_t *, cons_t *);
 cons_t *end_local_scope(cons_t *old_environment);
 //struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
 struct func_t* set_static_func (static_mtd_data *data);
-struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment);
+struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment, int flag);
 void new_global_environment();
 extern cons_t *current_environment;
 void mark_environment_list(array_t*);

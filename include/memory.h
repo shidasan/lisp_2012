@@ -61,10 +61,8 @@ typedef struct func_t{
 	char* name;
 	struct func_t* next;
 	int value; // size of argument (?)
-	int is_static; // cleared by bzero
-	int is_special_form;
+	int flag;
 	int *is_quote;
-	int creates_local_scope;
 	union {
 		struct array_t *opline_list;
 		cons_t *(*mtd)(cons_t**, int);

@@ -149,7 +149,7 @@ static void cons_func(cons_t *cons) {
 	func_t *func = search_func(car->str);
 	int i = 1, size = cons_length(cons);
 	int *quote_position = NULL;
-	if (func != NULL && func->is_static && func->is_quote[0]) {
+	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
 	cons_mtd_check(car, size);
@@ -176,7 +176,7 @@ static void cons_special_form(cons_t *cons) {
 	new_opline(END, NULL);
 	func_t *func = search_func(cons->car->str);
 	int *quote_position = NULL;
-	if (func != NULL && func->is_static && func->is_quote[0]) {
+	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
 	int length = cons_length(cons);
@@ -197,7 +197,7 @@ static void cons_special_form(cons_t *cons) {
 
 static void cons_list (cons_t *cons) {
 	func_t *func = search_func(cons->car->str);
-	if (func != NULL && func->is_special_form) {
+	if (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag)) {
 		cons_special_form(cons);
 	} else {
 		cons_func(cons);

@@ -64,7 +64,7 @@ cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 
 cons_t *begin_local_scope(func_t *func) {
 	cons_t *old_environment = current_environment;
-	if (func->creates_local_scope) {
+	if (FLAG_CREATES_LOCAL_SCOPE(func->flag)) {
 		current_environment = new_local_environment();
 		current_environment->car = new_variable_data_table();
 		current_environment->cdr = old_environment;
@@ -227,16 +227,14 @@ struct func_t* search_func (char* str)
 struct func_t* set_static_func (static_mtd_data *data) {
 	const char *str = data->name;
 	int i = data->num_args;
+	int flag = data->flag;
 	void *adr = (void*)data->mtd;
 	void *special_mtd = (void*)data->special_mtd;
-	int is_static = 1;
-	int is_special_form = data->is_special_form;
 	int *is_quote = &(data->is_quote0);
-	int creates_local_scope = data->creates_local_scope;
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
-			if (p->name != NULL && strcmp(p->name, str) == 0 && p->is_static && !is_static) {
+			if (p->name != NULL && strcmp(p->name, str) == 0) {
 				return NULL;
 			}
 			if (p->name == NULL){
@@ -245,11 +243,9 @@ struct func_t* set_static_func (static_mtd_data *data) {
 				p->name[strlen(str)] = '\0';
 			}
 			p->value = i;
-			p->is_static = is_static;
+			p->flag = flag | FLAG_STATIC;
 			p->is_quote = is_quote;
-			p->creates_local_scope = creates_local_scope;
-			p->is_special_form = is_special_form;
-			if (is_special_form) {
+			if (FLAG_IS_SPECIAL_FORM(flag)) {
 				p->special_mtd = special_mtd;
 			} else {
 				p->mtd = adr;
@@ -265,12 +261,12 @@ struct func_t* set_static_func (static_mtd_data *data) {
 	}
 }
 
-struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment) {
+struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment, int flag) {
 	char *str = cons->str;
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
-			if (p->name != NULL && strcmp(p->name, str) == 0 && p->is_static) {
+			if (p->name != NULL && strcmp(p->name, str) == 0 && FLAG_IS_STATIC(p->flag)) {
 				return NULL;
 			}
 			if (p->name == NULL){
@@ -279,9 +275,8 @@ struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, co
 				p->name[strlen(str)] = '\0';
 			}
 			p->value = argc;
-			p->is_static = 0;
+			p->flag = flag;
 			p->is_quote = 0;
-			p->is_special_form = 0;
 			p->opline_list = opline_list;
 			p->args = args;
 			p->environment = current_environment;

@@ -357,11 +357,11 @@ static ast_t *parse_expression(int is_head_of_list, int is_quote_unused) {
 		ast = NULL;
 		if (is_head_of_list) {
 			func_t *func = search_func(token_str);
-			if (func != NULL && func->is_static) {
-				if (func->is_special_form) {
+			if (func != NULL && FLAG_IS_STATIC(func->flag)) {
+				if (FLAG_IS_SPECIAL_FORM(func->flag)) {
 					ast = new_ast(ast_special_form, -1);
 					ast->cons = new_func((const char*)token_str, NULL);
-				} else if (func->is_static) {
+				} else if (FLAG_IS_STATIC(func->flag)) {
 					ast = new_ast(ast_static_func, -1);
 					ast->cons = new_func((const char*)token_str, NULL);
 				}

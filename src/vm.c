@@ -107,7 +107,7 @@ mtdcall:
 		cons_t *old_environment = NULL;
 		args_num = pc->op[1].ivalue;
 		func = search_func(cons->str);
-		if (func->is_static) {
+		if (FLAG_IS_STATIC(func->flag)) {
 			old_environment = begin_local_scope(func);
 			esp[-args_num] = func->mtd(esp, args_num);
 		} else {
