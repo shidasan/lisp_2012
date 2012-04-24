@@ -699,7 +699,7 @@ static cons_t *defmacro(cons_t **VSTACK, int ARGC, array_t *a) {
 	}
 	VSTACK[1] = args;
 	int argc = length(VSTACK+1, 1)->ivalue;
-	set_func(fcons, opline_list, argc, args, current_environment, FLAG_MACRO | FLAG_SPECIAL_FORM);
+	set_func(fcons, opline_list, argc, args, current_environment, FLAG_MACRO);
 	return fcons;
 }
 
@@ -810,7 +810,7 @@ static_mtd_data static_mtds[] = {
 	{"when", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, when},
 	{"unless", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, unless},
 	{"defun", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 2, NULL, defun},
-	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defun},
+	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
 	{"let", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let},
 	{"eval", 1, 0, 0, 0, eval, NULL},

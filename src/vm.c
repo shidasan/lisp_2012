@@ -25,6 +25,19 @@ static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
 		args = args->cdr;
 	}
 }
+static cons_t *exec_body(cons_t **VSTACK, func_t *func) {
+	cons_t *res = NULL;
+	array_t *opline_list = func->opline_list;
+	int a = 0;
+	for (; a < array_size(opline_list); a++) {
+		res = vm_exec(2, (opline_t *)array_get(opline_list, a), VSTACK + 1);
+		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
+			codegen(res);
+			res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+		}
+	}
+	return res;
+}
 cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
 {
     static void *table [] = {
@@ -115,9 +128,7 @@ mtdcall:
 			environment_list_push(old_environment);
 			opline_list = func->opline_list;
 			set_args(esp, args_num, func);
-			for (a = 0; a < array_size(opline_list); a++) {
-				cons = vm_exec(2, (opline_t *)array_get(opline_list, a), esp + 1);
-			}
+			cons = exec_body(esp, func);
 			esp[-args_num] = cons;
 			cons_t *tmp = environment_list_pop();
 		}
