@@ -15,21 +15,23 @@ typedef struct array_t {
 }array_t;
 
 typedef struct cons_t{
-    int type;
-	//void *unused_ptr;
 	union {
 		int ivalue;
-		char* str;
-		struct cons_t *car;
-		struct variable_t *variable_data_table;
+		float fvalue;
+		//void *unused_ptr;
+		union {
+			char* str;
+			struct cons_t *car;
+			struct variable_t *variable_data_table;
+		};
+		union {
+			/* also used as free list */
+			struct cons_t *cdr;
+			/* used for local scope */
+			struct cons_t *local_environment;
+		};
+		struct cons_api_t *api;
 	};
-	union {
-		/* also used as free list */
-		struct cons_t *cdr;
-		/* used for local scope */
-		struct cons_t *local_environment;
-	};
-	struct cons_api_t *api;
 }cons_t;
 
 typedef struct cons_api_t {
