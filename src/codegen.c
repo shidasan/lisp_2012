@@ -65,7 +65,9 @@ static void gen_func(val_t val) {
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
-	gen_mtd_check(car, size);
+	if (func != NULL && func->value != -1 && func->value != size) {
+		gen_mtd_check(car, size);
+	}
 	val_t cdr = val.ptr->cdr;
 	for (; i < size; i++) {
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
