@@ -806,7 +806,7 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 	val_t res = {0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
-		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 	}
 	return res;
 }

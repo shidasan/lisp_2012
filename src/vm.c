@@ -67,7 +67,7 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
         return res;
     }
 
-	dump_vm();
+	//dump_vm();
 
     //val_t stack_value[STACKSIZE];
 
