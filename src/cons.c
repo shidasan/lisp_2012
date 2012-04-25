@@ -124,7 +124,7 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 			string_buffer_append_s(buffer, ")");
 		}
 	} else {
-		if (IS_nil(cdr)) {
+		if (!IS_nil(cdr)) {
 			string_buffer_append_s(buffer, " . ");
 			if (IS_OPEN(cdr)) {
 				string_buffer_append_s(buffer, "(");

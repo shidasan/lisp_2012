@@ -34,7 +34,7 @@ static int cons_length(val_t val) {
 		res++;
 		val = val.ptr->cdr;
 	}
-	if (IS_UNBOX(val) || val.ptr->type != nil) {
+	if (!IS_UNBOX(val)) {
 		return -1;
 	}
 	return res;
