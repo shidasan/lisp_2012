@@ -206,10 +206,10 @@ static void page_init(cons_page_t *page) {
 	size_t i;
 	cons_t *cons = page->slots;
 	for (i = 0; i < PAGECONSSIZE - 1; i++) {
-		cons[i].cdr = &(cons[i+1]);
+		cons[i].cdr.ptr = &(cons[i+1]);
 	}
 	/* last slot in each page */
-	page->slots[PAGECONSSIZE-1].cdr = page[1].slots;
+	page->slots[PAGECONSSIZE-1].cdr.ptr = page[1].slots;
 }
 
 static cons_tbl_t *new_page_table() {
@@ -232,7 +232,7 @@ static cons_tbl_t *new_page_table() {
 		page_init(page);
 	}
 	/* last slot in last page of cons_tbl */
-	(page-1)->slots[PAGECONSSIZE-1].cdr = free_list;
+	(page-1)->slots[PAGECONSSIZE-1].cdr.ptr = free_list;
 	return tbl;
 }
 
@@ -257,11 +257,11 @@ static int cons_is_marked(cons_t *cons) {
 }
 static void mark_stack(array_t *traced) {
 	int i = 0;
-	cons_t **sp = stack_value;
+	val_t *sp = stack_value;
 	size_t size = array_size(traced);
 	for (; i < STACKSIZE; i++) {
-		if (stack_value[i] != NULL) {
-			ADDREF(stack_value[i], traced);
+		if (!IS_UNBOX(stack_value[i]) && stack_value[i].ptr != NULL) {
+			ADDREF(stack_value[i].ptr, traced);
 		}
 	}
 }
@@ -276,10 +276,10 @@ static void mark_opline(array_t *traced) {
 			case GET_VARIABLE:
 			case MTDCHECK:
 			case MTDCALL:
-				ADDREF(op->op[0].cons, traced);
+				ADDREF_VAL(op->op[0].val, traced);
 				break;
 			case SPECIAL_MTD:
-				ADDREF(op->op[0].cons, traced);
+				ADDREF_VAL(op->op[0].val, traced);
 				//array_trace(op->op[1].a, traced);
 				break;
 			default:
@@ -345,7 +345,7 @@ static void gc_sweep() {
 						CONS_FREE(page->slots+j-1);
 					}
 					memset((page->slots + j-1), 0, sizeof(cons_t));
-					page->slots[j-1].cdr = free_list;
+					page->slots[j-1].cdr.ptr = free_list;
 					free_list = &page->slots[j-1];
 					unused_object++;
 					marked++;
@@ -392,7 +392,7 @@ cons_t *new_cons_cell() {
 		}
 	}
 	cons = free_list;
-	free_list = free_list->cdr;
+	free_list = free_list->cdr.ptr;
 	unused_object--;
 	memset(cons, 0, sizeof(cons_t));
 	return cons;

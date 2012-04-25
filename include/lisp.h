@@ -28,12 +28,12 @@
 #define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
-#define TYPE_MASK ((uintptr_t)0x000F0000)
+#define TYPE_MASK ((int)0x000F0000)
 
-#define INT_OFFSET                (((uintptr_t)1) << 16)
-#define FLOAT_OFFSET              (((uintptr_t)2) << 16)
-#define T_OFFSET                  (((uintptr_t)3) << 16)
-#define nil_OFFSET                (((uintptr_t)4) << 16)
+#define INT_OFFSET                (((int)1) << 16)
+#define FLOAT_OFFSET              (((int)2) << 16)
+#define T_OFFSET                  (((int)3) << 16)
+#define nil_OFFSET                (((int)4) << 16)
 
 #define VAL_TYPE(VAL)             ((VAL).tag & TYPE_MASK)
 #define IS_UNBOX(VAL)             (VAL_TYPE(VAL))

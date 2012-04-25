@@ -128,17 +128,18 @@ static void gen_list (val_t cons) {
 static void gen_expression(val_t val) {
 	if (IS_UNBOX(val)) {
 		gen_atom(val);
-	}
-	switch(val.ptr->type) {
-		case OPEN:
-			gen_list(val);
-			break;
-		case VARIABLE:
-			gen_variable(val);
-			break;
-		default:
-			gen_atom(val);
-			break;
+	} else {
+		switch(val.ptr->type) {
+			case OPEN:
+				gen_list(val);
+				break;
+			case VARIABLE:
+				gen_variable(val);
+				break;
+			default:
+				gen_atom(val);
+				break;
+		}
 	}
 }
 

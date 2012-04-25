@@ -75,7 +75,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 							EXCEPTION("There are not enough arguments left for format directive!!\n");
 						}
 						val = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
-						CONS_TO_STRING(val, buffer);
+						VAL_TO_STRING(val, buffer);
 						location += 2;
 						evaluate++;
 						break;

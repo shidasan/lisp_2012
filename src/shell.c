@@ -65,26 +65,30 @@ static int is_unexpected_input(char *str) {
 }
 
 void print_return_value(val_t val) {
-	switch(val.ptr->type) {
-	case OPEN:
-		printf("(");
-		break;
-	case STRING:
-		printf("\"");
-		break;
-	default:
-		break;
+	if (!IS_UNBOX(val)) {
+		switch(val.ptr->type) {
+		case OPEN:
+			printf("(");
+			break;
+		case STRING:
+			printf("\"");
+			break;
+		default:
+			break;
+		}
 	}
 	VAL_PRINT(val, _buffer);
-	switch(val.ptr->type) {
-	case OPEN:
-		printf(")");
-		break;
-	case STRING:
-		printf("\"");
-		break;
-	default:
-		break;
+	if (!IS_UNBOX(val)) {
+		switch(val.ptr->type) {
+		case OPEN:
+			printf(")");
+			break;
+		case STRING:
+			printf("\"");
+			break;
+		default:
+			break;
+		}
 	}
 }
 char *split_and_eval(int argc, char **args, char *tmpstr) {
@@ -110,7 +114,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			}
 			if (status == 0){
 				myadd_history(str);
-				val_t val= vm_exec(argc + 1, memory + CurrentIndex, stack_value);
+				val_t val = vm_exec(argc + 1, memory + CurrentIndex, stack_value);
 				if (val.ptr != 0 && argc == 1) {
 					print_return_value(val);
 					printf("\n");

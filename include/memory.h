@@ -28,21 +28,19 @@ typedef struct val_t {
 }val_t;
 
 typedef struct cons_t{
+	int type;
 	union {
-		int type;
-		union {
-			char* str;
-			struct val_t car;
-			struct variable_t *variable_data_table;
-		};
-		union {
-			/* also used as free list */
-			struct val_t cdr;
-			/* used for local scope */
-			struct cons_t *local_environment;
-		};
-		struct cons_api_t *api;
+		char* str;
+		struct val_t car;
+		struct variable_t *variable_data_table;
 	};
+	union {
+		/* also used as free list */
+		struct val_t cdr;
+		/* used for local scope */
+		struct cons_t *local_environment;
+	};
+	struct cons_api_t *api;
 }cons_t;
 
 typedef struct cons_api_t {
@@ -102,7 +100,7 @@ typedef struct ast_t {
 	(array_add((A), (CONS)));\
 
 #define ADDREF_VAL(VAL, A) \
-	if (!IS_NUMBER(VAL)) {\
+	if (!IS_UNBOX(VAL)) {\
 		(array_add((A), (VAL).ptr));\
 	}\
 
@@ -112,7 +110,7 @@ typedef struct ast_t {
 	}\
 
 #define ADDREF_VAL_NULLABLE(VAL, A) \
-	if (!IS_NUMBER(VAL) && (VAL).ptr != NULL) {\
+	if (!IS_UNBOX(VAL) && (VAL).ptr != NULL) {\
 		(array_add((A), (VAL).ptr));\
 	}\
 
@@ -134,8 +132,8 @@ void val_to_string(val_t , string_buffer_t*);
 #define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
 
 void gc_init();
-void cstack_cons_cell_push();
-val_t cstack_cons_cell_pop();
+void cstack_cons_cell_push(cons_t *);
+cons_t *cstack_cons_cell_pop();
 
 val_t new_int(int n);
 val_t new_bool(int n);

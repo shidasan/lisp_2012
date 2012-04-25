@@ -227,7 +227,7 @@ static val_t make_cons_single_node(int is_head_of_list) {
 static val_t make_cons_tree2(int is_head_of_list);
 
 static val_t make_cons_list() {
-	val_t val;
+	val_t val = {0};
 	val.ptr = new_open();
 	val_t tmp = val;
 	val_t car = {0};
@@ -268,7 +268,7 @@ static val_t make_cons_tree2(int is_head_of_list) {
 	}else if (token_type == tok_quote) {	
 		val_t root = {0};
 		root.ptr = new_open();
-		cstack_cons_cell_push(root);
+		cstack_cons_cell_push(root.ptr);
 		root.ptr->car.ptr = new_func("quote", NULL);
 		root.ptr->cdr.ptr = new_open();
 		root.ptr->cdr.ptr->cdr = new_bool(0);
@@ -285,7 +285,7 @@ int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
 	val_t cons = make_cons_tree2(0);
-	if (cons.ivalue = 0) {
+	if (cons.tag != 0 || cons.ptr != NULL) {
 		codegen(cons);
 		return 0;
 	}
