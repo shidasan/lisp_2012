@@ -17,7 +17,7 @@ static void dump_vm() {
 }
 static void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	int i = 0;
-	cons_t *args = func->args;
+	cons_t *args = func->args.ptr;
 	for (; i < ARGC; i++) {
 		val_t arg = ARGS(i);
 		val_t variable = args->car;

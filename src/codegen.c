@@ -6,14 +6,14 @@
 static int TempIndex;
 static char* null = NULL;
 
-static void new_opline(enum eINSTRUCTION e, cons_t *cons) {
+static void new_opline(enum eINSTRUCTION e, val_t val) {
 	memory[NextIndex].instruction = e;
 	memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
-	memory[NextIndex].op[0].cons = cons;
+	memory[NextIndex].op[0].val = val;
 	NextIndex++;
 }
 
-static void new_opline_special_method(enum eINSTRUCTION e, cons_t *cons, struct array_t *a) {
+static void new_opline_special_method(enum eINSTRUCTION e, val_t cons, struct array_t *a) {
 	new_opline(e, cons);
 	memory[NextIndex-1].op[1].a = a;
 }
@@ -22,94 +22,102 @@ void init_opline() {
 	CurrentIndex = NextIndex;
 }
 
-static int cons_length(cons_t *cons) {
-	if (cons->type == nil) {
-		return 0;
-	}
-	if (cons->type != OPEN) {
+static int cons_length(val_t val) {
+	if (unlikely(IS_NUMBER(val)) || val.ptr->type != OPEN) {
 		return -1;
 	}
-	int res = 0;
-	while (cons->type == OPEN) {
-		res++;
-		cons = cons->cdr;
+	if (val.ptr->type == nil) {
+		return 0;
 	}
-	if (cons->type != nil) {
+	int res = 0;
+	while (IS_NUMBER(val) && val.ptr->type == OPEN) {
+		res++;
+		val = val.ptr->cdr;
+	}
+	if (IS_NUMBER(val) || val.ptr->type != nil) {
 		return -1;
 	}
 	return res;
 }
 
-static void gen_atom(cons_t *cons) {
-	new_opline(PUSH, cons);
+static void gen_atom(val_t val) {
+	new_opline(PUSH, val);
 }
 
-static void gen_variable(cons_t *cons) {
-	new_opline(GET_VARIABLE, cons);
+static void gen_variable(val_t val) {
+	new_opline(GET_VARIABLE, val);
 }
 
-static void gen_mtd_check(cons_t *cons, int list_length) {
-	new_opline(MTDCHECK, cons);
+static void gen_mtd_check(val_t val, int list_length) {
+	assert(!IS_NUMBER(val));
+	new_opline(MTDCHECK, val);
 	memory[NextIndex-1].op[1].ivalue = list_length-1;
 }
 
-static void gen_expression(cons_t *cons);
+static void gen_expression(val_t);
 
-static void gen_func(cons_t *cons) {
-	cons_t *car = cons->car;
-	func_t *func = search_func(car->str);
-	int i = 1, size = cons_length(cons);
+static void gen_func(val_t val) {
+	assert(!IS_NUMBER(val));
+	val_t car = val.ptr->car;
+	func_t *func = search_func(car.ptr->str);
+	int i = 1, size = cons_length(val);
 	int *quote_position = NULL;
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
 	gen_mtd_check(car, size);
-	cons_t *cdr = cons->cdr;
+	val_t cdr = val.ptr->cdr;
 	for (; i < size; i++) {
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
-			new_opline(PUSH, cdr->car);
+			new_opline(PUSH, cdr.ptr->car);
 		} else if (func != NULL && FLAG_IS_MACRO(func->flag)) {
-			new_opline(PUSH, cdr->car);
+			new_opline(PUSH, cdr.ptr->car);
 		} else {
-			gen_expression(cdr->car);
+			gen_expression(cdr.ptr->car);
 		}
-		cdr = cdr->cdr;
+		cdr = cdr.ptr->cdr;
 	}
 	new_opline(MTDCALL, car);
 	memory[NextIndex-1].op[1].ivalue = size-1;
 }
 
-void codegen(cons_t *cons);
+void codegen(val_t);
 
-static void gen_special_form(cons_t *cons) {
+static void gen_special_form(val_t val) {
 	int i = 1;
+	assert(!IS_NUMBER(val));
 	array_t *a = new_array();
 	opline_t *pc = memory + NextIndex;
-	new_opline_special_method(SPECIAL_MTD, cons->car, a);
-	new_opline(END, NULL);
-	func_t *func = search_func(cons->car->str);
+	new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
+	val_t tmp = {0};
+	new_opline(END, tmp);
+	func_t *func = search_func(val.ptr->car.ptr->str);
 	int *quote_position = NULL;
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
-	int length = cons_length(cons);
-	cons_t *cdr = cons->cdr;
+	int length = cons_length(val);
+	val_t cdr = val.ptr->cdr;
 	for (; i < length; i++) {
 		array_add(a, memory + NextIndex);
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
-			new_opline(PUSH, cdr->car);
+			new_opline(PUSH, cdr.ptr->car);
 		} else {
-			gen_expression(cdr->car);
+			gen_expression(cdr.ptr->car);
 		}
 		if (i != length-1) {
-			new_opline(END, NULL);
+			new_opline(END, tmp);
 		}
-		cdr = cdr->cdr;
+		cdr = cdr.ptr->cdr;
 	}
 }
 
-static void gen_list (cons_t *cons) {
-	func_t *func = search_func(cons->car->str);
+static void gen_list (val_t cons) {
+	val_t car = cons.ptr->car;
+	if (IS_NUMBER(car)) {
+		EXCEPTION("Excepted symbol!!\n");
+	}
+	func_t *func = search_func(car.ptr->str);
 	if (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag)) {
 		gen_special_form(cons);
 	} else {
@@ -117,22 +125,26 @@ static void gen_list (cons_t *cons) {
 	}
 }
 
-static void gen_expression(cons_t *cons) {
-	switch(cons->type) {
+static void gen_expression(val_t val) {
+	if (IS_NUMBER(val)) {
+		gen_atom(val);
+	}
+	switch(val.ptr->type) {
 		case OPEN:
-			gen_list(cons);
+			gen_list(val);
 			break;
 		case VARIABLE:
-			gen_variable(cons);
+			gen_variable(val);
 			break;
 		default:
-			gen_atom(cons);
+			gen_atom(val);
 			break;
 	}
 }
 
-void codegen(cons_t *cons) {
+void codegen(val_t cons) {
 	init_opline();
 	gen_expression(cons);
-	new_opline(END, NULL);
+	val_t tmp = {0};
+	new_opline(END, tmp);
 }

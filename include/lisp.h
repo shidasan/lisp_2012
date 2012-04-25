@@ -9,6 +9,8 @@
 #define STACKSIZE 50000
 #define INSTSIZE 100000
 #define ARGC _argc
+#define likely(COND)   (COND)
+#define unlikely(COND) (COND)
 #define VSTACK _vstack
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR)); assert(0)
@@ -26,14 +28,16 @@
 #define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
-#define TYPE_MASK ((int)0x000F0000)
+#define TYPE_MASK ((uintptr_t)0x000F000000000000)
 
-#define INT_OFFSET                (((int)1) << 16)
-#define FLOAT_OFFSET              (((int)2) << 16)
+#define INT_OFFSET                (((uintptr_t)1) << 48)
+#define FLOAT_OFFSET              (((uintptr_t)2) << 48)
 
 #define IS_NUMBER(VAL)            ((VAL).ivalue & TYPE_MASK)
 #define IS_INT(VAL)               (((VAL).ivalue & TYPE_MASK) == INT_OFFSET)
 #define IS_FLOAT(VAL)             (((VAL).ivalue & TYPE_MASK) == FLOAT_OFFSET)
+
+#define TO_INT(VAL)               ((int)(VAL & ((1 << 32)-1)))
 
 #ifdef USE_DEBUG_MODE
 #define DBG_P(STR) fprintf(stderr, "Debug: ");fprintf(stderr, STR);
@@ -93,7 +97,7 @@ cons_t* change_local_scope(cons_t* , cons_t*);
 cons_t* end_local_scope(cons_t *old_environment);
 //struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
 struct func_t* set_static_func (static_mtd_data *data);
-struct func_t* set_func(val_t cons, struct array_t *opline_list, int argc, val_t args, val_t current_environment, int flag);
+struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, val_t args, cons_t *current_environment, int flag);
 void new_global_environment();
 extern cons_t* current_environment;
 void mark_environment_list(array_t*);

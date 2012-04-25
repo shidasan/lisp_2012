@@ -1,3 +1,4 @@
+#include <stdlib.h>
 struct cons_api_t;
 struct variable_t;
 
@@ -18,7 +19,7 @@ struct cons_t;
 
 typedef struct val_t {
 	union {
-		int ivalue;
+		uintptr_t ivalue;
 		struct cons_t *ptr;
 	};
 }val_t;
@@ -78,7 +79,7 @@ typedef struct func_t{
 		val_t (*special_mtd)(val_t*, int, struct array_t*);
 	};
 	cons_t *environment;
-	cons_t *args;
+	val_t args;
 }func_t;
 
 typedef struct ast_t {
@@ -94,11 +95,22 @@ typedef struct ast_t {
 	};
 }ast_t;
 
-#define ADDREF(CONS, A) (array_add((A), (CONS)));\
+#define ADDREF(CONS, A) \
+	(array_add((A), (CONS)));\
+
+#define ADDREF_VAL(VAL, A) \
+	if (!IS_NUMBER(VAL)) {\
+		(array_add((A), (VAL).ptr));\
+	}\
 
 #define ADDREF_NULLABLE(CONS, A)\
 	if ((CONS) != NULL) {\
 		array_add((A), (CONS));\
+	}\
+
+#define ADDREF_VAL_NULLABLE(VAL, A) \
+	if (!IS_NUMBER(VAL) && (VAL).ptr != NULL) {\
+		(array_add((A), (VAL).ptr));\
 	}\
 
 #define FREE(PTR)\
@@ -121,16 +133,16 @@ void gc_init();
 void cstack_cons_cell_push();
 val_t cstack_cons_cell_pop();
 
-val_t new_cons_cell();
 val_t new_int(int n);
-val_t new_string(const char *str);
-val_t new_float(float f);
-val_t new_bool(int n);
-val_t new_func(const char *str, cons_t *environment);
-val_t new_variable(char *str);
-val_t new_open();
-val_t new_variable_data_table();
-val_t new_local_environment();
+cons_t* new_cons_cell();
+cons_t* new_string(const char *str);
+cons_t* new_float(float f);
+cons_t* new_bool(int n);
+cons_t* new_func(const char *str, cons_t *environment);
+cons_t* new_variable(char *str);
+cons_t* new_open();
+cons_t* new_variable_data_table();
+cons_t* new_local_environment();
 
 struct array_t *new_array();
 void array_free(struct array_t *a);
