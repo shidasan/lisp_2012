@@ -32,10 +32,14 @@
 
 #define INT_OFFSET                (((uintptr_t)1) << 48)
 #define FLOAT_OFFSET              (((uintptr_t)2) << 48)
+#define T_OFFSET              (((uintptr_t)3) << 48)
+#define nil_OFFSET              (((uintptr_t)4) << 48)
 
-#define IS_NUMBER(VAL)            ((VAL).ivalue & TYPE_MASK)
+#define IS_UNBOX(VAL)            ((VAL).ivalue & TYPE_MASK)
 #define IS_INT(VAL)               (((VAL).ivalue & TYPE_MASK) == INT_OFFSET)
 #define IS_FLOAT(VAL)             (((VAL).ivalue & TYPE_MASK) == FLOAT_OFFSET)
+#define IS_T(VAL)             (((VAL).ivalue & TYPE_MASK) == T_OFFSET)
+#define IS_nil(VAL)             (((VAL).ivalue & TYPE_MASK) == nil_OFFSET)
 
 #define TO_INT(VAL)               ((int)(VAL & ((1 << 32)-1)))
 

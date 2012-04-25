@@ -205,35 +205,36 @@ static void tokenizer_init(char *str) {
 }
 
 static val_t make_cons_single_node(int is_head_of_list) {
-	val_t cons = NULL;
+	val_t val = {0};
 	if (token_type == tok_number) {
-		cons = new_int(token_int);
+		val = new_int(token_int);
 	} else if (token_type == tok_string) {
-		cons = new_string(token_str);
+		val.ptr = new_string(token_str);
 	} else if (token_type == tok_nil) {
-		cons = new_bool(0);
+		val = new_bool(0);
 	} else if (token_type == tok_T) {
-		cons = new_bool(1);
+		val = new_bool(1);
 	} else if (token_type == tok_symbol) {
 		if (is_head_of_list) {
-			cons = new_func(token_str, NULL);
+			val.ptr = new_func(token_str, NULL);
 		} else {
-			cons = new_variable(token_str);
+			val.ptr = new_variable(token_str);
 		}
 	}
-	return cons;
+	return val;
 }
 
 static val_t make_cons_tree2(int is_head_of_list);
 
 static val_t make_cons_list() {
-	val_t cons = new_open();
-	val_t tmp = cons;
-	val_t car = NULL;
+	val_t val;
+	val.ptr = new_open();
+	val_t tmp = val;
+	val_t car = {0};
 	int flag = 1;
 	get_next_token();
-	tmp->car = make_cons_tree2(1);
-	if (tmp->car == NULL) {
+	tmp.ptr->car = make_cons_tree2(1);
+	if (tmp.ptr->car.ivalue == 0) {
 		tmp = new_bool(0);
 		return tmp;
 	}
@@ -241,7 +242,7 @@ static val_t make_cons_list() {
 		get_next_token();
 		if (token_type == tok_dot) {
 			get_next_token();
-			tmp->cdr = make_cons_tree2(0);
+			tmp.ptr->cdr = make_cons_tree2(0);
 			/* eat ')' */
 			get_next_token();
 			if (token_type != tok_close) {
@@ -250,28 +251,29 @@ static val_t make_cons_list() {
 			break;
 		}
 		car = make_cons_tree2(0);
-		if (car == NULL) {
-			tmp->cdr = new_bool(0);
+		if (car.ivalue == 0) {
+			tmp.ptr->cdr = new_bool(0);
 			break;
 		}
-		tmp->cdr = new_open();
-		tmp->cdr->car = car;
-		tmp = tmp->cdr;
+		tmp.ptr->cdr.ptr = new_open();
+		tmp.ptr->cdr.ptr->car = car;
+		tmp = tmp.ptr->cdr;
 	}
-	return cons;
+	return val;
 }
 
 static val_t make_cons_tree2(int is_head_of_list) {
 	if (token_type == tok_open) {
 		return make_cons_list();
 	}else if (token_type == tok_quote) {	
-		val_t root = new_open();
+		val_t root = {0};
+		root.ptr = new_open();
 		cstack_cons_cell_push(root);
-		root->car = new_func("quote", NULL);
-		root->cdr = new_open();
-		root->cdr->cdr = new_bool(0);
+		root.ptr->car.ptr = new_func("quote", NULL);
+		root.ptr->cdr.ptr = new_open();
+		root.ptr->cdr.ptr->cdr = new_bool(0);
 		get_next_token();
-		root->cdr->car = make_cons_tree2(0);
+		root.ptr->cdr.ptr->car = make_cons_tree2(0);
 		cstack_cons_cell_pop();
 		return root;
 	} else {
@@ -283,7 +285,7 @@ int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
 	val_t cons = make_cons_tree2(0);
-	if (cons != NULL) {
+	if (cons.ivalue = 0) {
 		codegen(cons);
 		return 0;
 	}

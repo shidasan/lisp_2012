@@ -134,10 +134,10 @@ void cstack_cons_cell_push();
 val_t cstack_cons_cell_pop();
 
 val_t new_int(int n);
+val_t new_bool(int n);
 cons_t* new_cons_cell();
 cons_t* new_string(const char *str);
 cons_t* new_float(float f);
-cons_t* new_bool(int n);
 cons_t* new_func(const char *str, cons_t *environment);
 cons_t* new_variable(char *str);
 cons_t* new_open();

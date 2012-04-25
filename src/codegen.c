@@ -23,18 +23,18 @@ void init_opline() {
 }
 
 static int cons_length(val_t val) {
-	if (unlikely(IS_NUMBER(val)) || val.ptr->type != OPEN) {
+	if (unlikely(IS_UNBOX(val)) || val.ptr->type != OPEN) {
 		return -1;
 	}
 	if (val.ptr->type == nil) {
 		return 0;
 	}
 	int res = 0;
-	while (IS_NUMBER(val) && val.ptr->type == OPEN) {
+	while (!IS_UNBOX(val) && val.ptr->type == OPEN) {
 		res++;
 		val = val.ptr->cdr;
 	}
-	if (IS_NUMBER(val) || val.ptr->type != nil) {
+	if (IS_UNBOX(val) || val.ptr->type != nil) {
 		return -1;
 	}
 	return res;
@@ -49,7 +49,7 @@ static void gen_variable(val_t val) {
 }
 
 static void gen_mtd_check(val_t val, int list_length) {
-	assert(!IS_NUMBER(val));
+	assert(!IS_UNBOX(val));
 	new_opline(MTDCHECK, val);
 	memory[NextIndex-1].op[1].ivalue = list_length-1;
 }
@@ -57,7 +57,7 @@ static void gen_mtd_check(val_t val, int list_length) {
 static void gen_expression(val_t);
 
 static void gen_func(val_t val) {
-	assert(!IS_NUMBER(val));
+	assert(!IS_UNBOX(val));
 	val_t car = val.ptr->car;
 	func_t *func = search_func(car.ptr->str);
 	int i = 1, size = cons_length(val);
@@ -85,7 +85,7 @@ void codegen(val_t);
 
 static void gen_special_form(val_t val) {
 	int i = 1;
-	assert(!IS_NUMBER(val));
+	assert(!IS_UNBOX(val));
 	array_t *a = new_array();
 	opline_t *pc = memory + NextIndex;
 	new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
@@ -114,7 +114,7 @@ static void gen_special_form(val_t val) {
 
 static void gen_list (val_t cons) {
 	val_t car = cons.ptr->car;
-	if (IS_NUMBER(car)) {
+	if (IS_UNBOX(car)) {
 		EXCEPTION("Excepted symbol!!\n");
 	}
 	func_t *func = search_func(car.ptr->str);
@@ -126,7 +126,7 @@ static void gen_list (val_t cons) {
 }
 
 static void gen_expression(val_t val) {
-	if (IS_NUMBER(val)) {
+	if (IS_UNBOX(val)) {
 		gen_atom(val);
 	}
 	switch(val.ptr->type) {
