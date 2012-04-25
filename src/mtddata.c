@@ -60,7 +60,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	const char *str = format_string.ptr->str;
 	int str_len = strlen(str);
 	string_buffer_t *buffer = new_string_buffer();
-	val_t val = {0};
+	val_t val = {0, 0};
 	while (location <= str_len) {
 		switch(str[location]) {
 			case '~':
@@ -110,7 +110,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	for (; evaluate < length; evaluate++) {
 		val = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
 	}
-	val_t res = {0};
+	val_t res = {0, 0};
 	char *res_str = string_buffer_to_string(buffer);
 	if (IS_nil(destination)) {
 		res.ptr = new_string(res_str);
@@ -144,54 +144,119 @@ static val_t cdr(val_t* VSTACK, int ARGC) {
 static val_t cons(val_t* VSTACK, int ARGC) {
 	val_t car = ARGS(0);
 	val_t cdr = ARGS(1);
-	val_t val = {0};
+	val_t val = {0, 0};
 	val.ptr = new_open();
 	val.ptr->car = car;
 	val.ptr->cdr = cdr;
 	return val;
 }
 
+static val_t add_ii(val_t v0, val_t v1) {
+	v0.ivalue += v1.ivalue;
+	return v0;
+}
+
+static val_t add_if(val_t v0, val_t v1) {
+	v1.fvalue += v0.ivalue;
+	return v1;
+}
+
+static val_t add_fi(val_t v0, val_t v1) {
+	v0.fvalue += v1.ivalue;
+	return v0;
+}
+
+static val_t add_ff(val_t v0, val_t v1) {
+	v0.fvalue += v1.fvalue;
+	return v0;
+}
+
+static val_t (*add_op[])(val_t, val_t) = {add_ff, add_fi, add_if, add_ii};
 static val_t add(val_t* VSTACK, int ARGC) {
-	int i, res = 0;
+	int i;
+	val_t res = {0, INT_OFFSET};
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
-		res += val.ivalue;
+		res = add_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
-	return new_int(res);
+	return res;
 }
 
+static val_t sub_ii(val_t v0, val_t v1) {
+	v0.ivalue -= v1.ivalue;
+	return v0;
+}
+
+static val_t sub_if(val_t v0, val_t v1) {
+	v1.fvalue = v0.ivalue - v1.fvalue;
+	return v1;
+}
+
+static val_t sub_fi(val_t v0, val_t v1) {
+	v0.fvalue -= v1.ivalue;
+	return v0;
+}
+
+static val_t sub_ff(val_t v0, val_t v1) {
+	v0.fvalue -= v1.fvalue;
+	return v0;
+}
+
+static val_t (*sub_op[])(val_t, val_t) = {sub_ff, sub_fi, sub_if, sub_ii};
 static val_t sub(val_t* VSTACK, int ARGC) {
-	int i, res = 0;
-	for (i = 0; i < ARGC; i++) {
+	int i;
+	val_t res = ARGS(0);
+	if (!IS_NUMBER(res)) {
+		EXCEPTION("Excepted Number!!\n");
+	}
+	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
-		if (i == 0) {
-			res = val.ivalue;
-		} else {
-			res -= val.ivalue;
-		}
+		res = sub_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
-	return new_int(res);
+	return res;
 }
 
+static val_t mul_ii(val_t v0, val_t v1) {
+	v0.ivalue *= v1.ivalue;
+	return v0;
+}
+
+static val_t mul_if(val_t v0, val_t v1) {
+	v1.fvalue = v0.ivalue * v1.fvalue;
+	return v1;
+}
+
+static val_t mul_fi(val_t v0, val_t v1) {
+	v0.fvalue *= v1.ivalue;
+	return v0;
+}
+
+static val_t mul_ff(val_t v0, val_t v1) {
+	v0.fvalue *= v1.fvalue;
+	return v0;
+}
+
+static val_t (*mul_op[])(val_t, val_t) = {mul_ff, mul_fi, mul_if, mul_ii};
 static val_t mul(val_t* VSTACK, int ARGC) {
-	int i, res = 1;
+	int i;
+	val_t res = {1, INT_OFFSET};
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
-		res *= val.ivalue;
+		res = mul_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
-	return new_int(res);
+	return res;
 }
 
 static val_t _div(val_t* VSTACK, int ARGC) {
@@ -201,13 +266,13 @@ static val_t _div(val_t* VSTACK, int ARGC) {
 static val_t lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -245,13 +310,13 @@ static val_t string_lt(val_t* VSTACK, int ARGC) {
 static val_t lte(val_t *VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -289,13 +354,13 @@ static val_t string_lte(val_t* VSTACK, int ARGC) {
 static val_t gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -333,13 +398,13 @@ static val_t string_gt(val_t* VSTACK, int ARGC) {
 static val_t gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -377,13 +442,13 @@ static val_t string_gte(val_t* VSTACK, int ARGC) {
 static val_t eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -421,13 +486,13 @@ static val_t string_eq(val_t* VSTACK, int ARGC) {
 static val_t neq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
-	if (!IS_INT(val)) {
+	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
 	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
-		if (!IS_INT(val)) {
+		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
@@ -464,7 +529,7 @@ static val_t string_neq(val_t* VSTACK, int ARGC) {
 
 static val_t zerop(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
-	if (IS_INT(val) && val.ivalue == 0) {
+	if (IS_NUMBER(val) && val.ivalue == 0) {
 		return new_bool(1);
 	}
 	return new_bool(0);
@@ -490,7 +555,7 @@ static val_t list(val_t * VSTACK, int ARGC) {
 	if (ARGC == 0) {
 		return new_bool(0);
 	}
-	val_t res = {0};
+	val_t res = {0, 0};
 	res.ptr = new_open();
 	cstack_cons_cell_push(res.ptr);
 	val_t tmp = res;
@@ -530,7 +595,7 @@ static val_t length(val_t *VSTACK, int ARGC) {
 
 static val_t _if(val_t *VSTACK, int ARGC, struct array_t *a) {
 	val_t val = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	val_t res = {0};
+	val_t res = {0, 0};
 	if (!IS_nil(val)) {
 		res = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	} else {
@@ -553,7 +618,7 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 	if (size == 0) {
 		return new_bool(0);
 	}
-	val_t res = {0};
+	val_t res = {0, 0};
 	for (; i < size; i++) {
 		val_t val = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 		VSTACK[1] = val;
@@ -588,7 +653,7 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 
 static val_t progn(val_t *VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = {0};
+	val_t res = {0, 0};
 	for (; i < size; i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 	}
@@ -597,7 +662,7 @@ static val_t progn(val_t *VSTACK, int ARGC, array_t *a) {
 
 static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = {0};
+	val_t res = {0, 0};
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
@@ -624,7 +689,7 @@ static val_t block(val_t *VSTACK, int ARGC, array_t *a) {
 	} else if (size == 1) {
 		return new_bool(0);
 	}
-	val_t res = {0};
+	val_t res = {0, 0};
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
@@ -767,9 +832,9 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 
 static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) {
 	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	val_t variable = {0};
-	val_t list = {0};
-	val_t value = {0};
+	val_t variable = {0, 0};
+	val_t list = {0, 0};
+	val_t value = {0, 0};
 	array_t *a1 = new_array();
 	array_t *a2 = new_array();
 	if (IS_OPEN(value_list)) {
@@ -790,7 +855,9 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 						set_variable(variable.ptr, res, 1);
 					} else {
 						array_add(a1, variable.ptr);
-						array_add(a2, &res);
+						val_t *tmp = (val_t*)malloc(sizeof(val_t));
+						*tmp = res;
+						array_add(a2, tmp);
 					}
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
@@ -824,12 +891,13 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 				set_variable(cons, new_bool(0), 1);
 			} else {
 				set_variable(cons, *val, 1);
+				FREE(val);
 			}
 		}
 	}
 	array_free(a1);
 	array_free(a2);
-	val_t res = {0};
+	val_t res = {0, 0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);

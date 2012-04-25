@@ -144,7 +144,7 @@ struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int i
 				p->cons = value;
 				return p->cons;
 			} else {
-				val_t res = {0};
+				val_t res = {0, 0};
 				return res;
 			}
 		} else if (strcmp(p->name, str) == 0) {
@@ -160,7 +160,7 @@ struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int i
 				memset(p->next, 0, sizeof(variable_t));
 				p = p->next;
 			} else {
-				val_t res = {0};
+				val_t res = {0, 0};
 				return res;
 			}
 		} else {
@@ -186,7 +186,7 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 struct val_t search_variable_inner (cons_t *table, char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
-	val_t res = {0};
+	val_t res = {0, 0};
 	while (1){
 		if (p->name == NULL) {
 			res.ivalue = 0;

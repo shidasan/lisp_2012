@@ -80,8 +80,12 @@ int GetTok (void)
         token_int *= ALT;
 		if (*current_char == '.') {
 			current_char++;
-			token_float = tokenize_float(token_int);
-			return tok_float;
+			if (isdigit(*current_char)) {
+				token_float = tokenize_float(token_int);
+				return tok_float;
+			} else {
+				return tok_int;
+			}
 		}
         if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
             ERROR
@@ -123,11 +127,12 @@ int GetTok (void)
 		return tok_quote;
 	} else if (*current_char == '.') {
 		/* float or dot */
-		if (current_char[1] == ' ') {
-			current_char++;
+		current_char++;
+		if (current_char[0] == ' ') {
 			return tok_dot;
-		} else if (isnumber(current_char[1])) {
-			TODO("float tokinizing\n");
+		} else if (isdigit(current_char[0])) {
+			token_float = tokenize_float(0);
+			return tok_float;
 		}
 	} else if (*current_char == '<') {
 		if (current_char[1] == '=' && is_open_space_close(current_char[2])) {
@@ -222,7 +227,7 @@ static void tokenizer_init(char *str) {
 }
 
 static val_t make_cons_single_node(int is_head_of_list) {
-	val_t val = {0};
+	val_t val = {0, 0};
 	if (token_type == tok_int) {
 		val = new_int(token_int);
 	} else if (token_type == tok_float) {
@@ -246,10 +251,10 @@ static val_t make_cons_single_node(int is_head_of_list) {
 static val_t make_cons_tree2(int is_head_of_list);
 
 static val_t make_cons_list() {
-	val_t val = {0};
+	val_t val = {0, 0};
 	val.ptr = new_open();
 	val_t tmp = val;
-	val_t car = {0};
+	val_t car = {0, 0};
 	int flag = 1;
 	get_next_token();
 	tmp.ptr->car = make_cons_tree2(1);
@@ -287,7 +292,7 @@ static val_t make_cons_tree2(int is_head_of_list) {
 	if (token_type == tok_open) {
 		return make_cons_list();
 	}else if (token_type == tok_quote) {	
-		val_t root = {0};
+		val_t root = {0, 0};
 		root.ptr = new_open();
 		cstack_cons_cell_push(root.ptr);
 		root.ptr->car.ptr = new_func("quote", NULL);

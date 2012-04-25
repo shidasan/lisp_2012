@@ -40,6 +40,7 @@
 #define IS_NULL(VAL)              ((VAL).ptr == NULL)
 #define IS_INT(VAL)               (VAL_TYPE(VAL) == INT_OFFSET)
 #define IS_FLOAT(VAL)             (VAL_TYPE(VAL) == FLOAT_OFFSET)
+#define IS_NUMBER(VAL)            (IS_INT(VAL) || IS_FLOAT(VAL))
 #define IS_T(VAL)                 (VAL_TYPE(VAL) == T_OFFSET)
 #define IS_nil(VAL)               (VAL_TYPE(VAL) == nil_OFFSET)
 #define IS_OPEN(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
