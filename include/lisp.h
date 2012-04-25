@@ -37,6 +37,7 @@
 
 #define VAL_TYPE(VAL)             ((VAL).tag & TYPE_MASK)
 #define IS_UNBOX(VAL)             (VAL_TYPE(VAL))
+#define IS_NULL(VAL)              ((VAL).ptr == NULL)
 #define IS_INT(VAL)               (VAL_TYPE(VAL) == INT_OFFSET)
 #define IS_FLOAT(VAL)             (VAL_TYPE(VAL) == FLOAT_OFFSET)
 #define IS_T(VAL)                 (VAL_TYPE(VAL) == T_OFFSET)

@@ -82,7 +82,7 @@ get_variable:
 	{
 		val = pc->op[0].val;
 		val_t res = search_variable(val.ptr->str);
-		if (res.ivalue == 0) {
+		if (IS_NULL(res)) {
 			fprintf(stderr, "variable not found!!\n");
 		}
 		esp[0] = res;

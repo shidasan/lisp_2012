@@ -174,7 +174,7 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 	cons_t *table = environment->car.ptr;
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 	val_t res = set_variable_inner(table, cons, value, set_local_scope | environment->cdr.ptr == NULL);
-	while (res.ivalue == 0) {
+	while (!IS_UNBOX(res) && res.ptr == NULL) {
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 		environment = environment->cdr.ptr;
 		table = environment->car.ptr;
@@ -206,7 +206,7 @@ struct val_t search_variable(char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car.ptr;
 	val_t res = search_variable_inner(table, str);
-	while (res.ivalue == 0) {
+	while (!IS_UNBOX(res) && res.ptr == NULL) {
 		if (environment->cdr.ptr == NULL) {
 			return res;
 		} else {

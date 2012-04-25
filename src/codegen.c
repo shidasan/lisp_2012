@@ -23,18 +23,18 @@ void init_opline() {
 }
 
 static int cons_length(val_t val) {
-	if (unlikely(IS_UNBOX(val)) || val.ptr->type != OPEN) {
-		return -1;
-	}
-	if (val.ptr->type == nil) {
+	if (IS_nil(val)) {
 		return 0;
 	}
+	if (!IS_OPEN(val)) {
+		return -1;
+	}
 	int res = 0;
-	while (!IS_UNBOX(val) && val.ptr->type == OPEN) {
+	while (IS_OPEN(val)) {
 		res++;
 		val = val.ptr->cdr;
 	}
-	if (!IS_UNBOX(val)) {
+	if (!IS_nil(val)) {
 		return -1;
 	}
 	return res;

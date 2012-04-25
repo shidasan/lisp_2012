@@ -234,7 +234,9 @@ static val_t make_cons_list() {
 	int flag = 1;
 	get_next_token();
 	tmp.ptr->car = make_cons_tree2(1);
-	if (tmp.ptr->car.ivalue == 0) {
+	if (IS_NULL(tmp.ptr->car)) {
+	//if (tmp.ptr->car.ivalue == 0) {
+		//assert(0);
 		tmp = new_bool(0);
 		return tmp;
 	}
@@ -251,7 +253,7 @@ static val_t make_cons_list() {
 			break;
 		}
 		car = make_cons_tree2(0);
-		if (car.ivalue == 0) {
+		if (IS_NULL(car)) {
 			tmp.ptr->cdr = new_bool(0);
 			break;
 		}

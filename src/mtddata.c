@@ -602,14 +602,14 @@ static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
 	}
-	VSTACK[0] = new_bool(0);
-	loop_frame_push(&buf, VSTACK[0]);
+	VSTACK[1] = new_bool(0);
+	loop_frame_push(&buf, VSTACK[1]);
 	int jmp = 0;
 	if ((jmp = setjmp(buf)) == 0) {
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
-				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + 1);
+				res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + 2);
 			}
 		}
 	}
@@ -766,13 +766,13 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 }
 
 static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
-	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK+1);
 	val_t variable = {0};
 	val_t list = {0};
 	val_t value = {0};
 	if (IS_OPEN(value_list)) {
 		list = value_list.ptr->car;
-		while (list.ivalue != 0 && !IS_nil(list)) {
+		while (list.ptr != NULL && !IS_nil(list)) {
 			if (IS_OPEN(list)) {
 				VSTACK[1] = list;
 				int argc = length(VSTACK+2, 1).ivalue;
@@ -783,26 +783,30 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 					}
 					value = list.ptr->cdr.ptr->car;
 					codegen(value);
-					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 2);
 					set_variable(variable.ptr, res, 1);
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
 					assert(0);
 				}
 			} else {
+				//fprintf(stderr, "hi\n");
 				if (!IS_SYMBOL(list)) {
 					EXCEPTION("Excepted Symbol!!\n");
 				}
 				val_t p = set_variable(list.ptr, new_bool(0), 1);
 			}
 			value_list = value_list.ptr->cdr;
+			if (IS_nil(value_list)) {
+				break;
+			}
 			list = value_list.ptr->car;
 		}
 	}
 	val_t res = {0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
-		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i+1);
 	}
 	return res;
 }
