@@ -204,8 +204,8 @@ static void tokenizer_init(char *str) {
     token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
-static cons_t *make_cons_single_node(int is_head_of_list) {
-	cons_t *cons = NULL;
+static val_t make_cons_single_node(int is_head_of_list) {
+	val_t cons = NULL;
 	if (token_type == tok_number) {
 		cons = new_int(token_int);
 	} else if (token_type == tok_string) {
@@ -224,12 +224,12 @@ static cons_t *make_cons_single_node(int is_head_of_list) {
 	return cons;
 }
 
-static cons_t *make_cons_tree2(int is_head_of_list);
+static val_t make_cons_tree2(int is_head_of_list);
 
-static cons_t *make_cons_list() {
-	cons_t *cons = new_open();
-	cons_t *tmp = cons;
-	cons_t *car = NULL;
+static val_t make_cons_list() {
+	val_t cons = new_open();
+	val_t tmp = cons;
+	val_t car = NULL;
 	int flag = 1;
 	get_next_token();
 	tmp->car = make_cons_tree2(1);
@@ -261,11 +261,11 @@ static cons_t *make_cons_list() {
 	return cons;
 }
 
-static cons_t *make_cons_tree2(int is_head_of_list) {
+static val_t make_cons_tree2(int is_head_of_list) {
 	if (token_type == tok_open) {
 		return make_cons_list();
 	}else if (token_type == tok_quote) {	
-		cons_t *root = new_open();
+		val_t root = new_open();
 		cstack_cons_cell_push(root);
 		root->car = new_func("quote", NULL);
 		root->cdr = new_open();
@@ -282,7 +282,7 @@ static cons_t *make_cons_tree2(int is_head_of_list) {
 int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
-	cons_t *cons = make_cons_tree2(0);
+	val_t cons = make_cons_tree2(0);
 	if (cons != NULL) {
 		codegen(cons);
 		return 0;

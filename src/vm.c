@@ -7,7 +7,7 @@ static void dump_vm() {
 	while (pc < memory + NextIndex-1) {
 		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
 		if (pc->instruction == PUSH) {
-			CONS_PRINT(pc->op[0].cons, _buffer);
+			CONS_PRINT(pc->op[0].val.ptr, _buffer);
 			fprintf(stdout, "\n");
 		}
 		pc++;
@@ -15,18 +15,18 @@ static void dump_vm() {
 	fprintf(stdout, "op: END\n");
 	fprintf(stdout, "op: DUMP END\n");
 }
-static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
+static void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	int i = 0;
 	cons_t *args = func->args;
 	for (; i < ARGC; i++) {
-		cons_t *arg = ARGS(i);
-		cons_t *variable = args->car;
-		set_variable(variable, arg, 1);
-		args = args->cdr;
+		val_t arg = ARGS(i);
+		val_t variable = args->car;
+		set_variable(variable.ptr, arg, 1);
+		args = args->cdr.ptr;
 	}
 }
-static cons_t *exec_body(cons_t **VSTACK, func_t *func) {
-	cons_t *res = NULL;
+static val_t exec_body(val_t *VSTACK, func_t *func) {
+	val_t res;
 	array_t *opline_list = func->opline_list;
 	int a = 0;
 	for (; a < array_size(opline_list); a++) {
@@ -38,7 +38,7 @@ static cons_t *exec_body(cons_t **VSTACK, func_t *func) {
 	}
 	return res;
 }
-cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
+val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 {
     static void *table [] = {
         &&push,
@@ -51,20 +51,21 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
     };
 
     if( i == 1 ){
-        return (cons_t*)table;
+		val_t res;
+		res.ptr = (cons_t *)table;
+        return res;
     }
 
 	//dump_vm();
 
-    //cons_t *stack_value[STACKSIZE];
+    //val_t stack_value[STACKSIZE];
 
     cons_t** sp_arg = NULL;
     opline_t** sp_adr = NULL;
-	cons_t **esp = ebp;
+	val_t *esp = ebp;
     //register opline_t* pc = memory + CurrentIndex;
     int a = 0, args_num = 0; 
-    struct cons_t *a_ptr = NULL,*ret_ptr = NULL;
-	cons_t *cons = NULL;
+	val_t val;
 	func_t *func = NULL;
 	struct array_t *array = NULL;
 	struct array_t *opline_list = NULL;
@@ -79,9 +80,9 @@ get_arg:
 
 get_variable:
 	{
-		cons = pc->op[0].cons;
-		cons_t *res = search_variable(cons->str);
-		if (res == NULL) {
+		val = pc->op[0].val;
+		val_t res = search_variable(val.ptr->str);
+		if (res.ivalue == 0) {
 			fprintf(stderr, "variable not found!!\n");
 		}
 		esp[0] = res;
@@ -91,9 +92,9 @@ get_variable:
 
 special_mtd:
 	{
-		cons = pc->op[0].cons;
+		val = pc->op[0].val;
 		array = pc->op[1].a;
-		func = search_func(cons->str);
+		func = search_func(val.ptr->str);
 		cons_t *old_environment = begin_local_scope(func);
 		args_num = 0;
 		esp[-args_num] = func->special_mtd(esp, 0, array);
@@ -102,11 +103,11 @@ special_mtd:
 	}
 
 mtdcheck:
-	cons = pc->op[0].cons;
+	val = pc->op[0].val;
 	args_num = pc->op[1].ivalue;
-	func = search_func(cons->str);
+	func = search_func(val.ptr->str);
 	if (func == NULL) {
-		fprintf(stderr, "cons->str: %s\n", cons->str);
+		fprintf(stderr, "val.ptr->str: %s\n", val.ptr->str);
 		EXCEPTION("can't call method!!\n");
 	}
 	if (func->value != -1 && func->value != args_num) {
@@ -116,10 +117,10 @@ mtdcheck:
 
 mtdcall:
 	{
-		cons = pc->op[0].cons;
+		val = pc->op[0].val;
 		cons_t *old_environment = NULL;
 		args_num = pc->op[1].ivalue;
-		func = search_func(cons->str);
+		func = search_func(val.ptr->str);
 		if (FLAG_IS_STATIC(func->flag)) {
 			old_environment = begin_local_scope(func);
 			esp[-args_num] = func->mtd(esp, args_num);
@@ -128,9 +129,9 @@ mtdcall:
 			environment_list_push(old_environment);
 			opline_list = func->opline_list;
 			set_args(esp, args_num, func);
-			cons = exec_body(esp, func);
-			esp[-args_num] = cons;
-			cons_t *tmp = environment_list_pop();
+			val = exec_body(esp, func);
+			esp[-args_num] = val;
+			environment_list_pop();
 		}
 		end_local_scope(old_environment);
 		esp -= (args_num - 1);
@@ -140,7 +141,7 @@ end:
     return ebp[0];
 
 push:
-	esp[0] = pc->op[0].cons;
+	esp[0] = pc->op[0].val;
 	esp++;
     goto *((++pc)->instruction_ptr);
 }

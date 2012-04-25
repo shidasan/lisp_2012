@@ -129,7 +129,7 @@ void free_func_data_table() {
 	}
 }
 
-struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, int is_end_of_table_list)
+struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, val_t value, int is_end_of_table_list)
 {
 	const char *str = cons->str;
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
@@ -165,7 +165,7 @@ struct cons_t* set_variable_inner (cons_t *table, cons_t *cons, cons_t *value, i
 	}
 }
 
-struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
+struct cons_t *set_variable(cons_t *cons, val_t value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
 	cons_t *res = NULL;
@@ -178,33 +178,37 @@ struct cons_t *set_variable(cons_t *cons, cons_t *value, int set_local_scope) {
 	return res;
 }
 
-struct cons_t* search_variable_inner (cons_t *table, char* str)
+struct val_t search_variable_inner (cons_t *table, char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
+	val_t res;
 	while (1){
 		if (p->name == NULL) {
-			return NULL;
+			res.ivalue = 0;
+			return res;
 		} else if (strcmp(p->name, str) == 0) {
 			return p->cons;
 		} else if (p->next != NULL) {
 			p = p->next;
 		} else {
-			return NULL;
+			res.ivalue = 0;
+			return res;
 		}
 	}
 }
 
-struct cons_t *search_variable(char *str) {
+struct val_t search_variable(char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car;
-	cons_t *res = NULL;
-	while ((res = search_variable_inner(table, str)) == NULL) {
+	val_t res = search_variable_inner(table, str);
+	while (res.ivalue == 0) {
 		if (environment->cdr == NULL) {
-			return NULL;
+			return 0;
 		} else {
 			environment = environment->cdr;
 			table = environment->car;
 		}
+		res = search_variable_inner(table, str);
 	}
 	//fprintf(stderr, "search_variable: %p type: %d\n", res, res->type);
 	return res;

@@ -1,6 +1,7 @@
 #ifndef MAIN
 #define MAIN
 #include <assert.h>
+#include <ctype.h>
 #include "memory.h"
 #include "config.h"
 #define LOG_INT_MAX 11
@@ -25,27 +26,14 @@
 #define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
-#define TYPE_MASK ((uint32_t)0x000F0000)
+#define TYPE_MASK ((int)0x000F0000)
 
-#define INT_OFFSET                (((uint32_t)1) << 16)
-#define FLOAT_OFFSET              (((uint32_t)2) << 16)
-#define STRING_OFFSET             (((uint32_t)3) << 16)
-#define SYMBOL_OFFSET             (((uint32_t)4) << 16)
-#define T_OFFSET                  (((uint32_t)5) << 16)
-#define nil_OFFSET                (((uint32_t)6) << 16)
-#define OPEN_OFFSET               (((uint32_t)7) << 16)
-#define VARIABLE_TABLE_OFFSET     (((uint32_t)8) << 16)
-#define LOCAL_ENVIRONMENT_OFFSET  (((uint32_t)9) << 16)
+#define INT_OFFSET                (((int)1) << 16)
+#define FLOAT_OFFSET              (((int)2) << 16)
 
-#define IS_INT(PTR)               (((PTR) & TYPE_MASK) == INT_OFFSET)
-#define IS_FLOAT(PTR)             (((PTR) & TYPE_MASK) == FLOAT_OFFSET)
-#define IS_STRING(PTR)            (((PTR) & TYPE_MASK) == STRING_OFFSET)
-#define IS_SYMBOL(PTR)            (((PTR) & TYPE_MASK) == SYMBOL_OFFSET)
-#define IS_T(PTR)                 (((PTR) & TYPE_MASK) == T_OFFSET)
-#define IS_nil(PTR)               (((PTR) & TYPE_MASK) == nil_OFFSET)
-#define IS_OPEN(PTR)              (((PTR) & TYPE_MASK) == OPEN_OFFSET)
-#define IS_VARIABLE_TABLE(PTR)    (((PTR) & TYPE_MASK) == VARIABLE_TABLE_OFFSET)
-#define IS_LOCAL_ENVIRONMENT(PTR) (((PTR) & TYPE_MASK) == LOCAL_ENVIRONMENT_OFFSET)
+#define IS_NUMBER(VAL)            ((VAL).ivalue & TYPE_MASK)
+#define IS_INT(VAL)               (((VAL).ivalue & TYPE_MASK) == INT_OFFSET)
+#define IS_FLOAT(VAL)             (((VAL).ivalue & TYPE_MASK) == FLOAT_OFFSET)
 
 #ifdef USE_DEBUG_MODE
 #define DBG_P(STR) fprintf(stderr, "Debug: ");fprintf(stderr, STR);
@@ -59,7 +47,7 @@ enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, V
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
 
 int shell(int , char**);
-void print_return_value(cons_t *);
+void print_return_value(val_t );
 void *array_get(struct array_t*, size_t);
 size_t array_size(struct array_t *);
 void array_set(struct array_t *, size_t, void *);
@@ -76,8 +64,8 @@ typedef struct static_mtd_data {
 	int flag;
 	int is_quote0;
 	int is_quote1;
-	cons_t *(*mtd)(cons_t**, int);
-	cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
+	val_t (*mtd)(cons_t**, int);
+	val_t (*special_mtd)(cons_t**, int, struct array_t*);
 } static_mtd_data;
 
 typedef struct AST{
@@ -85,7 +73,7 @@ typedef struct AST{
 	union {
 		int i;
 		char* s;
-		cons_t *cons;
+		val_t cons;
 	};
 	struct AST *LHS,*RHS,*COND;
 }AST;
@@ -101,28 +89,28 @@ void mark_func_data_table(array_t *);
 void mark_variable_data_table(variable_t *, array_t *);
 void new_func_data_table();
 cons_t* begin_local_scope();
-cons_t* change_local_scope(cons_t *, cons_t *);
-cons_t *end_local_scope(cons_t *old_environment);
+cons_t* change_local_scope(cons_t* , cons_t*);
+cons_t* end_local_scope(cons_t *old_environment);
 //struct func_t* set_static_func (const char* str, int i , void* adr, void* special_mtd, int isStatic, int is_special_form, int *is_quote, int creates_local_scope);
 struct func_t* set_static_func (static_mtd_data *data);
-struct func_t* set_func(cons_t *cons, struct array_t *opline_list, int argc, cons_t *args, cons_t *current_environment, int flag);
+struct func_t* set_func(val_t cons, struct array_t *opline_list, int argc, val_t args, val_t current_environment, int flag);
 void new_global_environment();
-extern cons_t *current_environment;
+extern cons_t* current_environment;
 void mark_environment_list(array_t*);
-void environment_list_push(cons_t *);
+void environment_list_push(cons_t*);
 cons_t *environment_list_pop();
 
-struct cons_t* set_variable (cons_t *cons, cons_t *value, int set_local_scope);
-struct cons_t* search_variable (char* str);
+struct val_t set_variable (cons_t *cons, val_t value, int set_local_scope);
+struct val_t search_variable (char* str);
 
 struct func_t* search_func (char* str);
 /*generator.h*/
-void codegen(cons_t *);
+void codegen(val_t );
 /*parser.h*/
 int parse_program(char *);
 /*eval.h*/
-cons_t* vm_exec (int, opline_t *, cons_t **);
+val_t vm_exec (int, opline_t *, val_t *);
 
 /* gc test */
-cons_t *root;
+val_t root;
 #endif

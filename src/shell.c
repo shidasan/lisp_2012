@@ -13,8 +13,8 @@ char* str;
 void** table;
 static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
-cons_t *stack_value[STACKSIZE];
-cons_t **esp = NULL;
+val_t stack_value[STACKSIZE];
+val_t *esp = 0;
 
 static int add_history(const char *line) {
 	return 0;
@@ -64,8 +64,8 @@ static int is_unexpected_input(char *str) {
 	return (strcmp(str, " ") != 0 && strcmp(str, "\n") != 0 && strcmp(str, "\0") != 0);
 }
 
-void print_return_value(cons_t *cons) {
-	switch(cons->type) {
+void print_return_value(val_t val) {
+	switch(val.ptr->type) {
 	case OPEN:
 		printf("(");
 		break;
@@ -75,8 +75,8 @@ void print_return_value(cons_t *cons) {
 	default:
 		break;
 	}
-	CONS_PRINT(cons, _buffer);
-	switch(cons->type) {
+	CONS_PRINT(val.ptr, _buffer);
+	switch(val.ptr->type) {
 	case OPEN:
 		printf(")");
 		break;
@@ -110,9 +110,9 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			}
 			if (status == 0){
 				myadd_history(str);
-				cons_t *cons = (cons_t*)vm_exec(argc + 1, memory + CurrentIndex, stack_value);
-				if (cons != NULL && argc == 1) {
-					print_return_value(cons);
+				val_t val= vm_exec(argc + 1, memory + CurrentIndex, stack_value);
+				if (val.ptr != 0 && argc == 1) {
+					print_return_value(val);
 					printf("\n");
 				}
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
@@ -146,7 +146,7 @@ int shell (int argc, char* args[])
 	int StrSize = STRLEN;
 	int StrIndex = 0;
 	char *tmpstr = NULL, *leftover = NULL;
-	table = (void**)vm_exec(1, NULL, NULL);
+	table = (void**)(vm_exec(1, NULL, NULL).ptr);
 	gc_init();
 	new_func_data_table();
 	new_global_environment();

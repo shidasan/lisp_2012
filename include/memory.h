@@ -55,7 +55,7 @@ typedef struct opline_t{
 		int ivalue; //unused
 		char* svalue; //unused
 		struct opline_t* adr;
-		cons_t *cons;
+		val_t val;
 		struct array_t *a;
 	}op[2];
 }opline_t;
@@ -74,8 +74,8 @@ typedef struct func_t{
 	int *is_quote;
 	union {
 		struct array_t *opline_list;
-		cons_t *(*mtd)(cons_t**, int);
-		cons_t *(*special_mtd)(cons_t**, int, struct array_t*);
+		val_t (*mtd)(val_t*, int);
+		val_t (*special_mtd)(val_t*, int, struct array_t*);
 	};
 	cons_t *environment;
 	cons_t *args;
@@ -119,18 +119,18 @@ typedef struct ast_t {
 
 void gc_init();
 void cstack_cons_cell_push();
-cons_t *cstack_cons_cell_pop();
+val_t cstack_cons_cell_pop();
 
-cons_t *new_cons_cell();
-cons_t *new_int(int n);
-cons_t *new_string(const char *str);
-cons_t *new_float(float f);
-cons_t *new_bool(int n);
-cons_t *new_func(const char *str, cons_t *environment);
-cons_t *new_variable(char *str);
-cons_t *new_open();
-cons_t *new_variable_data_table();
-cons_t *new_local_environment();
+val_t new_cons_cell();
+val_t new_int(int n);
+val_t new_string(const char *str);
+val_t new_float(float f);
+val_t new_bool(int n);
+val_t new_func(const char *str, cons_t *environment);
+val_t new_variable(char *str);
+val_t new_open();
+val_t new_variable_data_table();
+val_t new_local_environment();
 
 struct array_t *new_array();
 void array_free(struct array_t *a);
@@ -140,8 +140,8 @@ void string_buffer_free(string_buffer_t *buffer);
 ast_t *new_ast(int type, int sub_type);
 void ast_free(ast_t *ast);
 
-extern cons_t *stack_value[];
-extern cons_t **esp;
+extern val_t stack_value[];
+extern val_t *esp;
 #define PAGESIZE (4096*8)
 #define ARENASIZE (PAGESIZE * 16)
 #define PAGECONSSIZE ((PAGESIZE/sizeof(cons_t)) - 1)
