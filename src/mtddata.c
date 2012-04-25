@@ -263,21 +263,39 @@ static val_t _div(val_t* VSTACK, int ARGC) {
 
 }
 
+static int lt_ii(val_t v0, val_t v1) {
+	return v0.ivalue >= v1.ivalue;
+}
+
+static int lt_if(val_t v0, val_t v1) {
+	return v0.ivalue >= v1.fvalue;
+}
+
+static int lt_fi(val_t v0, val_t v1) {
+	return v0.fvalue >= v1.ivalue;
+}
+
+static int lt_ff(val_t v0, val_t v1) {
+	return v0.fvalue >= v1.fvalue;
+}
+
+static int (*lt_op[])(val_t, val_t) = {lt_ff, lt_fi, lt_if, lt_ii};
+
 static val_t lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number >= next_number) {
+		val_t next_number = val;
+		if (lt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
 			return new_bool(0);
 		}
 		current_number = next_number;
@@ -307,21 +325,39 @@ static val_t string_lt(val_t* VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static int lte_ii(val_t v0, val_t v1) {
+	return v0.ivalue > v1.ivalue;
+}
+
+static int lte_if(val_t v0, val_t v1) {
+	return v0.ivalue > v1.fvalue;
+}
+
+static int lte_fi(val_t v0, val_t v1) {
+	return v0.fvalue > v1.ivalue;
+}
+
+static int lte_ff(val_t v0, val_t v1) {
+	return v0.fvalue > v1.fvalue;
+}
+
+static int (*lte_op[])(val_t, val_t) = {lte_ff, lte_fi, lte_if, lte_ii};
+
 static val_t lte(val_t *VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number > next_number) {
+		val_t next_number = val;
+		if (lte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
 			return new_bool(0);
 		}
 		current_number = next_number;
@@ -351,21 +387,39 @@ static val_t string_lte(val_t* VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static int gt_ii(val_t v0, val_t v1) {
+	return v0.ivalue <= v1.ivalue;
+}
+
+static int gt_if(val_t v0, val_t v1) {
+	return v0.ivalue <= v1.fvalue;
+}
+
+static int gt_fi(val_t v0, val_t v1) {
+	return v0.fvalue <= v1.ivalue;
+}
+
+static int gt_ff(val_t v0, val_t v1) {
+	return v0.fvalue <= v1.fvalue;
+}
+
+static int (*gt_op[])(val_t, val_t) = {gt_ff, gt_fi, gt_if, gt_ii};
+
 static val_t gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number <= next_number) {
+		val_t next_number = val;
+		if (gt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
 			return new_bool(0);
 		}
 		current_number = next_number;
@@ -395,21 +449,39 @@ static val_t string_gt(val_t* VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static int gte_ii(val_t v0, val_t v1) {
+	return v0.ivalue < v1.ivalue;
+}
+
+static int gte_if(val_t v0, val_t v1) {
+	return v0.ivalue < v1.fvalue;
+}
+
+static int gte_fi(val_t v0, val_t v1) {
+	return v0.fvalue < v1.ivalue;
+}
+
+static int gte_ff(val_t v0, val_t v1) {
+	return v0.fvalue < v1.fvalue;
+}
+
+static int (*gte_op[])(val_t, val_t) = {gte_ff, gte_fi, gte_if, gte_ii};
+
 static val_t gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number < next_number) {
+		val_t next_number = val;
+		if (gte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
 			return new_bool(0);
 		}
 		current_number = next_number;
@@ -439,21 +511,39 @@ static val_t string_gte(val_t* VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
+static int eq_ii(val_t v0, val_t v1) {
+	return v0.ivalue != v1.ivalue;
+}
+
+static int eq_if(val_t v0, val_t v1) {
+	return v0.ivalue != v1.fvalue;
+}
+
+static int eq_fi(val_t v0, val_t v1) {
+	return v0.fvalue != v1.ivalue;
+}
+
+static int eq_ff(val_t v0, val_t v1) {
+	return v0.fvalue != v1.fvalue;
+}
+
+static int (*eq_op[])(val_t, val_t) = {eq_ff, eq_fi, eq_if, eq_ii};
+
 static val_t eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number != next_number) {
+		val_t next_number = val;
+		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
 			return new_bool(0);
 		}
 		current_number = next_number;
@@ -489,20 +579,23 @@ static val_t neq(val_t* VSTACK, int ARGC) {
 	if (!IS_NUMBER(val)) {
 		EXCEPTION("Excepted Int!!\n");
 	}
-	int current_number = val.ivalue;
+	if (ARGC == 1) {
+		return new_bool(1);
+	}
+	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = val.ivalue;
-		if (current_number == next_number) {
-			return new_bool(0);
+		val_t next_number = val;
+		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
+			return new_bool(1);
 		}
 		current_number = next_number;
 	}
-	return new_bool(1);
+	return new_bool(0);
 }
 
 static val_t string_neq(val_t* VSTACK, int ARGC) {
