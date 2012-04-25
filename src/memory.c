@@ -366,10 +366,12 @@ static void clear_bitmap() {
 }
 
 static void gc() {
+	fprintf(stderr, "gc_start()\n");
 	clear_bitmap();
 	mark_count = 0;
 	gc_mark();
 	gc_sweep();
+	fprintf(stderr, "gc_end()\n");
 }
 
 static void expand_arena() {
