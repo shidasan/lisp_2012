@@ -53,7 +53,7 @@ void string_buffer_append_i(string_buffer_t *buffer, int i) {
 }
 
 void string_buffer_append_f(string_buffer_t *buffer, float f) {
-	sprintf(buffer->str + buffer->size, "%f", f);
+	sprintf(buffer->str + buffer->size, "%g", f);
 	string_buffer_append_s(buffer, buffer->str + buffer->size);
 }
 
