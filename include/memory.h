@@ -20,8 +20,8 @@ struct cons_t;
 typedef struct val_t {
 	union {
 		struct {
-			int tag;
 			int ivalue;
+			int tag;
 		};
 		struct cons_t *ptr;
 	};

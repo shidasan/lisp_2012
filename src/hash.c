@@ -64,11 +64,13 @@ cons_t *change_local_scope(cons_t *old_environment, cons_t *environment) {
 
 cons_t *begin_local_scope(func_t *func) {
 	cons_t *old_environment = current_environment;
+	cstack_cons_cell_push(old_environment);
 	if (FLAG_CREATES_LOCAL_SCOPE(func->flag)) {
 		current_environment = new_local_environment();
 		current_environment->car.ptr = new_variable_data_table();
 		current_environment->cdr.ptr = old_environment;
 	}
+	cstack_cons_cell_pop();
 	return old_environment;
 }
 
@@ -184,7 +186,7 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 struct val_t search_variable_inner (cons_t *table, char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
-	val_t res;
+	val_t res = {0};
 	while (1){
 		if (p->name == NULL) {
 			res.ivalue = 0;

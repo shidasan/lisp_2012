@@ -260,8 +260,8 @@ static void mark_stack(array_t *traced) {
 	val_t *sp = stack_value;
 	size_t size = array_size(traced);
 	for (; i < STACKSIZE; i++) {
-		if (!IS_UNBOX(stack_value[i]) && stack_value[i].ptr != NULL) {
-			ADDREF(stack_value[i].ptr, traced);
+		if (stack_value[i].ptr != NULL) {
+			ADDREF_VAL(stack_value[i], traced);
 		}
 	}
 }
@@ -366,12 +366,10 @@ static void clear_bitmap() {
 }
 
 static void gc() {
-	fprintf(stderr, "gc_start()\n");
 	clear_bitmap();
 	mark_count = 0;
 	gc_mark();
 	gc_sweep();
-	fprintf(stderr, "gc_end()\n");
 }
 
 static void expand_arena() {
@@ -404,7 +402,7 @@ void cstack_cons_cell_push(cons_t *cons) {
 	array_add(cstack_cons_cell_list, cons);
 }
 
-cons_t *cstack_cons_cell_pop(cons_t *cons) {
+cons_t *cstack_cons_cell_pop() {
 	return array_pop(cstack_cons_cell_list);
 }
 
