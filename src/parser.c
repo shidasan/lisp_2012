@@ -16,6 +16,7 @@ static int token_type;
 static char* current_char;
 static char* token_str;
 static int token_int;
+static float token_float;
 static int ArgIndex;
 static unsigned int LengthRatio;
 static int ArgsRatio = AR;
@@ -23,6 +24,17 @@ static char** Args;
 
 int is_open_space_close(char c) {
 	return c == '(' || c == ' ' || c == ')';
+}
+
+float tokenize_float(int start) {
+	float res = (float)start;
+	float f = 0.1;
+	while (isdigit(*current_char)) {
+		res += f * (*current_char - 48);
+		f *= 0.1;
+		current_char++;
+	}
+	return res;
 }
 
 int GetTok (void)
@@ -66,10 +78,15 @@ int GetTok (void)
             current_char++;
         }
         token_int *= ALT;
+		if (*current_char == '.') {
+			current_char++;
+			token_float = tokenize_float(token_int);
+			return tok_float;
+		}
         if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
             ERROR
         } else {
-            return tok_number;
+            return tok_int;
         }
     }
     if (isalpha(*current_char)){
@@ -206,8 +223,10 @@ static void tokenizer_init(char *str) {
 
 static val_t make_cons_single_node(int is_head_of_list) {
 	val_t val = {0};
-	if (token_type == tok_number) {
+	if (token_type == tok_int) {
 		val = new_int(token_int);
+	} else if (token_type == tok_float) {
+		val = new_float(token_float);
 	} else if (token_type == tok_string) {
 		val.ptr = new_string(token_str);
 	} else if (token_type == tok_nil) {

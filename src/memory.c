@@ -52,6 +52,11 @@ void string_buffer_append_i(string_buffer_t *buffer, int i) {
 	string_buffer_append_s(buffer, buffer->str + buffer->size);
 }
 
+void string_buffer_append_f(string_buffer_t *buffer, float f) {
+	sprintf(buffer->str + buffer->size, "%f", f);
+	string_buffer_append_s(buffer, buffer->str + buffer->size);
+}
+
 void string_buffer_free(string_buffer_t *buffer) {
 	FREE(buffer->str);
 	FREE(buffer);

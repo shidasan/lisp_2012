@@ -8,6 +8,9 @@ void val_to_string(val_t val, string_buffer_t *buffer) {
 	case INT_OFFSET:
 		string_buffer_append_i(buffer, val.ivalue);
 		break;
+	case FLOAT_OFFSET:
+		string_buffer_append_f(buffer, val.fvalue);
+		break;
 	case T_OFFSET:
 		string_buffer_append_s(buffer, "T");
 		break;
@@ -239,6 +242,12 @@ struct cons_api_t cons_variable_table_api = {print_variable_table, free_variable
 struct cons_api_t cons_local_environment_api = {print_local_environment, free_local_environment, eval_local_environment, trace_local_environment};
 struct cons_api_t cons_string_api = {print_string, free_string, eval_string, trace_string};
 
+val_t new_float(float f) {
+	val_t res;
+	res.tag = FLOAT_OFFSET;
+	res.fvalue = f;
+	return res;
+}
 val_t new_int(int n) {
 	val_t res;
 	res.tag = INT_OFFSET;
