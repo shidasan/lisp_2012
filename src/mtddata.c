@@ -765,11 +765,13 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 	return value;
 }
 
-static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
+static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) {
 	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	val_t variable = {0};
 	val_t list = {0};
 	val_t value = {0};
+	array_t *a1 = new_array();
+	array_t *a2 = new_array();
 	if (IS_OPEN(value_list)) {
 		list = value_list.ptr->car;
 		while (list.ptr != NULL && !IS_nil(list)) {
@@ -784,7 +786,12 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 					value = list.ptr->cdr.ptr->car;
 					codegen(value);
 					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
-					set_variable(variable.ptr, res, 1);
+					if (is_star) {
+						set_variable(variable.ptr, res, 1);
+					} else {
+						array_add(a1, variable.ptr);
+						array_add(a2, &res);
+					}
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
 					assert(0);
@@ -794,7 +801,12 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 				if (!IS_SYMBOL(list)) {
 					EXCEPTION("Excepted Symbol!!\n");
 				}
-				val_t p = set_variable(list.ptr, new_bool(0), 1);
+				if (is_star) {
+					val_t p = set_variable(list.ptr, new_bool(0), 1);
+				} else {
+					array_add(a1, list.ptr);
+					array_add(a2, NULL);
+				}
 			}
 			value_list = value_list.ptr->cdr;
 			if (IS_nil(value_list)) {
@@ -803,6 +815,20 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 			list = value_list.ptr->car;
 		}
 	}
+	if (!is_star) {
+		int i = 0, size = array_size(a1);
+		for (; i < size; i++) {
+			cons_t *cons = (cons_t*)array_pop(a1);
+			val_t* val = ((val_t*)array_pop(a2));
+			if (val == NULL) {
+				set_variable(cons, new_bool(0), 1);
+			} else {
+				set_variable(cons, *val, 1);
+			}
+		}
+	}
+	array_free(a1);
+	array_free(a2);
 	val_t res = {0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
@@ -811,6 +837,13 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
+static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
+	return let_inner(VSTACK, ARGC, a, 0);
+}
+
+static val_t let_star(val_t *VSTACK, int ARGC, array_t *a) {
+	return let_inner(VSTACK, ARGC, a, 1);
+}
 static val_t eval(val_t *VSTACK, int ARGC) {
 	//val_t cons = CONS_EVAL(ARGS(0));
 	val_t cons = ARGS(0);
@@ -875,6 +908,7 @@ static_mtd_data static_mtds[] = {
 	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
 	{"let", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let},
+	{"let*", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let_star},
 	{"eval", 1, 0, 0, 0, eval, NULL},
 	{NULL, 0, 0, 0, 0, NULL, NULL},
 };
