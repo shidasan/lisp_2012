@@ -2,6 +2,23 @@
 #include <string.h>
 #include <stdlib.h>
 #include "lisp.h"
+
+void val_to_string(val_t val, string_buffer_t *buffer) {
+	switch(VAL_TYPE(val)) {
+	case INT_OFFSET:
+		string_buffer_append_i(buffer, val.ivalue);
+		break;
+	case T_OFFSET:
+		string_buffer_append_s(buffer, "T");
+		break;
+	case nil_OFFSET:
+		string_buffer_append_s(buffer, "nil");
+		break;
+	default:
+		CONS_TO_STRING(val.ptr->api->print(val.ptr));
+		break;
+	}
+}
 static void print_T(cons_t *cons, string_buffer_t *buffer) {
 	string_buffer_append_s(buffer, "T");
 }

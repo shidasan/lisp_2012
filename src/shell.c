@@ -75,7 +75,7 @@ void print_return_value(val_t val) {
 	default:
 		break;
 	}
-	CONS_PRINT(val.ptr, _buffer);
+	VAL_PRINT(val, _buffer);
 	switch(val.ptr->type) {
 	case OPEN:
 		printf(")");

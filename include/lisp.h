@@ -28,18 +28,26 @@
 #define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
-#define TYPE_MASK ((uintptr_t)0x000F000000000000)
+#define TYPE_MASK ((uintptr_t)0x000F0000)
 
-#define INT_OFFSET                (((uintptr_t)1) << 48)
-#define FLOAT_OFFSET              (((uintptr_t)2) << 48)
-#define T_OFFSET              (((uintptr_t)3) << 48)
-#define nil_OFFSET              (((uintptr_t)4) << 48)
+#define INT_OFFSET                (((uintptr_t)1) << 16)
+#define FLOAT_OFFSET              (((uintptr_t)2) << 16)
+#define T_OFFSET                  (((uintptr_t)3) << 16)
+#define nil_OFFSET                (((uintptr_t)4) << 16)
 
-#define IS_UNBOX(VAL)            ((VAL).ivalue & TYPE_MASK)
-#define IS_INT(VAL)               (((VAL).ivalue & TYPE_MASK) == INT_OFFSET)
-#define IS_FLOAT(VAL)             (((VAL).ivalue & TYPE_MASK) == FLOAT_OFFSET)
-#define IS_T(VAL)             (((VAL).ivalue & TYPE_MASK) == T_OFFSET)
-#define IS_nil(VAL)             (((VAL).ivalue & TYPE_MASK) == nil_OFFSET)
+#define VAL_TYPE(VAL)             ((VAL).tag & TYPE_MASK)
+#define IS_UNBOX(VAL)             (VAL_TYPE(VAL))
+#define IS_INT(VAL)               (VAL_TYPE(VAL) == INT_OFFSET)
+#define IS_FLOAT(VAL)             (VAL_TYPE(VAL) == FLOAT_OFFSET)
+#define IS_T(VAL)                 (VAL_TYPE(VAL) == T_OFFSET)
+#define IS_nil(VAL)               (VAL_TYPE(VAL) == nil_OFFSET)
+#define IS_OPEN(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
+#define IS_STRING(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == STRING)
+#define IS_FUNC(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == FUNC)
+#define IS_VARIABLE(VAL)          (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)
+#define IS_SYMBOL(VAL)            (IS_FUNC(VAL) || IS_VARIABLE(VAL))
+#define IS_VARIABLE_TABLE(VAL)    (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE_TABLE)
+#define IS_LOCAL_ENVIRONMENT(VAL) (!IS_UNBOX(VAL) && (VAL).ptr->type == LOCAL_ENVIRONMENT)
 
 #define TO_INT(VAL)               ((int)(VAL & ((1 << 32)-1)))
 
@@ -72,8 +80,8 @@ typedef struct static_mtd_data {
 	int flag;
 	int is_quote0;
 	int is_quote1;
-	val_t (*mtd)(cons_t**, int);
-	val_t (*special_mtd)(cons_t**, int, struct array_t*);
+	val_t (*mtd)(val_t*, int);
+	val_t (*special_mtd)(val_t*, int, struct array_t*);
 } static_mtd_data;
 
 typedef struct AST{

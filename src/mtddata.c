@@ -11,7 +11,7 @@ typedef struct loop_frame_t {
 }loop_frame_t;
 
 array_t *loop_frame_list = NULL;
-static val_t loop_return_value = NULL;
+static val_t loop_return_value;
 
 static void loop_frame_push(jmp_buf *buf, val_t block_name) {
 	loop_frame_t *frame = (loop_frame_t*)malloc(sizeof(loop_frame_t));
@@ -45,22 +45,22 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 		EXCEPTION("Too few arguments!!\n");
 	}
 	val_t destination = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	switch (destination->type) {
-		case T:
-		case nil:
+	switch (VAL_TYPE(destination)) {
+		case T_OFFSET:
+		case nil_OFFSET:
 			break;
 		default:
 			EXCEPTION("Invalid file stream!!\n");
 			break;
 	}
 	val_t format_string = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
-	if (format_string->type != STRING) {
+	if (IS_UNBOX(format_string) || format_string.ptr->type != STRING) {
 		EXCEPTION("The control-string must be a string!!\n");
 	}
-	const char *str = format_string->str;
+	const char *str = format_string.ptr->str;
 	int str_len = strlen(str);
 	string_buffer_t *buffer = new_string_buffer();
-	val_t cons = NULL;
+	val_t val = {0};
 	while (location <= str_len) {
 		switch(str[location]) {
 			case '~':
@@ -74,8 +74,8 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 						if (evaluate >= length) {
 							EXCEPTION("There are not enough arguments left for format directive!!\n");
 						}
-						cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
-						CONS_TO_STRING(cons, buffer);
+						val = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+						CONS_TO_STRING(val, buffer);
 						location += 2;
 						evaluate++;
 						break;
@@ -84,12 +84,12 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 						if (evaluate >= length) {
 							EXCEPTION("There are not enough arguments left for format directive!!\n");
 						}
-						cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
-						if (cons->type == STRING) {
+						val = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+						if (IS_UNBOX(val) && val.ptr->type == STRING) {
 							string_buffer_append_s(buffer, "\"");
 						}
-						CONS_TO_STRING(cons, buffer);
-						if (cons->type == STRING) {
+						VAL_TO_STRING(val, buffer);
+						if (IS_UNBOX(val) && val.ptr->type == STRING) {
 							string_buffer_append_s(buffer, "\"");
 						}
 						location += 2;
@@ -108,12 +108,12 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 		}
 	}
 	for (; evaluate < length; evaluate++) {
-		cons = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
+		val = vm_exec(2, (opline_t*)array_get(a, evaluate), VSTACK);
 	}
-	val_t res = NULL;
+	val_t res = {0};
 	char *res_str = string_buffer_to_string(buffer);
-	if (destination->type == nil) {
-		res = new_string(res_str);
+	if (IS_nil(destination)) {
+		res.ptr = new_string(res_str);
 	} else {
 		fprintf(stdout, "%s", res_str);
 		res = new_bool(0);
@@ -123,90 +123,95 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
-static val_t car(cons_t** VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	if (cons->type != OPEN) {
+static val_t car(val_t* VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_OPEN(val)) {
 		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
 	}
-	return cons->car;
+	return val.ptr->car;
 }
 
-static val_t cdr(cons_t** VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	if (cons->type != OPEN) {
+static val_t cdr(val_t* VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_OPEN(val)) {
 		fprintf(stderr, "expected list!!\n");
 		TODO("exception\n");
 	}
-	return cons->cdr;
+	return val.ptr->cdr;
 }
 
-static val_t cons(cons_t** VSTACK, int ARGC) {
+static val_t cons(val_t* VSTACK, int ARGC) {
 	val_t car = ARGS(0);
 	val_t cdr = ARGS(1);
-	val_t cons = new_open();
-	cons->car = car;
-	cons->cdr = cdr;
-	return cons;
+	val_t val = {0};
+	val.ptr = new_open();
+	val.ptr->car = car;
+	val.ptr->cdr = cdr;
+	return val;
 }
 
-static val_t add(cons_t** VSTACK, int ARGC) {
+static val_t add(val_t* VSTACK, int ARGC) {
 	int i, res = 0;
 	for (i = 0; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val_t val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
-		res += cons->ivalue;
+		res += val.ivalue;
 	}
 	return new_int(res);
 }
 
-static val_t sub(cons_t** VSTACK, int ARGC) {
+static val_t sub(val_t* VSTACK, int ARGC) {
 	int i, res = 0;
 	for (i = 0; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val_t val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
 		if (i == 0) {
-			res = cons->ivalue;
+			res = val.ivalue;
 		} else {
-			res -= cons->ivalue;
+			res -= val.ivalue;
 		}
 	}
 	return new_int(res);
 }
 
-static val_t mul(cons_t** VSTACK, int ARGC) {
+static val_t mul(val_t* VSTACK, int ARGC) {
 	int i, res = 1;
 	for (i = 0; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val_t val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!!\n");
 			TODO("exception\n");
 		}
-		res *= cons->ivalue;
+		res *= val.ivalue;
 	}
 	return new_int(res);
 }
 
-static val_t _div(cons_t** VSTACK, int ARGC) {
+static val_t _div(val_t* VSTACK, int ARGC) {
 
 }
 
-static val_t lt(cons_t** VSTACK, int ARGC) {
+static val_t lt(val_t* VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number >= next_number) {
 			return new_bool(0);
 		}
@@ -215,16 +220,20 @@ static val_t lt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_lt(cons_t** VSTACK, int ARGC) {
+static val_t string_lt(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) >= 0) {
 			return new_bool(0);
 		}
@@ -235,14 +244,18 @@ static val_t string_lt(cons_t** VSTACK, int ARGC) {
 
 static val_t lte(val_t *VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number > next_number) {
 			return new_bool(0);
 		}
@@ -251,16 +264,20 @@ static val_t lte(val_t *VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_lte(cons_t** VSTACK, int ARGC) {
+static val_t string_lte(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) > 0) {
 			return new_bool(0);
 		}
@@ -269,16 +286,20 @@ static val_t string_lte(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t gt(cons_t** VSTACK, int ARGC) {
+static val_t gt(val_t* VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number <= next_number) {
 			return new_bool(0);
 		}
@@ -287,16 +308,20 @@ static val_t gt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_gt(cons_t** VSTACK, int ARGC) {
+static val_t string_gt(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) <= 0) {
 			return new_bool(0);
 		}
@@ -305,16 +330,20 @@ static val_t string_gt(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t gte(cons_t** VSTACK, int ARGC) {
+static val_t gte(val_t* VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number < next_number) {
 			return new_bool(0);
 		}
@@ -323,16 +352,20 @@ static val_t gte(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_gte(cons_t** VSTACK, int ARGC) {
+static val_t string_gte(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) < 0) {
 			return new_bool(0);
 		}
@@ -341,16 +374,20 @@ static val_t string_gte(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t eq(cons_t** VSTACK, int ARGC) {
+static val_t eq(val_t* VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number != next_number) {
 			return new_bool(0);
 		}
@@ -359,16 +396,20 @@ static val_t eq(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_eq(cons_t** VSTACK, int ARGC) {
+static val_t string_eq(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) != 0) {
 			return new_bool(0);
 		}
@@ -377,16 +418,20 @@ static val_t string_eq(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t neq(cons_t** VSTACK, int ARGC) {
+static val_t neq(val_t* VSTACK, int ARGC) {
 	int i;
-	int current_number = ARGS(0)->ivalue;
+	val_t val = ARGS(0);
+	if (!IS_INT(val)) {
+		EXCEPTION("Excepted Int!!\n");
+	}
+	int current_number = val.ivalue;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != INT) {
+		val = ARGS(i);
+		if (!IS_INT(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		int next_number = cons->ivalue;
+		int next_number = val.ivalue;
 		if (current_number == next_number) {
 			return new_bool(0);
 		}
@@ -395,16 +440,20 @@ static val_t neq(cons_t** VSTACK, int ARGC) {
 	return new_bool(1);
 }
 
-static val_t string_neq(cons_t** VSTACK, int ARGC) {
+static val_t string_neq(val_t* VSTACK, int ARGC) {
 	int i;
-	const char* current_str = ARGS(0)->str;
+	val_t val = ARGS(0);
+	if (!IS_STRING(val)) {
+		EXCEPTION("Excepted String!!\n");
+	}
+	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
-		val_t cons = ARGS(i);
-		if (cons->type != STRING) {
+		val = ARGS(i);
+		if (!IS_STRING(val)) {
 			fprintf(stderr, "type error!\n");
 			TODO("exception\n");
 		}
-		const char  *next_str = cons->str;
+		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) == 0) {
 			return new_bool(0);
 		}
@@ -414,28 +463,26 @@ static val_t string_neq(cons_t** VSTACK, int ARGC) {
 }
 
 static val_t zerop(val_t *VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	if (cons->type == INT && cons->ivalue == 0) {
+	val_t val = ARGS(0);
+	if (IS_INT(val) && val.ivalue == 0) {
 		return new_bool(1);
 	}
 	return new_bool(0);
 }
 
 static val_t null(val_t *VSTACK, int ARGC) {
-	return new_bool(ARGS(0)->type == nil);
+	return new_bool(IS_nil(ARGS(0)));
 }
 
 static val_t not(val_t *VSTACK, int ARGC) {
-	return new_bool(ARGS(0)->type == nil);
+	return new_bool(IS_nil(ARGS(0)));
 }
 
 static val_t atom(val_t *VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	return new_bool((cons->type != OPEN));
+	return new_bool(!IS_OPEN(ARGS(0)));
 }
 static val_t quote(val_t * VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	return cons;
+	return ARGS(0);
 }
 
 static val_t list(val_t * VSTACK, int ARGC) {
@@ -443,16 +490,17 @@ static val_t list(val_t * VSTACK, int ARGC) {
 	if (ARGC == 0) {
 		return new_bool(0);
 	}
-	val_t res = new_open();
-	cstack_cons_cell_push(res);
+	val_t res = {0};
+	res.ptr = new_open();
+	cstack_cons_cell_push(res.ptr);
 	val_t tmp = res;
 	for (i = 0; i < ARGC; i++) {
-		tmp->car = ARGS(i);
+		tmp.ptr->car = ARGS(i);
 		if (i == ARGC - 1) {
-			tmp->cdr = new_bool(0);
+			tmp.ptr->cdr = new_bool(0);
 		} else {
-			tmp->cdr = new_open();
-			tmp = tmp->cdr;
+			tmp.ptr->cdr.ptr = new_open();
+			tmp = tmp.ptr->cdr;
 		}
 	}
 	cstack_cons_cell_pop();
@@ -460,30 +508,30 @@ static val_t list(val_t * VSTACK, int ARGC) {
 }
 
 static val_t length(val_t *VSTACK, int ARGC) {
-	val_t cons = ARGS(0);
-	if (cons->type == nil) {
+	val_t val = ARGS(0);
+	if (IS_nil(val)) {
 		return new_int(0);
-	} else if (cons->type == STRING) {
-		return new_int(strlen(cons->str));
+	} else if (IS_STRING(val)) {
+		return new_int(strlen(val.ptr->str));
 	}
-	if (cons->type != OPEN) {
+	if (!IS_OPEN(val)) {
 		EXCEPTION("Not a list!!\n");
 	}
 	int res = 0;
-	while (cons->type == OPEN) {
+	while (IS_OPEN(val)) {
 		res++;
-		cons = cons->cdr;
+		val = val.ptr->cdr;
 	}
-	if (cons->type != nil) {
+	if (!IS_nil(val)) {
 		EXCEPTION("Not a list!!\n");
 	}
 	return new_int(res);
 }
 
 static val_t _if(val_t *VSTACK, int ARGC, struct array_t *a) {
-	val_t cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	val_t res = NULL;
-	if (cons->type != nil) {
+	val_t val = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	val_t res = {0};
+	if (!IS_nil(val)) {
 		res = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	} else {
 		res = vm_exec(2, (opline_t*)array_get(a, 2), VSTACK);
@@ -492,12 +540,12 @@ static val_t _if(val_t *VSTACK, int ARGC, struct array_t *a) {
 }
 
 static val_t _assert(val_t *VSTACK, int ARGC, array_t *a) {
-	val_t cons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	if (cons->type == nil) {
+	val_t val = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (IS_nil(val)) {
 		EXCEPTION("NIL must evalueate to a non-NIL value\n");
 		assert(0);
 	}
-	return cons;
+	return val;
 }
 
 static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
@@ -505,33 +553,33 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 	if (size == 0) {
 		return new_bool(0);
 	}
-	val_t res = NULL;
+	val_t res = {0};
 	for (; i < size; i++) {
-		val_t cons = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
-		VSTACK[1] = cons;
-		int _length = length(VSTACK+1, 1)->ivalue;
+		val_t val = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
+		VSTACK[1] = val;
+		int _length = length(VSTACK+1, 1).ivalue;
 		if (_length == 0) {
 			EXCEPTION("clause NIL should be a list");
 		}
-		val_t car = cons->car;
-		if (i == size-1 && (car->type == FUNC || car->type == VARIABLE) 
-				&& strcmp(car->str, "otherwise") == 0) {
+		val_t car = val.ptr->car;
+		if (i == size-1 && (IS_SYMBOL(car)) 
+				&& strcmp(car.ptr->str, "otherwise") == 0) {
 			/* default */
 		} else {
-			codegen(cons->car);
+			codegen(val.ptr->car);
 			val_t res = vm_exec(2, memory+CurrentIndex, VSTACK);
-			if (res->type == nil) {
+			if (IS_nil(res)) {
 				continue;
 			}
 		}
 		int j = 1;
-		val_t cdr = cons->cdr;
-		car = cdr->car;
+		val_t cdr = val.ptr->cdr;
+		car = cdr.ptr->car;
 		for (; j < _length; j++) {
 			codegen(car);
 			res = vm_exec(2, memory+CurrentIndex, VSTACK);
-			cdr = cdr->cdr;
-			car = cdr->car;
+			cdr = cdr.ptr->cdr;
+			car = cdr.ptr->car;
 		}
 		return res;
 	}
@@ -540,7 +588,7 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 
 static val_t progn(val_t *VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = NULL;
+	val_t res = {0};
 	for (; i < size; i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK);
 	}
@@ -549,7 +597,7 @@ static val_t progn(val_t *VSTACK, int ARGC, array_t *a) {
 
 static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = NULL;
+	val_t res = {0};
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
@@ -566,7 +614,6 @@ static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 		}
 	}
 	res = loop_return_value;
-	loop_return_value = NULL;
 	return res;
 }
 
@@ -577,13 +624,13 @@ static val_t block(val_t *VSTACK, int ARGC, array_t *a) {
 	} else if (size == 1) {
 		return new_bool(0);
 	}
-	val_t res = NULL;
+	val_t res = {0};
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
 	}
 	val_t block_name = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	if (block_name->type != nil && block_name->type != T && block_name->type != FUNC && block_name->type != VARIABLE) {
+	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
 		EXCEPTION("Excepted symbol!!\n");
 	}
 	loop_frame_push(&buf, block_name);
@@ -597,7 +644,6 @@ static val_t block(val_t *VSTACK, int ARGC, array_t *a) {
 		FREE(frame);
 	} else {
 		res = loop_return_value;
-		loop_return_value = NULL;
 	}
 	return res;
 }
@@ -611,7 +657,7 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 		jmp_buf *buf = frame->buf;
 		val_t block_name = frame->block_name;
 		free(frame);
-		if (block_name->type == nil) {
+		if (IS_nil(block_name)) {
 			loop_return_value = (ARGC == 0) ? new_bool(0) : ARGS(0);
 			longjmp(*buf, 1);
 		}
@@ -629,9 +675,9 @@ static val_t _return_from(val_t *VSTACK, int ARGC) {
 		jmp_buf *buf = frame->buf;
 		val_t block_name = frame->block_name;
 		free(frame);
-		if (block_name->type == nil && args0->type == nil ||
-			block_name->type == T && args0->type == T ||
-			strcmp(block_name->str, args0->str) == 0) {
+		if (IS_nil(block_name) && IS_nil(args0) ||
+			IS_T(block_name) && IS_T(args0) ||
+			strcmp(block_name.ptr->str, args0.ptr->str) == 0) {
 			loop_return_value = (ARGC == 1) ? new_bool(0) : ARGS(1);
 			longjmp(*buf, 1);
 		}
@@ -645,7 +691,7 @@ static val_t when(val_t *VSTACK, int ARGC, array_t *a) {
 		EXCEPTION("argument length does not match!!\n");
 	}
 	val_t res = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	if (res->type == nil || size == 1) {
+	if (IS_nil(res) || size == 1) {
 		return new_bool(0);
 	}
 	int i = 1;
@@ -661,7 +707,7 @@ static val_t unless(val_t *VSTACK, int ARGC, array_t *a) {
 		EXCEPTION("argument length does not match!!\n");
 	}
 	val_t res = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	if (res->type == T || size == 1) {
+	if (IS_T(res) || size == 1) {
 		return new_bool(0);
 	}
 	int i = 1;
@@ -673,6 +719,9 @@ static val_t unless(val_t *VSTACK, int ARGC, array_t *a) {
 
 static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
 	val_t fcons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (!IS_SYMBOL(fcons)) {
+		EXCEPTION("Excepted Symbol!!\n");
+	}
 	val_t args = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	int i = 2;
 	struct array_t *opline_list = new_array();
@@ -682,13 +731,16 @@ static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
-	int argc = length(VSTACK+1, 1)->ivalue;
-	set_func(fcons, opline_list, argc, args, current_environment, 0);
+	int argc = length(VSTACK+1, 1).ivalue;
+	set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
 	return fcons;
 }
 
 static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
 	val_t fcons = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
+	if (!IS_SYMBOL(fcons)) {
+		EXCEPTION("Excepted Symbol!!\n");
+	}
 	val_t args = vm_exec(2, (opline_t*)array_get(a, 1), VSTACK);
 	int i = 2;
 	struct array_t *opline_list = new_array();
@@ -698,50 +750,56 @@ static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
-	int argc = length(VSTACK+1, 1)->ivalue;
-	set_func(fcons, opline_list, argc, args, current_environment, FLAG_MACRO);
+	int argc = length(VSTACK+1, 1).ivalue;
+	set_func(fcons.ptr, opline_list, argc, args, current_environment, FLAG_MACRO);
 	return fcons;
 }
 
 static val_t setq(val_t *VSTACK, int ARGC) {
 	val_t variable = ARGS(0);
 	val_t value = ARGS(1);
-	if (variable->type != VARIABLE || value->type == VARIABLE || value->type == FUNC) {
+	if (!IS_SYMBOL(variable)) {
 		EXCEPTION("Not a atom!!\n");
 	}
-	set_variable(variable, value, 0);
+	set_variable(variable.ptr, value, 0);
 	return value;
 }
 
 static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
-	val_t variable = NULL;
-	val_t list = NULL;
-	val_t value = NULL;
-	if (value_list->type == OPEN) {
-		list = value_list->car;
-		while (list != NULL && list->type != nil) {
-			if (list->type == OPEN) {
+	val_t variable = {0};
+	val_t list = {0};
+	val_t value = {0};
+	if (IS_OPEN(value_list)) {
+		list = value_list.ptr->car;
+		while (list.ivalue != 0 && !IS_nil(list)) {
+			if (IS_OPEN(list)) {
 				VSTACK[1] = list;
-				int argc = length(VSTACK+2, 1)->ivalue;
+				int argc = length(VSTACK+2, 1).ivalue;
 				if (argc == 2) {
-					variable = list->car;
-					value = list->cdr->car;
+					variable = list.ptr->car;
+					if (!IS_SYMBOL(variable)) {
+						EXCEPTION("Excepted Symbol!!\n");
+					}
+					value = list.ptr->cdr.ptr->car;
 					codegen(value);
 					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
-					set_variable(variable, res, 1);
+					set_variable(variable.ptr, res, 1);
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
 					assert(0);
 				}
 			} else {
-				val_t p = set_variable(list, new_bool(0), 1);
+				if (!IS_SYMBOL(list)) {
+					EXCEPTION("Excepted Symbol!!\n");
+				}
+				val_t p = set_variable(list.ptr, new_bool(0), 1);
 			}
-			value_list = value_list->cdr;
-			list = value_list->car;
+			value_list = value_list.ptr->cdr;
+			list = value_list.ptr->car;
 		}
 	}
-	val_t res = NULL;
+	val_t res = {0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
@@ -765,8 +823,8 @@ static val_t eval(val_t *VSTACK, int ARGC) {
    int is_special_form;
    int is_quote0;
    int is_quote1;
-   val_t (*mtd)(cons_t**, int);
-   val_t (*special_mtd)(cons_t**, int, struct array_t*);
+   val_t (*mtd)(val_t*, int);
+   val_t (*special_mtd)(val_t*, int, struct array_t*);
    } static_mtd_data;
    */
 

@@ -19,7 +19,10 @@ struct cons_t;
 
 typedef struct val_t {
 	union {
-		uintptr_t ivalue;
+		struct {
+			int tag;
+			int ivalue;
+		};
 		struct cons_t *ptr;
 	};
 }val_t;
@@ -118,10 +121,11 @@ typedef struct ast_t {
 	(PTR) = NULL\
 
 #define CONS_TRACE(CONS, A) (CONS)->api->trace(CONS, A)
-#define CONS_TO_STRING(CONS, BUFFER) (CONS)->api->to_string(CONS, BUFFER)
-#define CONS_PRINT(CONS, BUFFER)\
+void val_to_string(val_t , string_buffer_t*);
+#define VAL_TO_STRING(VAL, BUFFER) val_to_string(VAL, BUFFER)
+#define VAL_PRINT(VAL, BUFFER)\
 	string_buffer_t* BUFFER = new_string_buffer();\
-	CONS_TO_STRING(CONS, BUFFER);\
+	VAL_TO_STRING(VAL, BUFFER);\
 	fprintf(stdout, "%s", (BUFFER)->str);\
 	FREE(BUFFER);\
 

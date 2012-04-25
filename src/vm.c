@@ -7,7 +7,7 @@ static void dump_vm() {
 	while (pc < memory + NextIndex-1) {
 		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
 		if (pc->instruction == PUSH) {
-			CONS_PRINT(pc->op[0].val.ptr, _buffer);
+			VAL_PRINT(pc->op[0].val, _buffer);
 			fprintf(stdout, "\n");
 		}
 		pc++;
