@@ -14,19 +14,26 @@ typedef struct array_t {
 	size_t capacity;
 }array_t;
 
-typedef struct cons_t{
+struct cons_t;
+
+typedef struct val_t {
 	union {
 		int ivalue;
-		float fvalue;
-		//void *unused_ptr;
+		struct cons_t *ptr;
+	};
+}val_t;
+
+typedef struct cons_t{
+	union {
+		int type;
 		union {
 			char* str;
-			struct cons_t *car;
+			struct val_t car;
 			struct variable_t *variable_data_table;
 		};
 		union {
 			/* also used as free list */
-			struct cons_t *cdr;
+			struct val_t cdr;
 			/* used for local scope */
 			struct cons_t *local_environment;
 		};
@@ -56,7 +63,7 @@ typedef struct opline_t{
 typedef struct variable_t{
 	char* name;
 	struct variable_t* next;
-	cons_t *cons;
+	val_t cons;
 }variable_t;
 
 typedef struct func_t{
