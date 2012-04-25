@@ -1,19 +1,30 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SPECIAL_MTD", "GET_VARIABLE", "GET_ARG", "END"};
+const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SP_MTD", "GET_V", "GET_ARG", "END"};
 static void dump_vm() {
 	opline_t *pc = memory + CurrentIndex;
 	int i = 0;
 	while (pc < memory + NextIndex-1) {
-		fprintf(stdout, "op: %s\n", instruction_tostr[pc->instruction]);
-		if (pc->instruction == PUSH) {
+		fprintf(stdout, "op: %s\t", instruction_tostr[pc->instruction]);
+		switch (pc->instruction) {
+		case PUSH:
+			{
 			CONS_PRINT(pc->op[0].cons, _buffer);
-			fprintf(stdout, "\n");
+			break;
+			}
+		case GET_VARIABLE:
+		case MTDCALL:
+		case SPECIAL_MTD:
+			fprintf(stdout, "%s", pc->op[0].cons->str);
+			break;
+		default:
+			break;
 		}
+		fprintf(stdout, "\n");
 		pc++;
 	}
 	fprintf(stdout, "op: END\n");
-	fprintf(stdout, "op: DUMP END\n");
+	fprintf(stdout, "op: DUMP END\n\n");
 }
 static void set_args(cons_t **VSTACK, int ARGC, func_t *func) {
 	int i = 0;
@@ -54,7 +65,7 @@ cons_t* vm_exec (int i , opline_t* pc, cons_t **ebp)
         return (cons_t*)table;
     }
 
-	//dump_vm();
+	dump_vm();
 
     //cons_t *stack_value[STACKSIZE];
 
