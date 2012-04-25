@@ -766,7 +766,7 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 }
 
 static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
-	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK+1);
+	val_t value_list = vm_exec(2, (opline_t*)array_get(a, 0), VSTACK);
 	val_t variable = {0};
 	val_t list = {0};
 	val_t value = {0};
@@ -783,7 +783,7 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 					}
 					value = list.ptr->cdr.ptr->car;
 					codegen(value);
-					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 2);
+					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
 					set_variable(variable.ptr, res, 1);
 				} else {
 					fprintf(stderr, "illegal variable specification!! %d\n", argc);
@@ -806,7 +806,7 @@ static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
 	val_t res = {0};
 	int i;
 	for (i = 1; i < array_size(a); i++) {
-		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i+1);
+		res = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 	}
 	return res;
 }
