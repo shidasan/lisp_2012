@@ -98,7 +98,7 @@ typedef struct AST{
 }AST;
 
 extern opline_t memory[INSTSIZE];
-extern int CurrentIndex, NextIndex;
+extern int current_index, next_index;
 extern void** table;
 
 extern static_mtd_data static_mtds[];

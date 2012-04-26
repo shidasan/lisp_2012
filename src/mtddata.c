@@ -725,7 +725,7 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 			/* default */
 		} else {
 			codegen(val.ptr->car);
-			val_t res = vm_exec(2, memory+CurrentIndex, VSTACK);
+			val_t res = vm_exec(2, memory+current_index, VSTACK);
 			if (IS_nil(res)) {
 				continue;
 			}
@@ -735,7 +735,7 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 		car = cdr.ptr->car;
 		for (; j < _length; j++) {
 			codegen(car);
-			res = vm_exec(2, memory+CurrentIndex, VSTACK);
+			res = vm_exec(2, memory+current_index, VSTACK);
 			cdr = cdr.ptr->cdr;
 			car = cdr.ptr->car;
 		}
@@ -884,7 +884,7 @@ static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
 	int i = 2;
 	struct array_t *opline_list = new_array();
 	for (; i < array_size(a); i++) {
-		array_add(opline_list, memory + NextIndex);
+		array_add(opline_list, memory + next_index);
 		val_t fbody = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 		codegen(fbody);
 	}
@@ -903,7 +903,7 @@ static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
 	int i = 2;
 	struct array_t *opline_list = new_array();
 	for (; i < array_size(a); i++) {
-		array_add(opline_list, memory + NextIndex);
+		array_add(opline_list, memory + next_index);
 		val_t fbody = vm_exec(2, (opline_t*)array_get(a, i), VSTACK + i);
 		codegen(fbody);
 	}
@@ -943,7 +943,7 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 					}
 					value = list.ptr->cdr.ptr->car;
 					codegen(value);
-					val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+					val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
 					if (is_star) {
 						set_variable(variable.ptr, res, 1);
 					} else {
@@ -1009,7 +1009,7 @@ static val_t eval(val_t *VSTACK, int ARGC) {
 	//val_t cons = CONS_EVAL(ARGS(0));
 	val_t cons = ARGS(0);
 	codegen(cons);
-	val_t res = vm_exec(2, memory + CurrentIndex, VSTACK + 1);
+	val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
 	return res;
 }
 

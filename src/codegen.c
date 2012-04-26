@@ -7,19 +7,19 @@ static int TempIndex;
 static char* null = NULL;
 
 static void new_opline(enum eINSTRUCTION e, val_t val) {
-	memory[NextIndex].instruction = e;
-	memory[NextIndex].instruction_ptr = table[memory[NextIndex].instruction];
-	memory[NextIndex].op[0].val = val;
-	NextIndex++;
+	memory[next_index].instruction = e;
+	memory[next_index].instruction_ptr = table[memory[next_index].instruction];
+	memory[next_index].op[0].val = val;
+	next_index++;
 }
 
 static void new_opline_special_method(enum eINSTRUCTION e, val_t cons, struct array_t *a) {
 	new_opline(e, cons);
-	memory[NextIndex-1].op[1].a = a;
+	memory[next_index-1].op[1].a = a;
 }
 
 void init_opline() {
-	CurrentIndex = NextIndex;
+	current_index = next_index;
 }
 
 static int cons_length(val_t val) {
@@ -51,7 +51,7 @@ static void gen_variable(val_t val) {
 static void gen_mtd_check(val_t val, int list_length) {
 	assert(!IS_UNBOX(val));
 	new_opline(MTDCHECK, val);
-	memory[NextIndex-1].op[1].ivalue = list_length-1;
+	memory[next_index-1].op[1].ivalue = list_length-1;
 }
 
 static void gen_expression(val_t);
@@ -80,7 +80,7 @@ static void gen_func(val_t val) {
 		cdr = cdr.ptr->cdr;
 	}
 	new_opline(MTDCALL, car);
-	memory[NextIndex-1].op[1].ivalue = size-1;
+	memory[next_index-1].op[1].ivalue = size-1;
 }
 
 void codegen(val_t);
@@ -89,7 +89,6 @@ static void gen_special_form(val_t val) {
 	int i = 1;
 	assert(!IS_UNBOX(val));
 	array_t *a = new_array();
-	opline_t *pc = memory + NextIndex;
 	new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
 	val_t tmp = {0};
 	new_opline(END, tmp);
@@ -101,7 +100,7 @@ static void gen_special_form(val_t val) {
 	int length = cons_length(val);
 	val_t cdr = val.ptr->cdr;
 	for (; i < length; i++) {
-		array_add(a, memory + NextIndex);
+		array_add(a, memory + next_index);
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
 			new_opline(PUSH, cdr.ptr->car);
 		} else {

@@ -274,7 +274,7 @@ static void mark_stack(array_t *traced) {
 static void mark_opline(array_t *traced) {
 	int i = 0;
 	//fprintf(stderr, "mark opline\n");
-	for (; i < NextIndex; i++) {
+	for (; i < next_index; i++) {
 		opline_t *op = memory + i;
 		switch(op->instruction) {
 			case PUSH:

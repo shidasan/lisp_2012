@@ -7,7 +7,7 @@
 #include"config.h"
 #define STRLEN 50
 opline_t memory[INSTSIZE];
-int CurrentIndex, NextIndex;
+int current_index, next_index;
 char* strtmp;
 char* str;
 void** table;
@@ -21,7 +21,7 @@ static int add_history(const char *line) {
 }
 
 static void init_opline_first() {
-	CurrentIndex = NextIndex = 0;
+	current_index = next_index = 0;
 }
 
 static char *str_join(char *tmptmpstr, char *leftover) {
@@ -114,7 +114,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			}
 			if (status == 0){
 				myadd_history(str);
-				val_t val = vm_exec(argc + 1, memory + CurrentIndex, stack_value);
+				val_t val = vm_exec(argc + 1, memory + current_index, stack_value);
 				if (val.ptr != 0 && argc == 1) {
 					print_return_value(val);
 					printf("\n");
