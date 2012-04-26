@@ -16,8 +16,8 @@
 #define VSTACK _vstack
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR)); assert(0)
-#define EXCEPTION(STR) throw_exception(STR)
-#define FMT_EXCEPTION(STR, ...) throw_fmt_exception(STR, __VA_ARGS__)
+#define EXCEPTION(STR) throw_exception(__FILE__, __LINE__, STR)
+#define FMT_EXCEPTION(STR, ...) throw_fmt_exception(__FILE__, __LINE__, STR, __VA_ARGS__)
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 
@@ -107,8 +107,8 @@ typedef struct loop_frame_t {
 array_t *loop_frame_list;
 void loop_frame_push(jmp_buf *buf, val_t block_name);
 loop_frame_t *loop_frame_pop();
-void throw_exception(const char *);
-void throw_fmt_exception(const char *, va_list);
+void throw_exception(const char *, int, const char *);
+void throw_fmt_exception(const char *, int, const char *, va_list);
 extern int current_index, next_index;
 extern void** table;
 

@@ -28,13 +28,13 @@ void throw_inner() {
 		}
 	}
 }
-void throw_exception(const char *format){
-	fprintf(stderr, "Exception!! (%s, %d): \n", __FILE__, __LINE__);
+void throw_exception(const char *_file, int _line, const char *format){
+	fprintf(stderr, "Exception!! (%s, %d): \n", _file, _line);
 	fprintf(stderr, "%s", format);
 	throw_inner();
 }
-void throw_fmt_exception(const char *format, va_list ap ){
-	fprintf(stderr, "Exception!! (%s, %d): \n", __FILE__, __LINE__);
+void throw_fmt_exception(const char *_file, int _line, const char *format, va_list ap ){
+	fprintf(stderr, "Exception!! (%s, %d): \n", _file, _line);
 	fprintf(stderr, format, ap);
 	throw_inner();
 }
