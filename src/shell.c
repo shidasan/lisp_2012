@@ -92,7 +92,27 @@ void print_return_value(val_t val) {
 		}
 	}
 }
-char *split_and_eval(int argc, char **args, char *tmpstr) {
+void exec(int using_readline) {
+	jmp_buf buf;
+	if (loop_frame_list == NULL) {
+		loop_frame_list = new_array();
+	}
+	val_t null_value = {0, 0};
+	loop_frame_push(&buf, null_value);
+	int jmp = 0;
+	if ((jmp = setjmp(buf)) == 0) {
+		val_t val = vm_exec(2, memory + current_index, stack_value);
+		if (!IS_NULL(val) && using_readline) {
+			print_return_value(val);
+			printf("\n");
+		}
+		loop_frame_t *frame = loop_frame_pop();
+		FREE(frame);
+	} else {
+
+	}
+}
+char *split_and_exec(int argc, char **args, char *tmpstr) {
 	int prev_point = 0;
 	int next_point = 0;
 	char *leftover = NULL;
@@ -115,11 +135,7 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 			}
 			if (status == 0){
 				myadd_history(str);
-				val_t val = vm_exec(argc + 1, memory + current_index, stack_value);
-				if (val.ptr != 0 && argc == 1) {
-					print_return_value(val);
-					printf("\n");
-				}
+				exec(argc == 1);
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
 				/* ignore */
 			} else if (status == 1) {
@@ -167,7 +183,7 @@ void shell_file(int argc, char **args, FILE* file) {
 		}
 		file_size++;
 	}
-	split_and_eval(argc, args, tmpstr);
+	split_and_exec(argc, args, tmpstr);
 	FREE(tmpstr);
 }
 void shell_readline(int argc, char **args) {
@@ -190,7 +206,7 @@ void shell_readline(int argc, char **args) {
 		if (strcmp(tmpstr, "exit") == 0) {
 			break;
 		}
-		leftover = split_and_eval(argc, args, tmpstr);
+		leftover = split_and_exec(argc, args, tmpstr);
 	}
 	FREE(tmpstr);
 }

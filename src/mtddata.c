@@ -2,29 +2,33 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-#include <setjmp.h>
 #include "lisp.h"
 
-typedef struct loop_frame_t {
-	jmp_buf *buf;
-	val_t block_name;
-}loop_frame_t;
-
-array_t *loop_frame_list = NULL;
 static val_t loop_return_value;
 
-static void loop_frame_push(jmp_buf *buf, val_t block_name) {
+void loop_frame_push(jmp_buf *buf, val_t block_name) {
 	loop_frame_t *frame = (loop_frame_t*)malloc(sizeof(loop_frame_t));
 	frame->buf = buf;
 	frame->block_name = block_name;
 	array_add(loop_frame_list, frame);
 }
 
-static loop_frame_t *loop_frame_pop() {
+loop_frame_t *loop_frame_pop() {
 	loop_frame_t *frame = array_pop(loop_frame_list);
 	return frame;
 }
-
+void throw_exception(const char *format, ...) {
+	fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, "%s", format);
+	loop_frame_t *frame;
+	while ((frame = loop_frame_pop()) != NULL) {
+		jmp_buf *buf = frame->buf;
+		val_t block_name = frame->block_name;
+		free(frame);
+		if (IS_NULL(block_name)) {
+			longjmp(*buf, 1);
+		}
+	}
+}
 static val_t print(val_t *VSTACK, int ARGC) {
 	val_t cons = ARGS(0);
 	print_return_value(cons);

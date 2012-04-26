@@ -2,6 +2,7 @@
 #define MAIN
 #include <assert.h>
 #include <ctype.h>
+#include <setjmp.h>
 #include "memory.h"
 #include "config.h"
 #define LOG_INT_MAX 11
@@ -15,7 +16,7 @@
 #define VSTACK _vstack
 #define ARGS(N) (VSTACK)[(N) - (ARGC)]
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR)); assert(0)
-#define EXCEPTION(STR) fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, (STR));assert(0)
+#define EXCEPTION(STR, ...) throw_exception(STR __VA_ARGS__)
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 
@@ -100,6 +101,16 @@ typedef struct AST{
 
 opline_t *memory;
 int inst_size;
+
+typedef struct loop_frame_t {
+	jmp_buf *buf;
+	val_t block_name;
+}loop_frame_t;
+
+array_t *loop_frame_list;
+void loop_frame_push(jmp_buf *buf, val_t block_name);
+loop_frame_t *loop_frame_pop();
+void throw_exception(const char *, ...);
 extern int current_index, next_index;
 extern void** table;
 
