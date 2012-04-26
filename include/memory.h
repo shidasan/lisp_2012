@@ -27,6 +27,7 @@ typedef struct val_t {
 			int tag;
 		};
 		struct cons_t *ptr;
+		struct array_t *a;
 	};
 }val_t;
 
@@ -122,11 +123,11 @@ typedef struct ast_t {
 	(PTR) = NULL\
 
 #define CONS_TRACE(CONS, A) (CONS)->api->trace(CONS, A)
-void val_to_string(val_t , string_buffer_t*);
-#define VAL_TO_STRING(VAL, BUFFER) val_to_string(VAL, BUFFER)
+void val_to_string(val_t , string_buffer_t*, int);
+#define VAL_TO_STRING(VAL, BUFFER, IS_ROOT) val_to_string(VAL, BUFFER, IS_ROOT)
 #define VAL_PRINT(VAL, BUFFER)\
 	string_buffer_t* BUFFER = new_string_buffer();\
-	VAL_TO_STRING(VAL, BUFFER);\
+	VAL_TO_STRING(VAL, BUFFER, 1);\
 	fprintf(stdout, "%s", (BUFFER)->str);\
 	FREE(BUFFER);\
 
@@ -143,6 +144,7 @@ val_t new_float(float f);
 val_t new_bool(int n);
 cons_t* new_cons_cell();
 cons_t* new_string(const char *str);
+cons_t *new_lambda(val_t, array_t *);
 cons_t* new_func(const char *str, cons_t *environment);
 cons_t* new_variable(char *str);
 cons_t* new_open();

@@ -55,13 +55,12 @@ static void gen_variable(val_t val) {
 	new_opline(GET_VARIABLE, val);
 }
 
+static void gen_expression(val_t);
+
 static void gen_mtd_check(val_t val, int list_length) {
-	assert(!IS_UNBOX(val));
 	new_opline(MTDCHECK, val);
 	memory[next_index-1].op[1].ivalue = list_length-1;
 }
-
-static void gen_expression(val_t);
 
 static void gen_func(val_t val) {
 	assert(!IS_UNBOX(val));
@@ -72,10 +71,11 @@ static void gen_func(val_t val) {
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
-	if (func == NULL || func->value != -1 && func->value != size) {
+	val_t cdr = val.ptr->cdr;
+	//if (func == NULL || func->value != -1 && func->value != size) {
+	if (func == NULL) {
 		gen_mtd_check(car, size);
 	}
-	val_t cdr = val.ptr->cdr;
 	for (; i < size; i++) {
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
 			new_opline(PUSH, cdr.ptr->car);

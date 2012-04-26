@@ -3,7 +3,19 @@
 #include <stdlib.h>
 #include "lisp.h"
 
-void val_to_string(val_t val, string_buffer_t *buffer) {
+void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {
+	if (!IS_UNBOX(val) && is_root) {
+		switch(val.ptr->type) {
+		case OPEN:
+			string_buffer_append_c(buffer, '(');
+			break;
+		case STRING:
+			string_buffer_append_c(buffer, '\"');
+			break;
+		default:
+			break;
+		}
+	}
 	switch(VAL_TYPE(val)) {
 	case INT_OFFSET:
 		string_buffer_append_i(buffer, val.ivalue);
@@ -20,6 +32,18 @@ void val_to_string(val_t val, string_buffer_t *buffer) {
 	default:
 		val.ptr->api->to_string(val.ptr, buffer);
 		break;
+	}
+	if (!IS_UNBOX(val) && is_root) {
+		switch(val.ptr->type) {
+		case OPEN:
+			string_buffer_append_c(buffer, ')');
+			break;
+		case STRING:
+			string_buffer_append_c(buffer, '\"');
+			break;
+		default:
+			break;
+		}
 	}
 }
 static void print_T(cons_t *cons, string_buffer_t *buffer) {
@@ -109,7 +133,7 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 	if (IS_OPEN(car)) {
 		string_buffer_append_s(buffer, "(");
 	}
-	VAL_TO_STRING(car, buffer);
+	VAL_TO_STRING(car, buffer, 0);
 	if (IS_OPEN(car)) {
 		string_buffer_append_s(buffer, ")");
 	}
@@ -122,7 +146,7 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 		if (!IS_nil(cdr.ptr->cdr) && !IS_OPEN(cdr.ptr->cdr)) {
 			string_buffer_append_s(buffer, "(");
 		}
-		VAL_TO_STRING(cons->cdr, buffer);
+		VAL_TO_STRING(cons->cdr, buffer, 0);
 		if (!IS_nil(cdr.ptr->cdr) && !IS_OPEN(cdr.ptr->cdr)) {
 			string_buffer_append_s(buffer, ")");
 		}
@@ -132,7 +156,7 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 			if (IS_OPEN(cdr)) {
 				string_buffer_append_s(buffer, "(");
 			}
-			VAL_TO_STRING(cons->cdr, buffer);
+			VAL_TO_STRING(cons->cdr, buffer, 0);
 			if (IS_OPEN(cdr)) {
 				string_buffer_append_s(buffer, ")");
 			}
@@ -232,6 +256,41 @@ static void trace_string(cons_t *cons, array_t *traced) {
 
 }
 
+static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
+	string_buffer_append_s(buffer, "<function :lambda ");
+	VAL_TO_STRING(cons->car, buffer, 1);
+	string_buffer_append_c(buffer, ' ');
+	int i = 0;
+	array_t *a = cons->cdr.a;
+	for (; i < array_size(a); i++) {
+		lambda_data_t *data = (lambda_data_t*)array_get(a, i);
+		VAL_TO_STRING(data->body, buffer, 1);
+
+		if (i != array_size(a)-1) {
+			string_buffer_append_c(buffer, ' ');
+		}
+	}
+	string_buffer_append_c(buffer, '>');
+}
+
+static void free_lambda(cons_t *cons) {
+	array_t *a = cons->cdr.a;
+	int i = 0;
+	for (; i < array_size(a); i++) {
+		lambda_data_t *data = (lambda_data_t*)array_get(a, i);
+		FREE(data);
+	}
+	array_free(a);
+}
+
+static cons_t *eval_lambda(cons_t *cons) {
+
+}
+
+static void trace_lambda(cons_t *cons, array_t *traced) {
+	ADDREF_VAL(cons->car, traced);
+}
+
 //struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};
 //struct cons_api_t cons_nil_api = {print_nil, free_nil, eval_nil, trace_nil};
 //struct cons_api_t cons_int_api = {print_i, free_i, eval_i, trace_i};
@@ -241,6 +300,7 @@ struct cons_api_t cons_open_api = {print_open, free_open, eval_open, trace_open}
 struct cons_api_t cons_variable_table_api = {print_variable_table, free_variable_table, eval_variable_table, trace_variable_table};
 struct cons_api_t cons_local_environment_api = {print_local_environment, free_local_environment, eval_local_environment, trace_local_environment};
 struct cons_api_t cons_string_api = {print_string, free_string, eval_string, trace_string};
+struct cons_api_t cons_lambda_api = {print_lambda, free_lambda, eval_lambda, trace_lambda};
 
 val_t new_float(float f) {
 	val_t res;
@@ -325,5 +385,14 @@ cons_t *new_string(const char *str) {
 	cons->str = (char*)malloc(len+1);
 	memcpy(cons->str, str, len);
 	cons->str[len] = '\0';
+	return cons;
+}
+
+cons_t *new_lambda(val_t args, array_t *a) {
+	cons_t *cons = new_cons_cell();
+	cons->type = LAMBDA;
+	cons->api = &cons_lambda_api;
+	cons->car = args;
+	cons->cdr.a = a;
 	return cons;
 }

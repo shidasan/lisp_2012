@@ -81,7 +81,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}
 				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
-				VAL_TO_STRING(val, buffer);
+				VAL_TO_STRING(val, buffer, 0);
 				location += 2;
 				evaluate++;
 				break;
@@ -91,13 +91,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}
 				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
-				if (IS_UNBOX(val) && val.ptr->type == STRING) {
-					string_buffer_append_s(buffer, "\"");
-				}
-				VAL_TO_STRING(val, buffer);
-				if (IS_UNBOX(val) && val.ptr->type == STRING) {
-					string_buffer_append_s(buffer, "\"");
-				}
+				VAL_TO_STRING(val, buffer, 1);
 				location += 2;
 				evaluate++;
 				break;
@@ -401,7 +395,7 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 }
 
 static val_t _div(val_t* VSTACK, int ARGC) {
-
+	assert(0);
 }
 
 static int lt_ii(val_t v0, val_t v1) {
@@ -1048,6 +1042,28 @@ static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
 	set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
 	return fcons;
 }
+static lambda_data_t *new_lambda_data(int opline_idx, val_t body) {
+	lambda_data_t *data = (lambda_data_t*)malloc(sizeof(lambda_data_t));
+	data->opline_idx = opline_idx;
+	data->body = body;
+	return data;
+}
+static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
+	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	int i = 1;
+	struct array_t *fbody_list = new_array();
+	for (; i < array_size(a); i++) {
+		val_t fbody = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + i);
+		array_add(fbody_list, new_lambda_data(next_index, fbody));
+		codegen(fbody);
+	}
+	VSTACK[1] = args;
+	int argc = length(VSTACK+1, 1).ivalue;
+	//set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
+	val_t lambda_val = {0, 0};
+	lambda_val.ptr = new_lambda(args, fbody_list);
+	return lambda_val;
+}
 
 static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
@@ -1252,6 +1268,7 @@ static_mtd_data static_mtds[] = {
 	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
 	{"funcall", -1, 0, 0, 0, funcall, NULL},
+	{"lambda", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, lambda},
 	{"let", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let},
 	{"let*", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let_star},
 	{"eval", 1, 0, 0, 0, eval, NULL},

@@ -3,24 +3,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "lisp.h"
-#define ERROR /*printf("Error In Tokenizer\n");*/ return tok_error;
-#define ARGERROR if (ArgCount[ArgIndex] > p->value)printf("Too many "); else printf("Too few "); printf("arguments given to function\n");  return NULL;
-#define PERROR FreeAST(ret);return NULL;
-#define MSG(STR) fprintf(stderr, "Parse Error !! : ");fprintf(stderr, (STR))
-#define AR 3
 #define LR 10
-AST* ParseExpression (void);
-AST* ParseBlock (void);
-void FreeAST (AST*);
 static int token_type;
 static char* current_char;
 static char* token_str;
 static int token_int;
 static float token_float;
-static int ArgIndex;
 static unsigned int LengthRatio;
-static int ArgsRatio = AR;
-static char** Args;
 
 int is_open_space_close(char c) {
 	return c == '(' || c == ' ' || c == ')';
@@ -88,7 +77,7 @@ int GetTok (void)
 			}
 		}
         if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
-            ERROR
+			return tok_error;
         } else {
             return tok_int;
         }
@@ -211,7 +200,7 @@ int GetTok (void)
     if( *current_char == '\0'){
         return tok_eof;
     }
-    ERROR
+	return tok_error;
 } 
 
 void get_next_token (void)

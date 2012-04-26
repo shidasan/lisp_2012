@@ -138,19 +138,6 @@ ast_t *new_ast(int type, int sub_type) {
 	return ast;
 }
 
-void ast_free(ast_t *ast) {
-	if (ast->type == ast_list) {
-		array_free(ast->a);
-	}
-	if (ast->type == ast_func) {
-		free(ast->str);
-	}
-	if (ast->type == ast_variable) {
-		free(ast->str);
-	}
-	free(ast);
-}
-
 /* allocator */
 
 static cons_t *free_list = NULL;
