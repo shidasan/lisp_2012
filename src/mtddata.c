@@ -32,13 +32,6 @@ void throw_exception(const char *format, ...) {
 static val_t print(val_t *VSTACK, int ARGC) {
 	val_t cons = ARGS(0);
 	print_return_value(cons);
-	//if (cons->type == OPEN) {
-	//	printf("(");
-	//}
-	//CONS_PRINT(cons, _buffer);
-	//if (cons->type == OPEN) {
-	//	printf(")");
-	//}
 	printf("\n");
 	return cons;
 }
@@ -67,48 +60,48 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	val_t val = {0, 0};
 	while (location <= str_len) {
 		switch(str[location]) {
-			case '~':
-				switch(str[location+1]) {
-					case '%':
-						string_buffer_append_s(buffer, "\n");
-						location += 2;
-						break;
-
-					case 'A':
-						if (evaluate >= length) {
-							EXCEPTION("There are not enough arguments left for format directive!!\n");
-						}
-						val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
-						VAL_TO_STRING(val, buffer);
-						location += 2;
-						evaluate++;
-						break;
-
-					case 'C':
-						if (evaluate >= length) {
-							EXCEPTION("There are not enough arguments left for format directive!!\n");
-						}
-						val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
-						if (IS_UNBOX(val) && val.ptr->type == STRING) {
-							string_buffer_append_s(buffer, "\"");
-						}
-						VAL_TO_STRING(val, buffer);
-						if (IS_UNBOX(val) && val.ptr->type == STRING) {
-							string_buffer_append_s(buffer, "\"");
-						}
-						location += 2;
-						evaluate++;
-						break;
-
-					default:
-						string_buffer_append_c(buffer, str[location]);
-						location++;
-						break;
-				}
+		case '~':
+			switch(str[location+1]) {
+			case '%':
+				string_buffer_append_s(buffer, "\n");
+				location += 2;
 				break;
+
+			case 'A':
+				if (evaluate >= length) {
+					EXCEPTION("There are not enough arguments left for format directive!!\n");
+				}
+				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
+				VAL_TO_STRING(val, buffer);
+				location += 2;
+				evaluate++;
+				break;
+
+			case 'C':
+				if (evaluate >= length) {
+					EXCEPTION("There are not enough arguments left for format directive!!\n");
+				}
+				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
+				if (IS_UNBOX(val) && val.ptr->type == STRING) {
+					string_buffer_append_s(buffer, "\"");
+				}
+				VAL_TO_STRING(val, buffer);
+				if (IS_UNBOX(val) && val.ptr->type == STRING) {
+					string_buffer_append_s(buffer, "\"");
+				}
+				location += 2;
+				evaluate++;
+				break;
+
 			default:
 				string_buffer_append_c(buffer, str[location]);
 				location++;
+				break;
+			}
+			break;
+		default:
+			string_buffer_append_c(buffer, str[location]);
+			location++;
 		}
 	}
 	for (; evaluate < length; evaluate++) {
@@ -130,8 +123,7 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 static val_t car(val_t* VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_OPEN(val)) {
-		fprintf(stderr, "expected list!!\n");
-		TODO("exception\n");
+		EXCEPTION("expected list!!\n");
 	}
 	return val.ptr->car;
 }
@@ -139,10 +131,149 @@ static val_t car(val_t* VSTACK, int ARGC) {
 static val_t cdr(val_t* VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_OPEN(val)) {
-		fprintf(stderr, "expected list!!\n");
-		TODO("exception\n");
+		EXCEPTION("expected list!!\n");
 	}
 	return val.ptr->cdr;
+}
+
+static val_t caar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = car(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cdar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = car(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t caaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cadr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cadar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cddr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cdaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cadr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cddar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cddr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t caaaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caaar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caaadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caadr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caadar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cadar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caaddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caddr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cadaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdaar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cadadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdadr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t caddar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cddar(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cadddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdddr(VSTACK, ARGC);
+	return car(VSTACK, ARGC);
+}
+
+static val_t cdaaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caaar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdaadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caadr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdadar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cadar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdaddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = caddr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cddaar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdaar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cddadr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdadr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cdddar(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cddar(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
+}
+
+static val_t cddddr(val_t* VSTACK, int ARGC) {
+	VSTACK[-1] = cdddr(VSTACK, ARGC);
+	return cdr(VSTACK, ARGC);
 }
 
 static val_t cons(val_t* VSTACK, int ARGC) {
@@ -182,8 +313,7 @@ static val_t add(val_t* VSTACK, int ARGC) {
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		res = add_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -220,8 +350,7 @@ static val_t sub(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		res = sub_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -255,8 +384,7 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		res = mul_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -295,8 +423,7 @@ static val_t lt(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (lt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -317,8 +444,7 @@ static val_t string_lt(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) >= 0) {
@@ -357,8 +483,7 @@ static val_t lte(val_t *VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (lte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -379,8 +504,7 @@ static val_t string_lte(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) > 0) {
@@ -419,8 +543,7 @@ static val_t gt(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (gt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -441,8 +564,7 @@ static val_t string_gt(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) <= 0) {
@@ -481,8 +603,7 @@ static val_t gte(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (gte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -503,8 +624,7 @@ static val_t string_gte(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) < 0) {
@@ -543,8 +663,7 @@ static val_t eq(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -565,8 +684,7 @@ static val_t string_eq(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) != 0) {
@@ -590,8 +708,7 @@ static val_t neq(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		val_t next_number = val;
 		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -612,8 +729,7 @@ static val_t string_neq(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			fprintf(stderr, "type error!\n");
-			TODO("exception\n");
+			EXCEPTION("type error!!\n");
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) == 0) {
@@ -1031,11 +1147,39 @@ static val_t eval(val_t *VSTACK, int ARGC) {
    */
 
 static_mtd_data static_mtds[] = {
-	{"print", 1, 0, 0, 0, print, NULL},
-	{"format", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, format},
+	{"cons", 2, 0, 0, 0, cons, NULL},
 	{"car", 1, 0, 0, 0, car, NULL},
 	{"cdr", 1, 0, 0, 0, cdr, NULL},
-	{"cons", 2, 0, 0, 0, cons, NULL},
+	{"caar", 1, 0, 0, 0, caar, NULL},
+	{"cadr", 1, 0, 0, 0, cadr, NULL},
+	{"cdar", 1, 0, 0, 0, cdar, NULL},
+	{"cddr", 1, 0, 0, 0, cddr, NULL},
+	{"caaar", 1, 0, 0, 0, caaar, NULL},
+	{"caadr", 1, 0, 0, 0, caadr, NULL},
+	{"cadar", 1, 0, 0, 0, cadar, NULL},
+	{"caddr", 1, 0, 0, 0, caddr, NULL},
+	{"cdaar", 1, 0, 0, 0, cdaar, NULL},
+	{"cdadr", 1, 0, 0, 0, cdadr, NULL},
+	{"cddar", 1, 0, 0, 0, cddar, NULL},
+	{"cdddr", 1, 0, 0, 0, cdddr, NULL},
+	{"caaaar", 1, 0, 0, 0, caaaar, NULL},
+	{"caaadr", 1, 0, 0, 0, caaadr, NULL},
+	{"caadar", 1, 0, 0, 0, caadar, NULL},
+	{"caaddr", 1, 0, 0, 0, caaddr, NULL},
+	{"cadaar", 1, 0, 0, 0, cadaar, NULL},
+	{"cadadr", 1, 0, 0, 0, cadadr, NULL},
+	{"caddar", 1, 0, 0, 0, caddar, NULL},
+	{"cadddr", 1, 0, 0, 0, cadddr, NULL},
+	{"cdaaar", 1, 0, 0, 0, cdaaar, NULL},
+	{"cdaadr", 1, 0, 0, 0, cdaadr, NULL},
+	{"cdadar", 1, 0, 0, 0, cdadar, NULL},
+	{"cdaddr", 1, 0, 0, 0, cdaddr, NULL},
+	{"cddaar", 1, 0, 0, 0, cddaar, NULL},
+	{"cddadr", 1, 0, 0, 0, cddadr, NULL},
+	{"cdddar", 1, 0, 0, 0, cdddar, NULL},
+	{"cddddr", 1, 0, 0, 0, cddddr, NULL},
+	{"print", 1, 0, 0, 0, print, NULL},
+	{"format", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, format},
 	{"+", -1, 0, 0, 0, add, NULL},
 	{"-", -1, 0, 0, 0, sub, NULL},
 	{"*", -1, 0, 0, 0, mul, NULL},
