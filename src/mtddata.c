@@ -17,8 +17,7 @@ loop_frame_t *loop_frame_pop() {
 	loop_frame_t *frame = array_pop(loop_frame_list);
 	return frame;
 }
-void throw_exception(const char *format, ...) {
-	fprintf(stderr, "Exception!! (%s, %d): ", __FILE__, __LINE__);fprintf(stderr, "%s", format);
+void throw_inner() {
 	loop_frame_t *frame;
 	while ((frame = loop_frame_pop()) != NULL) {
 		jmp_buf *buf = frame->buf;
@@ -28,6 +27,16 @@ void throw_exception(const char *format, ...) {
 			longjmp(*buf, 1);
 		}
 	}
+}
+void throw_exception(const char *format){
+	fprintf(stderr, "Exception!! (%s, %d): \n", __FILE__, __LINE__);
+	fprintf(stderr, "%s", format);
+	throw_inner();
+}
+void throw_fmt_exception(const char *format, va_list ap ){
+	fprintf(stderr, "Exception!! (%s, %d): \n", __FILE__, __LINE__);
+	fprintf(stderr, format, ap);
+	throw_inner();
 }
 static val_t print(val_t *VSTACK, int ARGC) {
 	val_t cons = ARGS(0);
@@ -763,6 +772,32 @@ static val_t quote(val_t * VSTACK, int ARGC) {
 	return ARGS(0);
 }
 
+static val_t funcall(val_t * VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_SYMBOL(val)) {
+		EXCEPTION("Excepted Symbol!!\n");
+	}
+	func_t *func = search_func(val.ptr->str);
+	if (func == NULL) {
+		FMT_EXCEPTION("function %s not found!!\n", (void*)val.ptr->str);
+	}
+	val_t res = {0, 0};
+	cons_t *old_environment = NULL;
+	if (FLAG_IS_STATIC(func->flag)) {
+		old_environment = begin_local_scope(func);
+		res = func->mtd(VSTACK, ARGC - 1);
+	} else {
+		old_environment = change_local_scope(current_environment, func->environment);
+		environment_list_push(old_environment);
+		array_t *opline_list = func->opline_list;
+		set_args(VSTACK, ARGC-1, func);
+		res = exec_body(VSTACK + ARGC-3, func);
+		environment_list_pop();
+	}
+	end_local_scope(old_environment);
+	return res;
+}
+
 static val_t list(val_t * VSTACK, int ARGC) {
 	int i;
 	if (ARGC == 0) {
@@ -1216,6 +1251,7 @@ static_mtd_data static_mtds[] = {
 	{"defun", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 2, NULL, defun},
 	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
+	{"funcall", -1, 0, 0, 0, funcall, NULL},
 	{"let", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let},
 	{"let*", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let_star},
 	{"eval", 1, 0, 0, 0, eval, NULL},

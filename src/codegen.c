@@ -72,7 +72,7 @@ static void gen_func(val_t val) {
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
-	if (func != NULL && func->value != -1 && func->value != size) {
+	if (func == NULL || func->value != -1 && func->value != size) {
 		gen_mtd_check(car, size);
 	}
 	val_t cdr = val.ptr->cdr;

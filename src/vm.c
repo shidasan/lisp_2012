@@ -26,7 +26,7 @@ static void dump_vm() {
 	fprintf(stdout, "op: END\n");
 	fprintf(stdout, "op: DUMP END\n\n");
 }
-static void set_args(val_t *VSTACK, int ARGC, func_t *func) {
+void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	int i = 0;
 	cons_t *args = func->args.ptr;
 	for (; i < ARGC; i++) {
@@ -36,7 +36,7 @@ static void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 		args = args->cdr.ptr;
 	}
 }
-static val_t exec_body(val_t *VSTACK, func_t *func) {
+val_t exec_body(val_t *VSTACK, func_t *func) {
 	val_t res;
 	array_t *opline_list = func->opline_list;
 	int a = 0;
@@ -121,8 +121,7 @@ mtdcheck:
 	args_num = pc->op[1].ivalue;
 	func = search_func(val.ptr->str);
 	if (func == NULL) {
-		fprintf(stderr, "val.ptr->str: %s\n", val.ptr->str);
-		EXCEPTION("can't call method!!\n");
+		FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
 	}
 	if (func->value != -1 && func->value != args_num) {
 		EXCEPTION("argument length does not match!!\n");
@@ -135,7 +134,7 @@ mtdcall:
 		cons_t *old_environment = NULL;
 		args_num = pc->op[1].ivalue;
 		func = search_func(val.ptr->str);
-		if (FLAG_IS_STATIC(func->flag)) {
+		if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 			old_environment = begin_local_scope(func);
 			esp[-args_num] = func->mtd(esp, args_num);
 		} else {
