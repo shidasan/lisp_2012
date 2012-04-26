@@ -1053,8 +1053,9 @@ static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
 	int i = 1;
 	struct array_t *fbody_list = new_array();
 	for (; i < array_size(a); i++) {
+		int idx = next_index;
 		val_t fbody = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + i);
-		array_add(fbody_list, new_lambda_data(next_index, fbody));
+		array_add(fbody_list, new_lambda_data(idx, fbody));
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
@@ -1265,10 +1266,10 @@ static_mtd_data static_mtds[] = {
 	{"when", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, when},
 	{"unless", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, unless},
 	{"defun", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 2, NULL, defun},
+	{"lambda", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, lambda},
 	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
 	{"funcall", -1, 0, 0, 0, funcall, NULL},
-	{"lambda", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, lambda},
 	{"let", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let},
 	{"let*", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, let_star},
 	{"eval", 1, 0, 0, 0, eval, NULL},

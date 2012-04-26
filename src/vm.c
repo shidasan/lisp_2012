@@ -120,6 +120,9 @@ mtdcheck:
 	val = pc->op[0].val;
 	args_num = pc->op[1].ivalue;
 	func = search_func(val.ptr->str);
+	if (IS_LAMBDA(val)) {
+		asm("int3");
+	}
 	if (func == NULL) {
 		FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
 	}
