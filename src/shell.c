@@ -5,8 +5,6 @@
 #include <dlfcn.h>
 #include"lisp.h"
 #include"config.h"
-#define STRLEN 50
-opline_t memory[INSTSIZE];
 int current_index, next_index;
 char* strtmp;
 char* str;
@@ -21,6 +19,9 @@ static int add_history(const char *line) {
 }
 
 static void init_opline_first() {
+	memory = (opline_t*)malloc(sizeof(opline_t) * INSTSIZE);
+	memset(memory, 0, sizeof(opline_t) * INSTSIZE);
+	inst_size = INSTSIZE;
 	current_index = next_index = 0;
 }
 
@@ -143,13 +144,59 @@ char *split_and_eval(int argc, char **args, char *tmpstr) {
 	}
 	return leftover;
 }
-
+void shell_file(int argc, char **args, FILE* file) {
+	int file_capacity = INIT_FILE_SIZE;
+	int file_size = 0;
+	char *tmpstr = (char*)malloc(file_capacity);
+	while (1) {
+		if (file_size == file_capacity - 1){
+			int newcapacity = file_capacity * 2;
+			strtmp = (char*)malloc(newcapacity);
+			strncpy(strtmp, tmpstr, file_capacity);
+			free(tmpstr);
+			tmpstr = strtmp;
+			file_capacity = newcapacity;
+		}
+		if ((tmpstr[file_size] = fgetc(file)) == EOF){
+			tmpstr[file_size] = '\0';
+			fclose(file);
+			break;
+		}
+		if (tmpstr[file_size] == '\n') {
+			tmpstr[file_size] = ' ';
+		}
+		file_size++;
+	}
+	split_and_eval(argc, args, tmpstr);
+	FREE(tmpstr);
+}
+void shell_readline(int argc, char **args) {
+	int file_capacity = INIT_FILE_SIZE;
+	int file_size = 0;
+	char *tmpstr = (char*)malloc(file_capacity);
+	char *leftover = NULL;
+	while (1) {
+		init_opline();
+		if (leftover != NULL) {
+			char *tmptmpstr = myreadline("    ");
+			tmpstr = str_join(tmptmpstr, leftover);
+			free(leftover);
+			leftover = NULL;
+			free(tmptmpstr);
+			tmptmpstr = NULL;
+		} else {
+			tmpstr = myreadline(">>> ");
+		}
+		if (strcmp(tmpstr, "exit") == 0) {
+			break;
+		}
+		leftover = split_and_eval(argc, args, tmpstr);
+	}
+	FREE(tmpstr);
+}
 int shell (int argc, char* args[])
 {
 	FILE* file = NULL;
-	int StrSize = STRLEN;
-	int StrIndex = 0;
-	char *tmpstr = NULL, *leftover = NULL;
 	table = (void**)(vm_exec(1, NULL, NULL).ptr);
 	gc_init();
 	new_func_data_table();
@@ -169,46 +216,10 @@ int shell (int argc, char* args[])
 	myreadline = (f != NULL) ? (char* (*)(const char*))f : NULL;
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
 	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
-	StrSize = STRLEN;
-	StrIndex = 0;
 	if (argc > 1){
-		init_opline();
-		tmpstr = (char*)malloc(StrSize);
-		while (1) {
-			if (StrIndex == StrSize - 1){
-				StrSize *= 2;
-				strtmp = (char*)malloc(StrSize);
-				strncpy(strtmp, tmpstr, StrSize);
-				free(tmpstr);
-				tmpstr = strtmp;
-			}
-			if ((tmpstr[StrIndex] = fgetc(file)) == EOF){
-				tmpstr[StrIndex] = '\0';
-				fclose(file);
-				break;
-			}
-			if (tmpstr[StrIndex] == '\n') {
-				tmpstr[StrIndex] = ' ';
-			}
-			StrIndex++;
-		}
-		split_and_eval(argc, args, tmpstr);
+		shell_file(argc, args, file);
 	} else {
-		while (1) {
-			init_opline();
-			if (leftover != NULL) {
-				char *tmptmpstr = myreadline("    ");
-				tmpstr = str_join(tmptmpstr, leftover);
-				free(leftover);
-				leftover = NULL;
-				free(tmptmpstr);
-				tmptmpstr = NULL;
-			} else {
-				tmpstr = myreadline(">>> ");
-			}
-			leftover = split_and_eval(argc, args, tmpstr);
-		}
+		shell_readline(argc, args);
 	}
-	free(tmpstr);
 	return 0;
 }

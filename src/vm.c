@@ -41,7 +41,7 @@ static val_t exec_body(val_t *VSTACK, func_t *func) {
 	array_t *opline_list = func->opline_list;
 	int a = 0;
 	for (; a < array_size(opline_list); a++) {
-		res = vm_exec(2, (opline_t *)array_get(opline_list, a), VSTACK + 1);
+		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
 			codegen(res);
 			res = vm_exec(2, memory + current_index, VSTACK + 1);
@@ -66,8 +66,11 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		res.ptr = (cons_t *)table;
         return res;
     }
-
-	//dump_vm();
+	static int count = 0;
+	if (count == 0) {
+		//dump_vm();
+		count++;
+	}
 
     //val_t stack_value[STACKSIZE];
 

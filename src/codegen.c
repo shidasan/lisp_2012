@@ -3,10 +3,17 @@
 #include <stdlib.h>
 #include"lisp.h"
 
-static int TempIndex;
-static char* null = NULL;
-
 static void new_opline(enum eINSTRUCTION e, val_t val) {
+	if (next_index == inst_size) {
+		fprintf(stderr, "expand opline inst_size%d\n", inst_size);
+		int newsize = inst_size * 2;
+		opline_t *newmemory = (opline_t*)malloc(sizeof(opline_t) * newsize);
+		memset(newmemory, 0, sizeof(opline_t) * newsize);
+		memcpy(newmemory, memory, sizeof(opline_t) * inst_size);
+		FREE(memory);
+		memory = newmemory;
+		inst_size = newsize;
+	}
 	memory[next_index].instruction = e;
 	memory[next_index].instruction_ptr = table[memory[next_index].instruction];
 	memory[next_index].op[0].val = val;
@@ -100,7 +107,8 @@ static void gen_special_form(val_t val) {
 	int length = cons_length(val);
 	val_t cdr = val.ptr->cdr;
 	for (; i < length; i++) {
-		array_add(a, memory + next_index);
+		uintptr_t cast = (uintptr_t)next_index;
+		array_add(a, (void*)cast);
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
 			new_opline(PUSH, cdr.ptr->car);
 		} else {

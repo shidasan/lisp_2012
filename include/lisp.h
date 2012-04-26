@@ -7,7 +7,8 @@
 #define LOG_INT_MAX 11
 #define HASH_SIZE 16
 #define STACKSIZE 50000
-#define INSTSIZE 100000
+#define INSTSIZE 32
+#define INIT_FILE_SIZE 50
 #define ARGC _argc
 #define likely(COND)   (COND)
 #define unlikely(COND) (COND)
@@ -97,7 +98,8 @@ typedef struct AST{
 	struct AST *LHS,*RHS,*COND;
 }AST;
 
-extern opline_t memory[INSTSIZE];
+opline_t *memory;
+int inst_size;
 extern int current_index, next_index;
 extern void** table;
 
