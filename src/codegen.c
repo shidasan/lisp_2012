@@ -30,7 +30,7 @@ void init_opline() {
 	current_index = next_index;
 }
 
-static int cons_length(val_t val) {
+int val_length(val_t val) {
 	if (IS_nil(val)) {
 		return 0;
 	}
@@ -67,7 +67,7 @@ static void gen_func(val_t val) {
 	assert(!IS_UNBOX(val));
 	val_t car = val.ptr->car;
 	func_t *func = search_func(car.ptr->str);
-	int i = 1, size = cons_length(val);
+	int i = 1, size = val_length(val);
 	int *quote_position = NULL;
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
@@ -97,8 +97,13 @@ static void gen_special_form(val_t val) {
 	int i = 1;
 	assert(!IS_UNBOX(val));
 	array_t *a = new_array();
-	new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
 	val_t op = {0, 0};
+	if (IS_OPEN(val.ptr->car)) {
+		gen_expression(val.ptr->car);
+		new_opline_special_method(SPECIAL_MTD, op, a);
+	} else {
+		new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
+	}
 	opline_t *op_jmp = new_opline(JMP, op);
 	int start_index = next_index;
 	func_t *func = search_func(val.ptr->car.ptr->str);
@@ -106,7 +111,7 @@ static void gen_special_form(val_t val) {
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
 		quote_position = func->is_quote;
 	}
-	int length = cons_length(val);
+	int length = val_length(val);
 	val_t cdr = val.ptr->cdr;
 	for (; i < length; i++) {
 		uintptr_t cast = (uintptr_t)next_index;
@@ -128,7 +133,7 @@ static void gen_list (val_t cons) {
 		EXCEPTION("Excepted symbol!!\n");
 	}
 	func_t *func = search_func(car.ptr->str);
-	if (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag)) {
+	if (IS_OPEN(car) || func != NULL && FLAG_IS_SPECIAL_FORM(func->flag)) {
 		gen_special_form(cons);
 	} else {
 		gen_func(cons);

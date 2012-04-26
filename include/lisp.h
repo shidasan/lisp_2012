@@ -91,11 +91,6 @@ typedef struct static_mtd_data {
 	val_t (*special_mtd)(val_t*, int, struct array_t*);
 } static_mtd_data;
 
-typedef struct lambda_data_t {
-	int opline_idx;
-	val_t body;
-}lambda_data_t;
-
 opline_t *memory;
 int inst_size;
 
@@ -136,6 +131,7 @@ struct val_t search_variable (char* str);
 struct func_t* search_func (char* str);
 /*generator.h*/
 void codegen(val_t );
+int val_length(val_t val);
 /*parser.h*/
 int parse_program(char *);
 /*eval.h*/

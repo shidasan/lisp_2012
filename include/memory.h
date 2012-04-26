@@ -31,12 +31,23 @@ typedef struct val_t {
 	};
 }val_t;
 
+typedef struct lambda_env_t {
+	val_t args;
+	struct cons_t *environment;
+}lambda_env_t;
+
+typedef struct lambda_data_t {
+	int opline_idx;
+	val_t body;
+}lambda_data_t;
+
 typedef struct cons_t{
 	int type;
 	union {
 		char* str;
 		struct val_t car;
 		struct variable_t *variable_data_table;
+		struct lambda_env_t *env;
 	};
 	union {
 		/* also used as free list */
@@ -144,7 +155,7 @@ val_t new_float(float f);
 val_t new_bool(int n);
 cons_t* new_cons_cell();
 cons_t* new_string(const char *str);
-cons_t *new_lambda(val_t, array_t *);
+cons_t *new_lambda(lambda_env_t *, array_t *);
 cons_t* new_func(const char *str, cons_t *environment);
 cons_t* new_variable(char *str);
 cons_t* new_open();

@@ -26,8 +26,8 @@ static void dump_vm() {
 		pc++;
 		dump_point++;
 	}
-	dump_point++;
 	fprintf(stdout, "op%d:\tEND\n\n", dump_point);
+	dump_point++;
 }
 void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	int i = 0;
@@ -38,6 +38,36 @@ void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 		set_variable(variable.ptr, arg, 1);
 		args = args->cdr.ptr;
 	}
+}
+
+static val_t call_lambda(val_t *VSTACK, int ARGC, array_t *a) {
+	val_t lambda_func = VSTACK[-1];
+	lambda_env_t *env = lambda_func.ptr->env;
+	val_t args = env->args;
+	int length = val_length(args), i;
+	array_t *lambda_data_list = lambda_func.ptr->cdr.a;
+	if (length != array_size(a)) {
+		EXCEPTION("Argument length does not match!!\n");
+	}
+	cons_t *old_environment = change_local_scope(current_environment, env->environment);
+	environment_list_push(old_environment);
+	for (i = 0; i < length; i++) {
+		val_t car = args.ptr->car;
+		if (!IS_SYMBOL(car)) {
+			EXCEPTION("Excepted symbol!!\n");
+		}
+		val_t value = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK+1);
+		set_variable(car.ptr, value, 1);
+		args = args.ptr->cdr;
+	}
+	val_t res = {0, 0};
+	for (i = 0; i < array_size(lambda_data_list); i++) {
+		lambda_data_t *data = (lambda_data_t*)array_get(lambda_data_list, i);
+		res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
+	}
+	environment_list_pop();
+	end_local_scope(old_environment);
+	return res;
 }
 val_t exec_body(val_t *VSTACK, func_t *func) {
 	val_t res;
@@ -114,11 +144,16 @@ special_mtd:
 	{
 		val = pc->op[0].val;
 		array = pc->op[1].a;
-		func = search_func(val.ptr->str);
-		cons_t *old_environment = begin_local_scope(func);
-		esp[0] = func->special_mtd(esp, 0, array);
-		esp++;
-		end_local_scope(old_environment);
+		if (IS_NULL(val)) { /* lambda function */
+			esp[-1] = call_lambda(esp, 0, array);
+			esp++;
+		} else {
+			func = search_func(val.ptr->str);
+			cons_t *old_environment = begin_local_scope(func);
+			esp[0] = func->special_mtd(esp, 0, array);
+			esp++;
+			end_local_scope(old_environment);
+		}
 		goto *((++pc)->instruction_ptr);
 	}
 
@@ -126,9 +161,6 @@ mtdcheck:
 	val = pc->op[0].val;
 	args_num = pc->op[1].ivalue;
 	func = search_func(val.ptr->str);
-	if (IS_LAMBDA(val)) {
-		asm("int3");
-	}
 	if (func == NULL) {
 		FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
 	}

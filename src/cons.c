@@ -258,7 +258,7 @@ static void trace_string(cons_t *cons, array_t *traced) {
 
 static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
 	string_buffer_append_s(buffer, "<function :lambda ");
-	VAL_TO_STRING(cons->car, buffer, 1);
+	VAL_TO_STRING(cons->env->args, buffer, 1);
 	string_buffer_append_c(buffer, ' ');
 	int i = 0;
 	array_t *a = cons->cdr.a;
@@ -388,11 +388,11 @@ cons_t *new_string(const char *str) {
 	return cons;
 }
 
-cons_t *new_lambda(val_t args, array_t *a) {
+cons_t *new_lambda(lambda_env_t *env, array_t *a) {
 	cons_t *cons = new_cons_cell();
 	cons->type = LAMBDA;
 	cons->api = &cons_lambda_api;
-	cons->car = args;
+	cons->env = env;
 	cons->cdr.a = a;
 	return cons;
 }

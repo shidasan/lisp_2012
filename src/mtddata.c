@@ -1042,12 +1042,21 @@ static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
 	set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
 	return fcons;
 }
+
 static lambda_data_t *new_lambda_data(int opline_idx, val_t body) {
 	lambda_data_t *data = (lambda_data_t*)malloc(sizeof(lambda_data_t));
 	data->opline_idx = opline_idx;
 	data->body = body;
 	return data;
 }
+
+static lambda_env_t *new_lambda_env(val_t args, cons_t *environment) {
+	lambda_env_t *env = (lambda_env_t*)malloc(sizeof(lambda_env_t));
+	env->environment = environment;
+	env->args = args;
+	return env;
+}
+
 static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	int i = 1;
@@ -1061,9 +1070,10 @@ static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
 	VSTACK[1] = args;
 	int argc = length(VSTACK+1, 1).ivalue;
 	//set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
-	val_t lambda_val = {0, 0};
-	lambda_val.ptr = new_lambda(args, fbody_list);
-	return lambda_val;
+	val_t lambda_func = {0, 0};
+	lambda_env_t *env = new_lambda_env(args, current_environment);
+	lambda_func.ptr = new_lambda(env, fbody_list);
+	return lambda_func;
 }
 
 static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
