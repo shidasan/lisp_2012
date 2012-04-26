@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include"lisp.h"
-const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SP_MTD", "GET_V", "GET_ARG", "END"};
+const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SP_MTD", "GET_V", "GET_ARG", "END", "JMP"};
+static int dump_point = 0;
 static void dump_vm() {
 	opline_t *pc = memory + current_index;
-	int i = 0;
-	while (pc < memory + next_index-1) {
-		fprintf(stdout, "op: %s\t", instruction_tostr[pc->instruction]);
+	while (pc < memory + next_index - 1) {
+		fprintf(stdout, "op%d:\t%s\t", dump_point, instruction_tostr[pc->instruction]);
 		switch (pc->instruction) {
 		case PUSH:
 			{
@@ -17,14 +17,17 @@ static void dump_vm() {
 		case SPECIAL_MTD:
 			fprintf(stdout, "%s", pc->op[0].val.ptr->str);
 			break;
+		case JMP:
+			fprintf(stdout, "op%d", pc->op[0].ivalue + dump_point + 1);
 		default:
 			break;
 		}
 		fprintf(stdout, "\n");
 		pc++;
+		dump_point++;
 	}
-	fprintf(stdout, "op: END\n");
-	fprintf(stdout, "op: DUMP END\n\n");
+	dump_point++;
+	fprintf(stdout, "op%d:\tEND\n\n", dump_point);
 }
 void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	int i = 0;
@@ -59,17 +62,16 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		&&get_variable,
 		&&get_arg,
 		&&end,
+		&&jmp,
     };
 
-    if( i == 1 ){
+    if(i == 1){
 		val_t res;
 		res.ptr = (cons_t *)table;
         return res;
     }
-	static int count = 0;
-	if (count == 0) {
+	if (dump_point < next_index - 1) {
 		//dump_vm();
-		count++;
 	}
 
     //val_t stack_value[STACKSIZE];
@@ -86,6 +88,10 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 
 
     goto *(pc->instruction_ptr);
+
+jmp:
+	pc += pc->op[0].ivalue;
+	goto *((++pc)->instruction_ptr);
 
 get_arg:
 	esp[0] = ebp[pc->op[0].ivalue];

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include"lisp.h"
 
-static void new_opline(enum eINSTRUCTION e, val_t val) {
+static opline_t *new_opline(enum eINSTRUCTION e, val_t val) {
 	if (next_index == inst_size) {
 		fprintf(stderr, "expand opline inst_size%d\n", inst_size);
 		int newsize = inst_size * 2;
@@ -18,6 +18,7 @@ static void new_opline(enum eINSTRUCTION e, val_t val) {
 	memory[next_index].instruction_ptr = table[memory[next_index].instruction];
 	memory[next_index].op[0].val = val;
 	next_index++;
+	return memory + next_index-1;
 }
 
 static void new_opline_special_method(enum eINSTRUCTION e, val_t cons, struct array_t *a) {
@@ -97,8 +98,9 @@ static void gen_special_form(val_t val) {
 	assert(!IS_UNBOX(val));
 	array_t *a = new_array();
 	new_opline_special_method(SPECIAL_MTD, val.ptr->car, a);
-	val_t tmp = {0};
-	new_opline(END, tmp);
+	val_t op = {0, 0};
+	opline_t *op_jmp = new_opline(JMP, op);
+	int start_index = next_index;
 	func_t *func = search_func(val.ptr->car.ptr->str);
 	int *quote_position = NULL;
 	if (func != NULL && FLAG_IS_STATIC(func->flag) && func->is_quote[0]) {
@@ -114,9 +116,10 @@ static void gen_special_form(val_t val) {
 		} else {
 			gen_expression(cdr.ptr->car);
 		}
-		new_opline(END, tmp);
+		new_opline(END, op);
 		cdr = cdr.ptr->cdr;
 	}
+	op_jmp->op[0].ivalue = next_index - start_index;
 }
 
 static void gen_list (val_t cons) {
