@@ -114,9 +114,7 @@ static void gen_special_form(val_t val) {
 		} else {
 			gen_expression(cdr.ptr->car);
 		}
-		if (i != length-1) {
-			new_opline(END, tmp);
-		}
+		new_opline(END, tmp);
 		cdr = cdr.ptr->cdr;
 	}
 }

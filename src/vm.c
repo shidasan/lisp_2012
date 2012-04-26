@@ -110,8 +110,8 @@ special_mtd:
 		array = pc->op[1].a;
 		func = search_func(val.ptr->str);
 		cons_t *old_environment = begin_local_scope(func);
-		args_num = 0;
-		esp[-args_num] = func->special_mtd(esp, 0, array);
+		esp[0] = func->special_mtd(esp, 0, array);
+		esp++;
 		end_local_scope(old_environment);
 		goto *((++pc)->instruction_ptr);
 	}

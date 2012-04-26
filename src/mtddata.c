@@ -1265,7 +1265,7 @@ static_mtd_data static_mtds[] = {
 	{"return-from", -1, 0, 1, 0, _return_from, NULL},
 	{"when", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, when},
 	{"unless", -1, FLAG_SPECIAL_FORM, 0, 0, NULL, unless},
-	{"defun", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 2, NULL, defun},
+	{"defun", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defun},
 	{"lambda", -1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, lambda},
 	{"defmacro", -1,FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, -1, 0, NULL, defmacro},
 	{"setq", 2, 0, 1, 0, setq, NULL},
