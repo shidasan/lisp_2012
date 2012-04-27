@@ -45,7 +45,7 @@ static val_t print(val_t *VSTACK, int ARGC) {
 	return cons;
 }
 
-static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t format(val_t *VSTACK, array_t *a) {
 	int length = array_size(a), location = 0, evaluate = 2;
 	if (length < 2) {
 		EXCEPTION("Too few arguments!!\n");
@@ -66,7 +66,8 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	const char *str = format_string.ptr->str;
 	int str_len = strlen(str);
 	string_buffer_t *buffer = new_string_buffer();
-	val_t val = {0, 0};
+	val_t val;
+	val.ptr = NULL;
 	while (location <= str_len) {
 		switch(str[location]) {
 		case '~':
@@ -110,7 +111,8 @@ static val_t format(val_t *VSTACK, int ARGC, array_t *a) {
 	for (; evaluate < length; evaluate++) {
 		val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
 	}
-	val_t res = {0, 0};
+	val_t res;
+	res.ptr = NULL;
 	char *res_str = string_buffer_to_string(buffer);
 	if (IS_nil(destination)) {
 		res.ptr = new_string(res_str);
@@ -282,7 +284,7 @@ static val_t cddddr(val_t* VSTACK, int ARGC) {
 static val_t cons(val_t* VSTACK, int ARGC) {
 	val_t car = ARGS(0);
 	val_t cdr = ARGS(1);
-	val_t val = {0, 0};
+	val_t val;
 	val.ptr = new_open();
 	val.ptr->car = car;
 	val.ptr->cdr = cdr;
@@ -312,7 +314,7 @@ static val_t add_ff(val_t v0, val_t v1) {
 static val_t (*add_op[])(val_t, val_t) = {add_ff, add_fi, add_if, add_ii};
 static val_t add(val_t* VSTACK, int ARGC) {
 	int i;
-	val_t res = {0, INT_OFFSET};
+	val_t res = new_int(0);
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
@@ -383,7 +385,7 @@ static val_t mul_ff(val_t v0, val_t v1) {
 static val_t (*mul_op[])(val_t, val_t) = {mul_ff, mul_fi, mul_if, mul_ii};
 static val_t mul(val_t* VSTACK, int ARGC) {
 	int i;
-	val_t res = {1, INT_OFFSET};
+	val_t res = new_int(1);
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
@@ -395,6 +397,7 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 }
 
 static val_t _div(val_t* VSTACK, int ARGC) {
+	(void)VSTACK;(void)ARGC;
 	assert(0);
 }
 
@@ -775,7 +778,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 	if (func == NULL && !IS_LAMBDA(val)) {
 		FMT_EXCEPTION("function %s not found!!\n", (void*)val.ptr->str);
 	}
-	val_t res = {0, 0};
+	val_t res = null_val();
 	cons_t *old_environment = NULL;
 	if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 		old_environment = begin_local_scope(func);
@@ -804,7 +807,6 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 	} else {
 		old_environment = change_local_scope(current_environment, func->environment);
 		environment_list_push(old_environment);
-		array_t *opline_list = func->opline_list;
 		set_args(VSTACK, ARGC-1, func);
 		res = exec_body(VSTACK + ARGC-3, func);
 		environment_list_pop();
@@ -818,7 +820,7 @@ static val_t list(val_t * VSTACK, int ARGC) {
 	if (ARGC == 0) {
 		return new_bool(0);
 	}
-	val_t res = {0, 0};
+	val_t res = null_val();
 	res.ptr = new_open();
 	cstack_cons_cell_push(res.ptr);
 	val_t tmp = res;
@@ -856,9 +858,9 @@ static val_t length(val_t *VSTACK, int ARGC) {
 	return new_int(res);
 }
 
-static val_t _if(val_t *VSTACK, int ARGC, struct array_t *a) {
+static val_t _if(val_t *VSTACK, struct array_t *a) {
 	val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
-	val_t res = {0, 0};
+	val_t res = null_val();
 	if (!IS_nil(val)) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
 	} else {
@@ -867,7 +869,7 @@ static val_t _if(val_t *VSTACK, int ARGC, struct array_t *a) {
 	return res;
 }
 
-static val_t _assert(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t _assert(val_t *VSTACK, array_t *a) {
 	val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (IS_nil(val)) {
 		EXCEPTION("NIL must evalueate to a non-NIL value\n");
@@ -876,12 +878,12 @@ static val_t _assert(val_t *VSTACK, int ARGC, array_t *a) {
 	return val;
 }
 
-static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t cond(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
 	if (size == 0) {
 		return new_bool(0);
 	}
-	val_t res = {0, 0};
+	val_t res = null_val();
 	for (; i < size; i++) {
 		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 		VSTACK[1] = val;
@@ -914,18 +916,18 @@ static val_t cond(val_t *VSTACK, int ARGC, array_t *a) {
 	return new_bool(0);
 }
 
-static val_t progn(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t progn(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = {0, 0};
+	val_t res = null_val();
 	for (; i < size; i++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
 	return res;
 }
 
-static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t loop(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
-	val_t res = {0, 0};
+	val_t res = null_val();
 	jmp_buf buf;
 	VSTACK[1] = new_bool(0);
 	loop_frame_push(&buf, VSTACK[1]);
@@ -942,14 +944,14 @@ static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
-static val_t block(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t block(val_t *VSTACK, array_t *a) {
 	int size = array_size(a);
 	if (size == 0) {
 		EXCEPTION("Too few arguments!!\n");
 	} else if (size == 1) {
 		return new_bool(0);
 	}
-	val_t res = {0, 0};
+	val_t res = null_val();
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
@@ -988,6 +990,7 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 		}
 	}
 	EXCEPTION("No block found!!\n");
+	return null_val(); //unreached
 }
 
 static val_t _return_from(val_t *VSTACK, int ARGC) {
@@ -1000,17 +1003,18 @@ static val_t _return_from(val_t *VSTACK, int ARGC) {
 		jmp_buf *buf = frame->buf;
 		val_t block_name = frame->block_name;
 		free(frame);
-		if (IS_nil(block_name) && IS_nil(args0) ||
-			IS_T(block_name) && IS_T(args0) ||
+		if ((IS_nil(block_name) && IS_nil(args0)) ||
+			(IS_T(block_name) && IS_T(args0)) ||
 			strcmp(block_name.ptr->str, args0.ptr->str) == 0) {
 			loop_return_value = (ARGC == 1) ? new_bool(0) : ARGS(1);
 			longjmp(*buf, 1);
 		}
 	}
 	EXCEPTION("No block found!!\n");
+	return null_val();//unreached
 }
 
-static val_t when(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t when(val_t *VSTACK, array_t *a) {
 	int size = array_size(a);
 	if (size == 0) {
 		EXCEPTION("argument length does not match!!\n");
@@ -1026,7 +1030,7 @@ static val_t when(val_t *VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
-static val_t unless(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t unless(val_t *VSTACK, array_t *a) {
 	int size = array_size(a);
 	if (size == 0) {
 		EXCEPTION("argument length does not match!!\n");
@@ -1042,7 +1046,7 @@ static val_t unless(val_t *VSTACK, int ARGC, array_t *a) {
 	return res;
 }
 
-static val_t defun(val_t *VSTACK, int ARGC, struct array_t *a) {
+static val_t defun(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
 		EXCEPTION("Excepted Symbol!!\n");
@@ -1075,7 +1079,7 @@ static lambda_env_t *new_lambda_env(val_t args, cons_t *environment) {
 	return env;
 }
 
-static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t lambda(val_t *VSTACK, array_t *a) {
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	int i = 1;
 	struct array_t *fbody_list = new_array();
@@ -1086,15 +1090,14 @@ static val_t lambda(val_t *VSTACK, int ARGC, array_t *a) {
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
-	int argc = length(VSTACK+1, 1).ivalue;
 	//set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
-	val_t lambda_func = {0, 0};
+	val_t lambda_func = null_val();
 	lambda_env_t *env = new_lambda_env(args, current_environment);
 	lambda_func.ptr = new_lambda(env, fbody_list);
 	return lambda_func;
 }
 
-static val_t defmacro(val_t *VSTACK, int ARGC, array_t *a) {
+static val_t defmacro(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
 		EXCEPTION("Excepted Symbol!!\n");
@@ -1123,11 +1126,11 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 	return value;
 }
 
-static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) {
+static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 	val_t value_list = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
-	val_t variable = {0, 0};
-	val_t list = {0, 0};
-	val_t value = {0, 0};
+	val_t variable = null_val();
+	val_t list = null_val();
+	val_t value = null_val();
 	array_t *a1 = new_array();
 	array_t *a2 = new_array();
 	if (IS_OPEN(value_list)) {
@@ -1162,7 +1165,7 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 					EXCEPTION("Excepted Symbol!!\n");
 				}
 				if (is_star) {
-					val_t p = set_variable(list.ptr, new_bool(0), 1);
+					set_variable(list.ptr, new_bool(0), 1);
 				} else {
 					array_add(a1, list.ptr);
 					array_add(a2, NULL);
@@ -1190,7 +1193,7 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 	}
 	array_free(a1);
 	array_free(a2);
-	val_t res = {0, 0};
+	val_t res = null_val();
 	int i;
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
@@ -1198,12 +1201,12 @@ static val_t let_inner(val_t *VSTACK, int ARGC, struct array_t *a, int is_star) 
 	return res;
 }
 
-static val_t let(val_t *VSTACK, int ARGC, struct array_t *a) {
-	return let_inner(VSTACK, ARGC, a, 0);
+static val_t let(val_t *VSTACK, struct array_t *a) {
+	return let_inner(VSTACK, a, 0);
 }
 
-static val_t let_star(val_t *VSTACK, int ARGC, array_t *a) {
-	return let_inner(VSTACK, ARGC, a, 1);
+static val_t let_star(val_t *VSTACK, array_t *a) {
+	return let_inner(VSTACK, a, 1);
 }
 static val_t eval(val_t *VSTACK, int ARGC) {
 	//val_t cons = CONS_EVAL(ARGS(0));

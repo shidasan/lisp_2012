@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4)
 set(CMAKE_C_FLAGS_RELEASE "-W -Wall -O2")
-set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_DEBUG "-g -W -Wall")
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release")
 endif()

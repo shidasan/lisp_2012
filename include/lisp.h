@@ -48,6 +48,7 @@
 #define IS_nil(VAL)               (VAL_TYPE(VAL) == nil_OFFSET)
 #define IS_OPEN(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
 #define IS_STRING(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == STRING)
+#define IS_ARRAY(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == ARRAY)
 #define IS_FUNC(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == FUNC)
 #define IS_LAMBDA(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == LAMBDA)
 #define IS_VARIABLE(VAL)          (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)
@@ -66,14 +67,14 @@
 /* PUSH, END, JMP, GOTO, RETURN, CALL */
 enum eINSTRUCTION { PUSH, MTDCALL, MTDCHECK, SPECIAL_MTD, GET_VARIABLE, GET_ARG, END, JMP};
 enum TokType {  tok_int, tok_float, tok_eof, tok_open, tok_close, tok_error, tok_nil, tok_T, tok_symbol, tok_dot, tok_quote, tok_string, tok_array};
-enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7, VARIABLE_TABLE = 8, LOCAL_ENVIRONMENT = 9, LAMBDA = 10};
+enum eTYPE { nil = 0, T = 1, NUM = 2, OPEN = 3, INT = 4, STRING = 5, FUNC = 6, VARIABLE = 7, VARIABLE_TABLE = 8, LOCAL_ENVIRONMENT = 9, LAMBDA = 10, ARRAY = 11};
 enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, ast_func, ast_variable, ast_special_form};
 
 int shell(int , char**);
 void print_return_value(val_t );
-void *array_get(struct array_t*, size_t);
-size_t array_size(struct array_t *);
-void array_set(struct array_t *, size_t, void *);
+void *array_get(struct array_t*, int);
+int array_size(struct array_t *);
+void array_set(struct array_t *, int, void *);
 void array_add(struct array_t *, void *);
 void *array_pop(struct array_t *);
 void string_buffer_append_s(string_buffer_t *buffer, const char *str);
@@ -89,7 +90,7 @@ typedef struct static_mtd_data {
 	int is_quote0;
 	int is_quote1;
 	val_t (*mtd)(val_t*, int);
-	val_t (*special_mtd)(val_t*, int, struct array_t*);
+	val_t (*special_mtd)(val_t*, struct array_t*);
 } static_mtd_data;
 
 opline_t *memory;
@@ -105,7 +106,7 @@ void loop_frame_push(jmp_buf *buf, val_t block_name);
 loop_frame_t *loop_frame_pop();
 void throw_exception(const char *, int, const char *);
 void throw_fmt_exception(const char *, int, const char *, va_list);
-val_t call_lambda(val_t *, int, array_t *);
+val_t call_lambda(val_t *, array_t *);
 extern int current_index, next_index;
 extern void** table;
 

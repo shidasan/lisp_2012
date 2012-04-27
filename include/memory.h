@@ -11,14 +11,16 @@ typedef struct string_buffer_t {
 
 typedef struct array_t {
 	void **list;
-	size_t size;
-	size_t capacity;
+	int size;
+	int capacity;
 }array_t;
 
 struct cons_t;
 
 typedef struct val_t {
 	union {
+		struct cons_t *ptr;
+		struct array_t *a;
 		struct {
 			union {
 				int ivalue;
@@ -26,8 +28,6 @@ typedef struct val_t {
 			};
 			int tag;
 		};
-		struct cons_t *ptr;
-		struct array_t *a;
 	};
 }val_t;
 
@@ -54,6 +54,8 @@ typedef struct cons_t{
 		struct val_t cdr;
 		/* used for local scope */
 		struct cons_t *local_environment;
+		/* used for array */
+		val_t *list;
 	};
 	struct cons_api_t *api;
 }cons_t;
@@ -61,7 +63,6 @@ typedef struct cons_t{
 typedef struct cons_api_t {
 	void (* to_string)(cons_t *, string_buffer_t*);
 	void (* free)(cons_t *);
-	cons_t* (* eval)(cons_t *);
 	void (* trace)(cons_t *, struct array_t *);
 }cons_api_t;
 
@@ -92,7 +93,7 @@ typedef struct func_t{
 	union {
 		struct array_t *opline_list;
 		val_t (*mtd)(val_t*, int);
-		val_t (*special_mtd)(val_t*, int, struct array_t*);
+		val_t (*special_mtd)(val_t*, struct array_t*);
 	};
 	cons_t *environment;
 	val_t args;
@@ -150,11 +151,13 @@ void gc_init();
 void cstack_cons_cell_push(cons_t *);
 cons_t *cstack_cons_cell_pop();
 
+val_t null_val();
 val_t new_int(int n);
 val_t new_float(float f);
 val_t new_bool(int n);
 cons_t* new_cons_cell();
 cons_t* new_string(const char *str);
+cons_t* new_cons_array(val_t);
 cons_t *new_lambda(lambda_env_t *, array_t *);
 cons_t* new_func(const char *str, cons_t *environment);
 cons_t* new_variable(char *str);

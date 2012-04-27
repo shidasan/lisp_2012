@@ -46,53 +46,6 @@ void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {
 		}
 	}
 }
-static void print_T(cons_t *cons, string_buffer_t *buffer) {
-	string_buffer_append_s(buffer, "T");
-}
-
-static void free_T(cons_t *cons) {
-
-}
-
-static cons_t *eval_T(cons_t *cons) {
-	return cons;
-}
-
-static void trace_T(cons_t *cons, struct array_t *traced) {
-	//ADDREF(cons, traced);
-}
-
-static void print_nil(cons_t *cons, string_buffer_t *buffer) {
-	string_buffer_append_s(buffer, "nil");
-}
-
-static void free_nil(cons_t *cons) {
-
-}
-
-static cons_t *eval_nil(cons_t *cons) {
-	return cons;
-}
-
-static void trace_nil(cons_t *cons, struct array_t *traced) {
-	//ADDREF(cons, traced);
-}
-
-//static void print_i(cons_t *cons, string_buffer_t *buffer) {
-//	string_buffer_append_i(buffer, cons.ivalue);
-//}
-
-static void free_i(cons_t *cons) {
-}
-
-static cons_t *eval_i(cons_t *cons) {
-	return cons;
-}
-
-static void trace_i(cons_t *cons, struct array_t *traced) {
-	//ADDREF(cons, traced);
-}
-
 static void print_func(cons_t *cons, string_buffer_t *buffer) {
 	string_buffer_append_s(buffer, cons->str);
 }
@@ -101,30 +54,12 @@ static void free_func(cons_t *cons) {
 	FREE(cons->str);
 }
 
-static cons_t *eval_func(cons_t *cons) {
-	return cons;
-}
-
-static void trace_func(cons_t *cons, struct array_t *traced) {
-	//ADDREF(cons, traced);
-	//ADDREF(cons->car, traced);
-	//ADDREF_NULLABLE(cons->cdr, traced);
-}
-
 static void print_variable(cons_t *cons, string_buffer_t *buffer) {
 	string_buffer_append_s(buffer, cons->str);
 }
 
 static void free_variable(cons_t *cons) {
 	FREE(cons->str);
-}
-
-static cons_t *eval_variable(cons_t *cons) {
-	//return search_variable(cons->str);
-}
-
-static void trace_variable(cons_t *cons, struct array_t *traced) {
-	//ADDREF(cons, traced);
 }
 
 static void print_open(cons_t *cons, string_buffer_t *buffer) {
@@ -164,23 +99,9 @@ static void print_open(cons_t *cons, string_buffer_t *buffer) {
 	}
 }
 
-static void free_open(cons_t *cons) {
-
-}
-
-static cons_t *eval_open(cons_t *cons) {
-	TODO("eval list\n");
-	//cons_t *car = CONS_EVAL(cons->car);
-	//func_t *func = search_func(car->str);
-}
-
 static void trace_open(cons_t *cons, struct array_t *traced) {
 	ADDREF_VAL(cons->car, traced);
 	ADDREF_VAL_NULLABLE(cons->cdr, traced);
-}
-
-static void print_variable_table(cons_t *cons, string_buffer_t *buffer) {
-	TODO("print variable table\n");
 }
 
 static void free_variable_table(cons_t *cons) {
@@ -210,26 +131,10 @@ static void free_variable_table(cons_t *cons) {
 	FREE(cons->variable_data_table);
 }
 
-static cons_t *eval_variable_table(cons_t *cons) {
-	/* do nothing */
-}
-
 static void trace_variable_table(cons_t *cons, struct array_t *traced) {
 	//fprintf(stderr, "mark variable table%p\n", cons);
 	//ADDREF(cons, traced);
 	mark_variable_data_table(cons->variable_data_table, traced);
-}
-
-static void print_local_environment(cons_t *cons, string_buffer_t *buffer) {
-	TODO("print local environment\n");
-}
-
-static void free_local_environment(cons_t *cons) {
-	
-}
-
-static cons_t *eval_local_environment(cons_t *cons) {
-
 }
 
 static void trace_local_environment(cons_t *cons, struct array_t *traced) {
@@ -241,19 +146,11 @@ static void trace_local_environment(cons_t *cons, struct array_t *traced) {
 }
 
 static void print_string(cons_t *cons, string_buffer_t *buffer) {
-	printf("%s", cons->str);
+	string_buffer_append_s(buffer, cons->str);
 }
 
 static void free_string(cons_t *cons) {
 	FREE(cons->str);
-}
-
-static cons_t *eval_string(cons_t *cons) {
-
-}
-
-static void trace_string(cons_t *cons, array_t *traced) {
-
 }
 
 static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
@@ -262,11 +159,11 @@ static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
 	string_buffer_append_c(buffer, ' ');
 	int i = 0;
 	array_t *a = cons->cdr.a;
-	for (; i < array_size(a); i++) {
+	for (; i < (int)array_size(a); i++) {
 		lambda_data_t *data = (lambda_data_t*)array_get(a, i);
 		VAL_TO_STRING(data->body, buffer, 1);
 
-		if (i != array_size(a)-1) {
+		if (i != (int)array_size(a)-1) {
 			string_buffer_append_c(buffer, ' ');
 		}
 	}
@@ -276,32 +173,57 @@ static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
 static void free_lambda(cons_t *cons) {
 	array_t *a = cons->cdr.a;
 	int i = 0;
-	for (; i < array_size(a); i++) {
+	for (; i < (int)array_size(a); i++) {
 		lambda_data_t *data = (lambda_data_t*)array_get(a, i);
 		FREE(data);
 	}
 	array_free(a);
 }
 
-static cons_t *eval_lambda(cons_t *cons) {
-
-}
-
 static void trace_lambda(cons_t *cons, array_t *traced) {
 	ADDREF_VAL(cons->car, traced);
 }
 
-//struct cons_api_t cons_T_api = {print_T, free_T, eval_T, trace_T};
-//struct cons_api_t cons_nil_api = {print_nil, free_nil, eval_nil, trace_nil};
-//struct cons_api_t cons_int_api = {print_i, free_i, eval_i, trace_i};
-struct cons_api_t cons_func_api = {print_func, free_func, eval_func, trace_func};
-struct cons_api_t cons_variable_api = {print_variable, free_variable, eval_variable, trace_variable};
-struct cons_api_t cons_open_api = {print_open, free_open, eval_open, trace_open};
-struct cons_api_t cons_variable_table_api = {print_variable_table, free_variable_table, eval_variable_table, trace_variable_table};
-struct cons_api_t cons_local_environment_api = {print_local_environment, free_local_environment, eval_local_environment, trace_local_environment};
-struct cons_api_t cons_string_api = {print_string, free_string, eval_string, trace_string};
-struct cons_api_t cons_lambda_api = {print_lambda, free_lambda, eval_lambda, trace_lambda};
 
+static void print_cons_array(cons_t *cons, string_buffer_t *buffer) {
+	(void)cons;(void)buffer;
+}
+
+static void free_cons_array(cons_t *cons) {
+	(void)cons;
+
+}
+
+static void trace_cons_array(cons_t *cons, array_t *a) {
+	(void)cons;(void)a;
+}
+
+static void default_print(cons_t *cons, string_buffer_t *buffer) {
+	(void)cons;(void)buffer;
+}
+
+static void default_free(cons_t *cons) {
+	(void)cons;
+}
+
+static void default_trace(cons_t *cons, array_t *a) {
+	(void)cons;(void)a;
+}
+
+struct cons_api_t cons_func_api = {print_func, free_func, default_trace};
+struct cons_api_t cons_variable_api = {print_variable, free_variable, default_trace};
+struct cons_api_t cons_open_api = {print_open, default_free, trace_open};
+struct cons_api_t cons_string_api = {print_string, free_string, default_trace};
+struct cons_api_t cons_lambda_api = {print_lambda, free_lambda, trace_lambda};
+struct cons_api_t cons_array_api = {print_cons_array, free_cons_array, trace_cons_array};
+struct cons_api_t cons_variable_table_api = {default_print, free_variable_table, trace_variable_table};
+struct cons_api_t cons_local_environment_api = {default_print, default_free, trace_local_environment};
+
+val_t null_val() {
+	val_t res;
+	res.ptr = NULL;
+	return res;
+}
 val_t new_float(float f) {
 	val_t res;
 	res.tag = FLOAT_OFFSET;
@@ -394,5 +316,23 @@ cons_t *new_lambda(lambda_env_t *env, array_t *a) {
 	cons->api = &cons_lambda_api;
 	cons->env = env;
 	cons->cdr.a = a;
+	return cons;
+}
+
+cons_t *new_cons_array(val_t val) {
+	cons_t *cons = new_cons_cell();
+	cons->type = ARRAY;
+	cons->api = &cons_array_api;
+	val_t car = val.ptr->car;
+	array_t *a = new_array();
+	while (!IS_nil(val)) {
+
+	}
+	if (array_size(a) == 0) {
+		//array_push((void*)((uintptr_t)val));
+	}
+	cons->car.ivalue = array_size(a);
+	cons->list = (val_t*)a->list;
+	FREE(a);
 	return cons;
 }

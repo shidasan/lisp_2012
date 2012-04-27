@@ -40,13 +40,13 @@ void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	}
 }
 
-val_t call_lambda(val_t *VSTACK, int ARGC, array_t *a) {
+val_t call_lambda(val_t *VSTACK, array_t *a) {
 	val_t lambda_func = VSTACK[-1];
 	lambda_env_t *env = lambda_func.ptr->env;
 	val_t args = env->args;
 	int length = val_length(args), i;
 	array_t *lambda_data_list = lambda_func.ptr->cdr.a;
-	if (length != array_size(a)) {
+	if (length != (int)array_size(a)) {
 		EXCEPTION("Argument length does not match!!\n");
 	}
 	cons_t *old_environment = change_local_scope(current_environment, env->environment);
@@ -60,8 +60,9 @@ val_t call_lambda(val_t *VSTACK, int ARGC, array_t *a) {
 		set_variable(car.ptr, value, 1);
 		args = args.ptr->cdr;
 	}
-	val_t res = {0, 0};
-	for (i = 0; i < array_size(lambda_data_list); i++) {
+	val_t res;
+	res.ptr = NULL;
+	for (i = 0; i < (int)array_size(lambda_data_list); i++) {
 		lambda_data_t *data = (lambda_data_t*)array_get(lambda_data_list, i);
 		res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
 	}
@@ -73,7 +74,7 @@ val_t exec_body(val_t *VSTACK, func_t *func) {
 	val_t res;
 	array_t *opline_list = func->opline_list;
 	int a = 0;
-	for (; a < array_size(opline_list); a++) {
+	for (; a < (int)array_size(opline_list); a++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
 			codegen(res);
@@ -100,17 +101,14 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		res.ptr = (cons_t *)table;
         return res;
     }
-	if (dump_point < next_index - 1) {
-		//dump_vm();
+	if (0&& dump_point < next_index - 1) {
+		dump_vm();
 	}
 
     //val_t stack_value[STACKSIZE];
 
-    cons_t** sp_arg = NULL;
-    opline_t** sp_adr = NULL;
 	val_t *esp = ebp;
-    //register opline_t* pc = memory + current_index;
-    int a = 0, args_num = 0; 
+    int args_num = 0; 
 	val_t val;
 	func_t *func = NULL;
 	struct array_t *array = NULL;
@@ -145,12 +143,12 @@ special_mtd:
 		val = pc->op[0].val;
 		array = pc->op[1].a;
 		if (IS_NULL(val)) { /* lambda function */
-			esp[-1] = call_lambda(esp, 0, array);
+			esp[-1] = call_lambda(esp, array);
 			esp++;
 		} else {
 			func = search_func(val.ptr->str);
 			cons_t *old_environment = begin_local_scope(func);
-			esp[0] = func->special_mtd(esp, 0, array);
+			esp[0] = func->special_mtd(esp, array);
 			esp++;
 			end_local_scope(old_environment);
 		}

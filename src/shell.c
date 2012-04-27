@@ -16,6 +16,7 @@ val_t stack_value[STACKSIZE];
 val_t *esp = 0;
 
 static int add_history(const char *line) {
+	(void)line;
 	return 0;
 }
 
@@ -74,7 +75,8 @@ void exec(int using_readline) {
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
 	}
-	val_t null_value = {0, 0};
+	val_t null_value;
+	null_value.ptr = NULL;
 	loop_frame_push(&buf, null_value);
 	int jmp = 0;
 	if ((jmp = setjmp(buf)) == 0) {
@@ -123,7 +125,7 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 			}
 		}
 		free(str);
-		if (next_point == strlen(tmpstr)) {
+		if (next_point == (int)strlen(tmpstr)) {
 			break;
 		}
 	}
@@ -164,7 +166,6 @@ void shell_file(int argc, char **args, FILE* file) {
 }
 void shell_readline(int argc, char **args) {
 	int file_capacity = INIT_FILE_SIZE;
-	int file_size = 0;
 	char *tmpstr = (char*)malloc(file_capacity);
 	char *leftover = NULL;
 	while (1) {
@@ -207,7 +208,6 @@ int shell (int argc, char* args[])
 		}
 	}
 	init_opline_first();
-	int i;
 	set_static_mtds();
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;

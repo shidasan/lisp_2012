@@ -97,7 +97,8 @@ static void gen_special_form(val_t val) {
 	int i = 1;
 	assert(!IS_UNBOX(val));
 	array_t *a = new_array();
-	val_t op = {0, 0};
+	val_t op;
+	op.ptr = NULL;
 	if (IS_OPEN(val.ptr->car)) {
 		gen_expression(val.ptr->car);
 		new_opline_special_method(SPECIAL_MTD, op, a);
@@ -133,7 +134,7 @@ static void gen_list (val_t cons) {
 		EXCEPTION("Excepted symbol!!\n");
 	}
 	func_t *func = search_func(car.ptr->str);
-	if (IS_OPEN(car) || func != NULL && FLAG_IS_SPECIAL_FORM(func->flag)) {
+	if (IS_OPEN(car) || (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag))) {
 		gen_special_form(cons);
 	} else {
 		gen_func(cons);
@@ -161,6 +162,7 @@ static void gen_expression(val_t val) {
 void codegen(val_t cons) {
 	init_opline();
 	gen_expression(cons);
-	val_t tmp = {0};
+	val_t tmp;
+	tmp.ptr = NULL;
 	new_opline(END, tmp);
 }

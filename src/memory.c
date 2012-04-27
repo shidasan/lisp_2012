@@ -64,7 +64,7 @@ void string_buffer_free(string_buffer_t *buffer) {
 
 /* Array */
 
-void *array_get(array_t *a, size_t n) {
+void *array_get(array_t *a, int n) {
 	if (n < 0 || n >= a->size) {
 		fprintf(stderr, "out of bounds\n");
 		asm("int3");
@@ -72,11 +72,11 @@ void *array_get(array_t *a, size_t n) {
 	return a->list[n];
 }
 
-size_t array_size(array_t *a) {
+int array_size(array_t *a) {
 	return a->size;
 }
 
-void array_set(array_t *a, size_t n, void *v) {
+void array_set(array_t *a, int n, void *v) {
 	if (n < 0 || n >= a->size) {
 		fprintf(stderr, "out if bounds\n");
 	}
@@ -228,7 +228,7 @@ static cons_tbl_t *new_page_table() {
 	return tbl;
 }
 
-static cons_arena_t *new_cons_arena() {
+static void new_cons_arena() {
 	cons_arena_t *arena = (cons_arena_t *)malloc(sizeof(cons_arena_t));
 	arena->a = new_array();
 	array_add(arena->a, new_page_table());
@@ -249,8 +249,6 @@ static int cons_is_marked(cons_t *cons) {
 }
 static void mark_stack(array_t *traced) {
 	int i = 0;
-	val_t *sp = stack_value;
-	size_t size = array_size(traced);
 	for (; i < STACKSIZE; i++) {
 		if (stack_value[i].ptr != NULL) {
 			ADDREF_VAL(stack_value[i], traced);
@@ -298,10 +296,8 @@ static void mark_root(array_t *traced) {
 }
 
 static void gc_mark() {
-	size_t i;
 	array_t *ostack = new_array();
 	cons_t *cons = NULL;
-	array_t *a = cons_arena->a;
 	array_t *traced = new_array();
 	mark_root(traced);
 	cons_t *tmp;
@@ -324,12 +320,12 @@ static void gc_sweep() {
 	int count = 0;
 	int marked = 0;
 	cons_page_t *page;
-	for (i = 0; i < array_size(cons_arena->a); i++) {
+	for (i = 0; i < (uintptr_t)array_size(cons_arena->a); i++) {
 		array_t *a = cons_arena->a;
 		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
 		for (page = tbl->head; page < tbl->bottom; page++) {
 			for (j = 1; j <= PAGECONSSIZE; j++) {
-				int x = j / (sizeof(uintptr_t) * 8);
+				size_t x = j / (sizeof(uintptr_t) * 8);
 				if (!(page->h.bitmap[x] & ((uintptr_t)1 << (j % (sizeof(uintptr_t) * 8))))) {
 					if ((page->slots+j-1)->api) {
 						//CONS_PRINT(page->slots+j-1);

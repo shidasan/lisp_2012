@@ -26,10 +26,8 @@ float tokenize_float(int start) {
 
 int get_next_token_inner (string_buffer_t *buffer)
 {
-	char* TokTemp = NULL;
     int ALT = 1;
     token_int = 0;
-    unsigned int TokSize = 0;
     while (isspace(*current_char) || *current_char == ','){
         current_char++;
     }
@@ -38,7 +36,6 @@ int get_next_token_inner (string_buffer_t *buffer)
     }
 	if (*current_char == '\"') {
 		current_char++;
-		int len = 0;
 		while (*current_char != '\"') {
 			string_buffer_append_c(buffer, *current_char);
 			current_char++;
@@ -183,9 +180,10 @@ int get_next_token_inner (string_buffer_t *buffer)
     }
 	string_buffer_free(buffer);
 	EXCEPTION("Invalid token!!\n");
+	return tok_error; //unreach
 } 
 
-void get_next_token (void)
+void get_next_token ()
 {
 	string_buffer_t *buffer = new_string_buffer();
     token_type = get_next_token_inner(buffer);
@@ -197,20 +195,25 @@ static void tokenizer_init(char *str) {
 	current_char = str;
 }
 
+static val_t make_cons_tree2(int is_head_of_list);
+
 static val_t make_cons_single_node(int is_head_of_list) {
-	val_t val = {0, 0};
+	val_t val = null_val();
 	switch (token_type) {
 	case tok_int:
 		return new_int(token_int);
 	case tok_float:
 		return new_float(token_float);
 	case tok_string:
-		val.ptr - new_string(token_str);
+		val.ptr = new_string(token_str);
 		break;
 	case tok_nil:
 		return new_bool(0);
 	case tok_T:
 		return new_bool(1);
+	case tok_array:
+		val = make_cons_tree2(0);
+		val.ptr = new_cons_array(val);
 	case tok_symbol:
 		if (is_head_of_list) {
 			val.ptr = new_func(token_str, NULL);
@@ -227,14 +230,11 @@ static val_t make_cons_single_node(int is_head_of_list) {
 	return val;
 }
 
-static val_t make_cons_tree2(int is_head_of_list);
-
 static val_t make_cons_list() {
-	val_t val = {0, 0};
+	val_t val = null_val();
 	val.ptr = new_open();
 	val_t tmp = val;
-	val_t car = {0, 0};
-	int flag = 1;
+	val_t car = null_val();
 	get_next_token();
 	tmp.ptr->car = make_cons_tree2(1);
 	if (IS_NULL(tmp.ptr->car)) {
@@ -271,7 +271,7 @@ static val_t make_cons_tree2(int is_head_of_list) {
 	if (token_type == tok_open) {
 		return make_cons_list();
 	}else if (token_type == tok_quote) {	
-		val_t root = {0, 0};
+		val_t root = null_val();
 		root.ptr = new_open();
 		cstack_cons_cell_push(root.ptr);
 		root.ptr->car.ptr = new_func("quote", NULL);
@@ -290,7 +290,7 @@ int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
 	jmp_buf buf;
-	val_t null_value = {0, 0};
+	val_t null_value = null_val();
 	loop_frame_push(&buf, null_value);
 	int jmp = 0;
 	if ((jmp = setjmp(buf)) == 0) {

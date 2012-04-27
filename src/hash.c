@@ -9,7 +9,6 @@ array_t *environment_list = NULL;
 func_t *func_data_table = NULL;
 
 void new_func_data_table() {
-	int i;
 	func_data_table = (func_t*)malloc(sizeof(func_t) * HASH_SIZE);
 	memset(func_data_table, 0, sizeof(func_t) * HASH_SIZE);
 }
@@ -89,27 +88,8 @@ void environment_list_push(cons_t *environment) {
 	array_add(environment_list, environment);
 }
 
-cons_t *environment_list_pop(cons_t *environment) {
+cons_t *environment_list_pop() {
 	return array_pop(environment_list);
-}
-
-static void free_variable_data_table(variable_t *table) {
-	int i;
-	variable_t *tempV, *currentV;
-	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
-		FREE(table[i].name);
-		currentV = table[i].next;
-		while (1){
-			if (currentV != NULL){
-				tempV = currentV->next;
-				FREE(currentV->name);
-				FREE(currentV);
-				currentV = tempV;
-			} else {
-				break;
-			}
-		}
-	}
 }
 
 void free_func_data_table() {
@@ -144,7 +124,7 @@ struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int i
 				p->cons = value;
 				return p->cons;
 			} else {
-				val_t res = {0, 0};
+				val_t res = null_val();
 				return res;
 			}
 		} else if (strcmp(p->name, str) == 0) {
@@ -160,8 +140,7 @@ struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int i
 				memset(p->next, 0, sizeof(variable_t));
 				p = p->next;
 			} else {
-				val_t res = {0, 0};
-				return res;
+				return null_val();
 			}
 		} else {
 			p = p->next;
@@ -173,12 +152,12 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car.ptr;
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
-	val_t res = set_variable_inner(table, cons, value, set_local_scope | environment->cdr.ptr == NULL);
+	val_t res = set_variable_inner(table, cons, value, set_local_scope | (environment->cdr.ptr == NULL));
 	while (!IS_UNBOX(res) && res.ptr == NULL) {
 	//fprintf(stderr, "set_variable, car->type: %d\n", table->type);
 		environment = environment->cdr.ptr;
 		table = environment->car.ptr;
-		res = set_variable_inner(table, cons, value, set_local_scope | environment->cdr.ptr == NULL);
+		res = set_variable_inner(table, cons, value, set_local_scope | (environment->cdr.ptr == NULL));
 	}
 	return res;
 }
@@ -186,7 +165,7 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 struct val_t search_variable_inner (cons_t *table, char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
-	val_t res = {0, 0};
+	val_t res = null_val();
 	while (1){
 		if (p->name == NULL) {
 			res.ivalue = 0;
