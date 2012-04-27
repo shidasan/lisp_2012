@@ -40,7 +40,7 @@ void set_args(val_t *VSTACK, int ARGC, func_t *func) {
 	}
 }
 
-static val_t call_lambda(val_t *VSTACK, int ARGC, array_t *a) {
+val_t call_lambda(val_t *VSTACK, int ARGC, array_t *a) {
 	val_t lambda_func = VSTACK[-1];
 	lambda_env_t *env = lambda_func.ptr->env;
 	val_t args = env->args;
@@ -133,7 +133,7 @@ get_variable:
 		val = pc->op[0].val;
 		val_t res = search_variable(val.ptr->str);
 		if (IS_NULL(res)) {
-			EXCEPTION("variable not found!!\n");
+			FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
 		}
 		esp[0] = res;
 		esp++;

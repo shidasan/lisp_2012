@@ -52,6 +52,7 @@
 #define IS_LAMBDA(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == LAMBDA)
 #define IS_VARIABLE(VAL)          (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)
 #define IS_SYMBOL(VAL)            (IS_FUNC(VAL) || IS_VARIABLE(VAL))
+#define IS_CALLABLE(VAL)          (IS_SYMBOL(VAL) || IS_LAMBDA(VAL))
 #define IS_VARIABLE_TABLE(VAL)    (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE_TABLE)
 #define IS_LOCAL_ENVIRONMENT(VAL) (!IS_UNBOX(VAL) && (VAL).ptr->type == LOCAL_ENVIRONMENT)
 
@@ -104,6 +105,7 @@ void loop_frame_push(jmp_buf *buf, val_t block_name);
 loop_frame_t *loop_frame_pop();
 void throw_exception(const char *, int, const char *);
 void throw_fmt_exception(const char *, int, const char *, va_list);
+val_t call_lambda(val_t *, int, array_t *);
 extern int current_index, next_index;
 extern void** table;
 

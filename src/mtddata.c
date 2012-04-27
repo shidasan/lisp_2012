@@ -768,18 +768,39 @@ static val_t quote(val_t * VSTACK, int ARGC) {
 
 static val_t funcall(val_t * VSTACK, int ARGC) {
 	val_t val = ARGS(0);
-	if (!IS_SYMBOL(val)) {
+	if (!IS_CALLABLE(val)) {
 		EXCEPTION("Excepted Symbol!!\n");
 	}
 	func_t *func = search_func(val.ptr->str);
-	if (func == NULL) {
+	if (func == NULL && !IS_LAMBDA(val)) {
 		FMT_EXCEPTION("function %s not found!!\n", (void*)val.ptr->str);
 	}
 	val_t res = {0, 0};
 	cons_t *old_environment = NULL;
-	if (FLAG_IS_STATIC(func->flag)) {
+	if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 		old_environment = begin_local_scope(func);
 		res = func->mtd(VSTACK, ARGC - 1);
+	} else if (IS_LAMBDA(val)) { /* call lambda function */
+		lambda_env_t *env = val.ptr->env;
+		val_t args = env->args;
+		array_t *lambda_data_list = val.ptr->cdr.a;
+		cons_t *old_environment = change_local_scope(current_environment, env->environment);
+		environment_list_push(old_environment);
+		int i = 1;
+		for (; i < ARGC; i++) {
+			val_t car = args.ptr->car;
+			if (!IS_SYMBOL(car)) {
+				EXCEPTION("Excepted symbol!!\n");
+			}
+			val_t value = ARGS(i);
+			set_variable(car.ptr, value, 1);
+			args = args.ptr->cdr;
+		}
+		for (i = 0; i < array_size(lambda_data_list); i++) {
+			lambda_data_t *data = (lambda_data_t*)array_get(lambda_data_list, i);
+			res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
+		}
+		environment_list_pop();
 	} else {
 		old_environment = change_local_scope(current_environment, func->environment);
 		environment_list_push(old_environment);
