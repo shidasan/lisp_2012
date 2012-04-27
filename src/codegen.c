@@ -74,7 +74,7 @@ static void gen_func(val_t val) {
 	}
 	val_t cdr = val.ptr->cdr;
 	//if (func == NULL || func->value != -1 && func->value != size) {
-	if (func == NULL) {
+	if (func == NULL || func->value != -1) {
 		gen_mtd_check(car, size);
 	}
 	for (; i < size; i++) {

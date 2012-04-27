@@ -3,13 +3,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "lisp.h"
-#define LR 10
 static int token_type;
 static char* current_char;
 static char* token_str;
 static int token_int;
 static float token_float;
-static unsigned int LengthRatio;
 
 int is_open_space_close(char c) {
 	return c == '(' || c == ' ' || c == ')';
@@ -26,9 +24,9 @@ float tokenize_float(int start) {
 	return res;
 }
 
-int GetTok (void)
+int get_next_token_inner (string_buffer_t *buffer)
 {
-    char* TokTemp = NULL;
+	char* TokTemp = NULL;
     int ALT = 1;
     token_int = 0;
     unsigned int TokSize = 0;
@@ -42,19 +40,11 @@ int GetTok (void)
 		current_char++;
 		int len = 0;
 		while (*current_char != '\"') {
-			token_str[TokSize] = *current_char;
-			TokSize++;
+			string_buffer_append_c(buffer, *current_char);
 			current_char++;
-			if (TokSize >= LengthRatio - 1) {
-                LengthRatio *= 2;
-                TokTemp = (char*)calloc(LengthRatio,sizeof(char));
-                strncpy(TokTemp,token_str,LengthRatio);
-                free(token_str);
-                token_str = TokTemp;
-			}
 		}
-		token_str[TokSize] = '\0';
 		current_char++;
+		token_str = string_buffer_to_string(buffer);
 		return tok_string;
 	}
     if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
@@ -84,25 +74,17 @@ int GetTok (void)
     }
     if (isalpha(*current_char)){
         while (!is_open_space_close(*current_char)){
-            token_str[TokSize] = *current_char;
-            TokSize++;
+			string_buffer_append_c(buffer, *current_char);
             current_char++;
-            if (TokSize >= LengthRatio - 1){
-                LengthRatio *= 2;
-                TokTemp = (char*)calloc(LengthRatio,sizeof(char));
-                strncpy(TokTemp,token_str,LengthRatio);
-                free(token_str);
-                token_str = TokTemp;
-            }
         }
 
-        token_str[TokSize] = '\0';
-		if (strcmp(token_str, "nil") == 0) {
+		if (strncmp(buffer->str, "nil", 3) == 0) {
 			return tok_nil;
 		}
-		if (strcmp(token_str, "T") == 0) {
+		if (strncmp(buffer->str, "T", 1) == 0) {
 			return tok_T;
 		}
+		token_str = string_buffer_to_string(buffer);
 		return tok_symbol;
     }
     if (*current_char == '('){
@@ -111,6 +93,9 @@ int GetTok (void)
     } else if (*current_char == ')'){
         current_char++;
         return tok_close;
+	} else if (*current_char == '#') {
+		current_char++;
+		return tok_array;
 	} else if (*current_char == '\'') {
 		current_char++;
 		return tok_quote;
@@ -126,113 +111,118 @@ int GetTok (void)
 	} else if (*current_char == '<') {
 		if (current_char[1] == '=' && is_open_space_close(current_char[2])) {
 			current_char+=2;
-			token_str[0] = '<';
-			token_str[1] = '=';
-			token_str[2] = '\0';
+			string_buffer_append_s(buffer, "<=");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '<';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "<");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '>') {
 		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
 			current_char+=2;
-			token_str[0] = '>';
-			token_str[1] = '=';
-			token_str[2] = '\0';
+			string_buffer_append_s(buffer, ">=");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '>';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, ">");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '=') {
 		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
 			current_char+=2;
-			token_str[0] = '=';
-			token_str[1] = '=';
-			token_str[2] = '\0';
+			string_buffer_append_s(buffer, "==");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '=';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "=");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '+') {
 		if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '+';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "+");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '-') {
 		if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '-';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "-");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '*') {
 		if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '*';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "*");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	} else if (*current_char == '/') {
 		if (current_char[1] == '=' && (is_open_space_close(current_char[2]))) {
 			current_char+=2;
-			token_str[0] = '/';
-			token_str[1] = '=';
-			token_str[2] = '\0';
+			string_buffer_append_s(buffer, "/=");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		} else if (is_open_space_close(current_char[1])) {
 			current_char++;
-			token_str[0] = '/';
-			token_str[1] = '\0';
+			string_buffer_append_s(buffer, "/");
+			token_str = string_buffer_to_string(buffer);
 			return tok_symbol;
 		}
 	}
     if( *current_char == '\0'){
         return tok_eof;
     }
-	return tok_error;
+	string_buffer_free(buffer);
+	EXCEPTION("Invalid token!!\n");
 } 
 
 void get_next_token (void)
 {
-    token_type = GetTok();
+	string_buffer_t *buffer = new_string_buffer();
+    token_type = get_next_token_inner(buffer);
+	string_buffer_free(buffer);
 }
 
 static void tokenizer_init(char *str) {
 	/* default maximum token length (mutable) */
-	LengthRatio = LR;
 	current_char = str;
-    token_str = (char*)calloc(LengthRatio,sizeof(char*));
 }
 
 static val_t make_cons_single_node(int is_head_of_list) {
 	val_t val = {0, 0};
-	if (token_type == tok_int) {
-		val = new_int(token_int);
-	} else if (token_type == tok_float) {
-		val = new_float(token_float);
-	} else if (token_type == tok_string) {
-		val.ptr = new_string(token_str);
-	} else if (token_type == tok_nil) {
-		val = new_bool(0);
-	} else if (token_type == tok_T) {
-		val = new_bool(1);
-	} else if (token_type == tok_symbol) {
+	switch (token_type) {
+	case tok_int:
+		return new_int(token_int);
+	case tok_float:
+		return new_float(token_float);
+	case tok_string:
+		val.ptr - new_string(token_str);
+		break;
+	case tok_nil:
+		return new_bool(0);
+	case tok_T:
+		return new_bool(1);
+	case tok_symbol:
 		if (is_head_of_list) {
 			val.ptr = new_func(token_str, NULL);
 		} else {
 			val.ptr = new_variable(token_str);
 		}
+		break;
+	case tok_close:
+		break;
+	default:
+		EXCEPTION("Unexpected token!!\n");
+		break;
 	}
 	return val;
 }
@@ -299,10 +289,18 @@ static val_t make_cons_tree2(int is_head_of_list) {
 int parse_program (char *str) {
 	tokenizer_init(str);
 	get_next_token();
-	val_t cons = make_cons_tree2(0);
-	if (cons.tag != 0 || cons.ptr != NULL) {
+	jmp_buf buf;
+	val_t null_value = {0, 0};
+	loop_frame_push(&buf, null_value);
+	int jmp = 0;
+	if ((jmp = setjmp(buf)) == 0) {
+		val_t cons = make_cons_tree2(0);
 		codegen(cons);
+		loop_frame_t *frame = loop_frame_pop();
+		FREE(frame);
 		return 0;
+	} else {
+		fprintf(stderr, "Syntax Error\n");
+		return 1;
 	}
-	printf("Syntax Error\n");
 }

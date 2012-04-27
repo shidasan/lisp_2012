@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <dlfcn.h>
+#include <readline/readline.h>
 #include"lisp.h"
 #include"config.h"
 int current_index, next_index;
@@ -66,31 +67,7 @@ static int is_unexpected_input(char *str) {
 }
 
 void print_return_value(val_t val) {
-	if (!IS_UNBOX(val)) {
-		switch(val.ptr->type) {
-		case OPEN:
-			printf("(");
-			break;
-		case STRING:
-			printf("\"");
-			break;
-		default:
-			break;
-		}
-	}
 	VAL_PRINT(val, _buffer);
-	if (!IS_UNBOX(val)) {
-		switch(val.ptr->type) {
-		case OPEN:
-			printf(")");
-			break;
-		case STRING:
-			printf("\"");
-			break;
-		default:
-			break;
-		}
-	}
 }
 void exec(int using_readline) {
 	jmp_buf buf;
@@ -109,7 +86,6 @@ void exec(int using_readline) {
 		loop_frame_t *frame = loop_frame_pop();
 		FREE(frame);
 	} else {
-
 	}
 }
 char *split_and_exec(int argc, char **args, char *tmpstr) {
@@ -210,6 +186,11 @@ void shell_readline(int argc, char **args) {
 	}
 	FREE(tmpstr);
 }
+
+static void exception_init() {
+	loop_frame_list = new_array();
+}
+
 int shell (int argc, char* args[])
 {
 	FILE* file = NULL;
@@ -217,6 +198,7 @@ int shell (int argc, char* args[])
 	gc_init();
 	new_func_data_table();
 	new_global_environment();
+	exception_init();
 	if (argc > 1){
 		file = fopen(args[1],"r");
 		if (!file) {

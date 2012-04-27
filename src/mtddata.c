@@ -927,9 +927,6 @@ static val_t loop(val_t *VSTACK, int ARGC, array_t *a) {
 	int size = array_size(a), i = 0;
 	val_t res = {0, 0};
 	jmp_buf buf;
-	if (loop_frame_list == NULL) {
-		loop_frame_list = new_array();
-	}
 	VSTACK[1] = new_bool(0);
 	loop_frame_push(&buf, VSTACK[1]);
 	int jmp = 0;
