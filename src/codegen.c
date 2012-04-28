@@ -2,7 +2,6 @@
 
 static opline_t *new_opline(enum eINSTRUCTION e, val_t val) {
 	if (next_index == inst_size) {
-		fprintf(stderr, "expand opline inst_size%d\n", inst_size);
 		int newsize = inst_size * 2;
 		opline_t *newmemory = (opline_t*)malloc(sizeof(opline_t) * newsize);
 		memset(newmemory, 0, sizeof(opline_t) * newsize);

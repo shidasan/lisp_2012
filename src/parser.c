@@ -6,10 +6,10 @@ static int token_int;
 static float token_float;
 
 int is_open_space_close(char c) {
-	return c == '(' || c == ' ' || c == ')';
+	return c == '(' || c == ' ' || c == ')' || c == '\n' || c == '\t';
 }
 
-float tokenize_float(int start) {
+float tokenize_float(int start, int alt) {
 	float res = (float)start;
 	float f = 0.1;
 	while (isdigit(*current_char)) {
@@ -17,7 +17,7 @@ float tokenize_float(int start) {
 		f *= 0.1;
 		current_char++;
 	}
-	return res;
+	return res * alt;
 }
 
 char *string_toupper(char *c, int size) {
@@ -40,9 +40,9 @@ int skip_line() {
 }
 int get_next_token_inner (string_buffer_t *buffer)
 {
-    int ALT = 1;
+    int alt = 1;
     token_int = 0;
-    while (isspace(*current_char) || *current_char == ','){
+    while (isspace(*current_char) || *current_char == '\n' || *current_char == '\t'){
         current_char++;
     }
     if (*current_char == '\0' || *current_char == '\n'){
@@ -65,23 +65,23 @@ int get_next_token_inner (string_buffer_t *buffer)
 	}
     if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
         if (*current_char == '-'){
-            ALT = -1;
+            alt = -1;
             current_char++;
         }
         while (isdigit(*current_char)){
             token_int = 10 * token_int + (*current_char - 48);
             current_char++;
         }
-        token_int *= ALT;
 		if (*current_char == '.') {
 			current_char++;
 			if (isdigit(*current_char)) {
-				token_float = tokenize_float(token_int);
+				token_float = tokenize_float(token_int, alt);
 				return tok_float;
 			} else {
 				return tok_int;
 			}
 		}
+        token_int *= alt;
         if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
 			return tok_error;
         } else {
@@ -118,10 +118,10 @@ int get_next_token_inner (string_buffer_t *buffer)
 	} else if (*current_char == '.') {
 		/* float or dot */
 		current_char++;
-		if (current_char[0] == ' ') {
+		if (current_char[0] == ' ' || current_char[0] == '\n' || current_char[0] == '\t') {
 			return tok_dot;
 		} else if (isdigit(current_char[0])) {
-			token_float = tokenize_float(0);
+			token_float = tokenize_float(0, 1);
 			return tok_float;
 		}
 	} else if (*current_char == '<') {

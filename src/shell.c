@@ -14,7 +14,8 @@ static int add_history(const char *line) {
 	return 0;
 }
 
-static void init_opline_first() {
+static void init_first() {
+	srand((unsigned)time(NULL));
 	memory = (opline_t*)malloc(sizeof(opline_t) * INSTSIZE);
 	memset(memory, 0, sizeof(opline_t) * INSTSIZE);
 	inst_size = INSTSIZE;
@@ -194,7 +195,7 @@ int shell (int argc, char* args[])
 			exit(1);
 		}
 	}
-	init_opline_first();
+	init_first();
 	set_static_mtds();
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;

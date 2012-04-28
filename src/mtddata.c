@@ -663,6 +663,66 @@ static val_t _sqrt (val_t *VSTACK, int ARGC) {
 	return res;
 }
 
+static val_t _random(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (IS_INT(val)) {
+		return new_int(rand() % val.ivalue);
+	} else if (IS_FLOAT(val)) {
+		return new_float(rand() / (RAND_MAX / val.fvalue));
+	} else {
+		EXCEPTION("Expected number!!\n");
+		return null_val(); //unreachable
+	}
+}
+
+static val_t _sin(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_NUMBER(val)) {
+		EXCEPTION("Expected number!!\n");
+	}
+	if (IS_INT(val)) {
+		return new_float(sin((float)val.ivalue));
+	} else {
+		return new_float(sin(val.fvalue));
+	}
+}
+
+static val_t _cos(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_NUMBER(val)) {
+		EXCEPTION("Expected number!!\n");
+	}
+	if (IS_INT(val)) {
+		return new_float(cos((float)val.ivalue));
+	} else {
+		return new_float(cos(val.fvalue));
+	}
+}
+
+static val_t _tan(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_NUMBER(val)) {
+		EXCEPTION("Expected number!!\n");
+	}
+	if (IS_INT(val)) {
+		return new_float(tan((float)val.ivalue));
+	} else {
+		return new_float(tan(val.fvalue));
+	}
+}
+
+static val_t _floor(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_NUMBER(val)) {
+		EXCEPTION("Expected number!!\n");
+	}
+	if (IS_FLOAT(val)) {
+		return new_int(floor(val.fvalue));
+	} else {
+		return new_int(floor((float)val.ivalue));
+	}
+}
+
 static val_t atom(val_t *VSTACK, int ARGC) {
 	return new_bool(!IS_OPEN(ARGS(0)));
 }
@@ -799,11 +859,53 @@ static val_t svref(val_t *VSTACK, int ARGC) {
 	return val.ptr->list[i.ivalue];
 }
 
+static val_t svstore(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	val_t i = ARGS(1);
+	val_t j = ARGS(2);
+	if (!IS_ARRAY(val)) {
+		EXCEPTION("Expected array!!\n");
+	}
+	if (!IS_INT(i)) {
+		EXCEPTION("Expected int!!\n");
+	}
+	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
+		EXCEPTION("Array out of bounds!!\n");
+	}
+	val.ptr->list[i.ivalue] = j;
+	return j;
+}
+
 static val_t _vector(val_t *VSTACK, int ARGC) {
 	array_t *a = new_array();
 	int i = 0;
 	for (; i < ARGC; i++) {
 		array_add_val(a, ARGS(i));
+	}
+	val_t res = null_val();
+	res.ptr = new_cons_array_list(a);
+	FREE(a);
+	return res;
+}
+
+static val_t _make_array(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	if (!IS_OPEN(val)) {
+		EXCEPTION("Expected list");
+	}
+	VSTACK[1] = val;
+	int _length = length(VSTACK+2, 1).ivalue;
+	fprintf(stderr, "_length: %d\n", _length);
+	if (_length != 1) {
+		EXCEPTION("TODO\n");
+	}
+	if (!IS_INT(val.ptr->car)) {
+		EXCEPTION("Expected int!!\n");
+	}
+	int i = 0, size = val.ptr->car.ivalue;
+	array_t *a = new_array();
+	for (; i < size; i++) {
+		array_add_val(a, new_bool(0));
 	}
 	val_t res = null_val();
 	res.ptr = new_cons_array_list(a);
@@ -966,7 +1068,7 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 		}
 	}
 	EXCEPTION("No block found!!\n");
-	return null_val(); //unreached
+	return null_val(); //unreachable
 }
 
 static val_t _return_from(val_t *VSTACK, int ARGC) {
@@ -987,7 +1089,7 @@ static val_t _return_from(val_t *VSTACK, int ARGC) {
 		}
 	}
 	EXCEPTION("No block found!!\n");
-	return null_val();//unreached
+	return null_val();//unreachable
 }
 
 static val_t when(val_t *VSTACK, array_t *a) {
@@ -1227,21 +1329,28 @@ static_mtd_data static_mtds[] = {
 	{"STRING=", -1, 1, 0, 0, 0, string_eq, NULL},
 	{"/=", -1, 1, 0, 0, 0, neq, NULL},
 	{"STRING/=", -1, 1, 0, 0, 0, string_neq, NULL},
-	{"ZEROP", 1, 0, 0, 0, 0, zerop, NULL},
 	{"NULL", 1, 0, 0, 0, 0, null, NULL},
 	{"NOT", 1, 0, 0, 0, 0, not, NULL},
 	{"SQRT", 1, 0, 0, 0, 0, _sqrt, NULL},
+	{"RANDOM", 1, 0, 0, 0, 0, _random, NULL},
+	{"SIN", 1, 0, 0, 0, 0, _sin, NULL},
+	{"COS", 1, 0, 0, 0, 0, _cos, NULL},
+	{"TAN", 1, 0, 0, 0, 0, _tan, NULL},
+	{"FLOOR", 1, 0, 0, 0, 0, _floor, NULL},
 	{"ATOM", 1, 0, 0, 0, 0, atom, NULL},
 	{"CONSP", 1, 0, 0, 0, 0, consp, NULL},
 	{"LISTP", 1, 0, 0, 0, 0, listp, NULL},
 	{"SYMBOLP", 1, 0, 0, 0, 0, symbolp, NULL},
 	{"NUMBERP", 1, 0, 0, 0, 0, numberp, NULL},
 	{"INTEGERP", 1, 0, 0, 0, 0, integerp, NULL},
+	{"ZEROP", 1, 0, 0, 0, 0, zerop, NULL},
 	{"QUOTE", 1, 0, 0, 1, 1, quote, NULL},
 	{"LIST", -1, 0, 0, 0, 0, list, NULL},
 	{"LENGTH", 1, 0, 0, 0, 0, length, NULL},
 	{"SVREF", 2, 0, 0, 0, 0, svref, NULL},
+	{"SVSTORE", 3, 0, 0, 0, 0, svstore, NULL},
 	{"VECTOR", -1, 0, 0, 0, 0, _vector, NULL},
+	{"MAKE-ARRAY", 1, 0, 0, 0, 0, _make_array, NULL},
 	{"AND", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _and},
 	{"OR", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _or},
 	{"IF", 3, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
