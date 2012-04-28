@@ -666,6 +666,30 @@ static val_t _sqrt (val_t *VSTACK, int ARGC) {
 static val_t atom(val_t *VSTACK, int ARGC) {
 	return new_bool(!IS_OPEN(ARGS(0)));
 }
+
+static val_t consp(val_t *VSTACK, int ARGC) {
+	return new_bool(IS_OPEN(ARGS(0)));
+}
+
+static val_t listp(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	return new_bool(IS_OPEN(val) || IS_nil(val));
+}
+
+static val_t symbolp(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	return new_bool(IS_SYMBOL(val));
+}
+
+static val_t numberp(val_t *VSTACK, int ARGC) {
+	return new_bool(IS_NUMBER(ARGS(0)));
+}
+
+static val_t integerp(val_t *VSTACK, int ARGC) {
+	return new_bool(IS_INT(ARGS(0)));
+}
+
+
 static val_t quote(val_t * VSTACK, int ARGC) {
 	return ARGS(0);
 }
@@ -787,6 +811,28 @@ static val_t _vector(val_t *VSTACK, int ARGC) {
 	return res;
 }
 
+static val_t _and(val_t *VSTACK, array_t *a) {
+	int i = 0, size = array_size(a);
+	for (; i < size; i++) {
+		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+		if (IS_nil(val)) {
+			return new_bool(0);
+		}
+	}
+	return new_bool(1);
+}
+
+static val_t _or(val_t *VSTACK, array_t *a) {
+	int i = 0, size = array_size(a);
+	for (; i < size; i++) {
+		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+		if (!IS_nil(val)) {
+			return new_bool(1);
+		}
+	}
+	return new_bool(0);
+}
+
 static val_t _if(val_t *VSTACK, struct array_t *a) {
 	val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	val_t res = null_val();
@@ -826,21 +872,22 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 			/* default */
 		} else {
 			codegen(val.ptr->car);
-			val_t res = vm_exec(2, memory+current_index, VSTACK);
+			res = vm_exec(2, memory+current_index, VSTACK);
 			if (IS_nil(res)) {
 				continue;
 			}
-		}
-		int j = 1;
-		val_t cdr = val.ptr->cdr;
-		car = cdr.ptr->car;
-		for (; j < _length; j++) {
-			codegen(car);
-			res = vm_exec(2, memory+current_index, VSTACK);
-			cdr = cdr.ptr->cdr;
+
+			int j = 1;
+			val_t cdr = val;
 			car = cdr.ptr->car;
+			for (; j < _length; j++) {
+				cdr = cdr.ptr->cdr;
+				car = cdr.ptr->car;
+				codegen(car);
+				res = vm_exec(2, memory+current_index, VSTACK);
+			}
+			return res;
 		}
-		return res;
 	}
 	return new_bool(0);
 }
@@ -1185,11 +1232,18 @@ static_mtd_data static_mtds[] = {
 	{"NOT", 1, 0, 0, 0, 0, not, NULL},
 	{"SQRT", 1, 0, 0, 0, 0, _sqrt, NULL},
 	{"ATOM", 1, 0, 0, 0, 0, atom, NULL},
+	{"CONSP", 1, 0, 0, 0, 0, consp, NULL},
+	{"LISTP", 1, 0, 0, 0, 0, listp, NULL},
+	{"SYMBOLP", 1, 0, 0, 0, 0, symbolp, NULL},
+	{"NUMBERP", 1, 0, 0, 0, 0, numberp, NULL},
+	{"INTEGERP", 1, 0, 0, 0, 0, integerp, NULL},
 	{"QUOTE", 1, 0, 0, 1, 1, quote, NULL},
 	{"LIST", -1, 0, 0, 0, 0, list, NULL},
 	{"LENGTH", 1, 0, 0, 0, 0, length, NULL},
 	{"SVREF", 2, 0, 0, 0, 0, svref, NULL},
 	{"VECTOR", -1, 0, 0, 0, 0, _vector, NULL},
+	{"AND", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _and},
+	{"OR", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _or},
 	{"IF", 3, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
 	{"ASSERT", 1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _assert},
 	{"COND", -1, 0, FLAG_SPECIAL_FORM, -1, 0, NULL, cond},

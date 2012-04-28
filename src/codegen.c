@@ -79,6 +79,7 @@ static void gen_func(val_t val) {
 		}
 	} else if (func->value != size-1) {
 		if (func->value > size-1) {
+			fprintf(stderr, "func->name: %s\n", func->name);
 			EXCEPTION("Too few arguments!!\n");
 		} else {
 			EXCEPTION("Too many arguments!!\n");

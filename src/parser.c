@@ -20,8 +20,8 @@ float tokenize_float(int start) {
 	return res;
 }
 
-char *string_toupper(char *c) {
-	int i = 0, size = strlen(c);
+char *string_toupper(char *c, int size) {
+	int i = 0;
 	for (; i < size; i++) {
 		if (c[i] >= 'a' && c[i] <= 'z') {
 			c[i] = toupper(c[i]);
@@ -93,7 +93,7 @@ int get_next_token_inner (string_buffer_t *buffer)
 			string_buffer_append_c(buffer, *current_char);
             current_char++;
         }
-
+		string_toupper(buffer->str, buffer->size);
 		if (strncmp(buffer->str, "NIL", 3) == 0) {
 			return tok_nil;
 		}
@@ -206,7 +206,7 @@ void get_next_token ()
     token_type = get_next_token_inner(buffer);
 	string_buffer_free(buffer);
 	if (token_type == tok_symbol) {
-		token_str = string_toupper(token_str);
+		token_str = string_toupper(token_str, strlen(token_str));
 	} else if (token_type == tok_error) {
 		EXCEPTION("Invalid token!!\n");
 	}
