@@ -227,8 +227,8 @@ static val_t make_cons_single_node(int is_head_of_list) {
 	case tok_array:
 		get_next_token();
 		val = make_cons_tree2(0);
-		if (!IS_OPEN(val)) {
-			EXCEPTION("Excepted '(' after '#' !!\n");
+		if (!IS_OPEN(val) && !IS_nil(val)) {
+			EXCEPTION("Expected '(' or nil after '#' !!\n");
 		}
 		val.ptr = new_cons_array(val);
 		break;
@@ -269,7 +269,7 @@ static val_t make_cons_list() {
 			/* eat ')' */
 			get_next_token();
 			if (token_type != tok_close) {
-				EXCEPTION("Excepted \')\'!!\n");
+				EXCEPTION("Expected \')\'!!\n");
 			}
 			break;
 		}

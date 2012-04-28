@@ -186,7 +186,6 @@ static void trace_lambda(cons_t *cons, array_t *traced) {
 
 
 static void print_cons_array(cons_t *cons, string_buffer_t *buffer) {
-	(void)cons;(void)buffer;
 	string_buffer_append_s(buffer, "#(");
 	int size = cons->car.ivalue, i = 0;
 	for (; i < size; i++) {
@@ -332,15 +331,14 @@ cons_t *new_cons_array(val_t val) {
 	cons_t *cons = new_cons_cell();
 	cons->type = ARRAY;
 	cons->api = &cons_array_api;
-	val_t car = val.ptr->car;
+	val_t car = null_val();
 	array_t *a = new_array();
-	while (!IS_NULL(val) && !IS_nil(val)) {
-		car = val.ptr->car;
-		array_add_val(a, car);
-		val = val.ptr->cdr;
-	}
-	if (array_size(a) == 0) {
-		array_add_val(a, val);
+	if (!IS_nil(val)) {
+		while (!IS_NULL(val)) {
+			car = val.ptr->car;
+			array_add_val(a, car);
+			val = val.ptr->cdr;
+		}
 	}
 	cons->car.ivalue = array_size(a);
 	cons->list = (val_t*)a->list;

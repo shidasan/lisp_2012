@@ -30,6 +30,7 @@ typedef struct val_t {
 		struct {
 			union {
 				int ivalue;
+				int size;
 				float fvalue;
 			};
 			int tag;

@@ -48,7 +48,7 @@
 #define IS_nil(VAL)               (VAL_TYPE(VAL) == nil_OFFSET)
 #define IS_OPEN(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
 #define IS_STRING(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == STRING)
-#define IS_ARRAY(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == ARRAY)
+#define IS_ARRAY(VAL)             (!IS_UNBOX(VAL) && (VAL).ptr->type == ARRAY)
 #define IS_FUNC(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == FUNC)
 #define IS_LAMBDA(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == LAMBDA)
 #define IS_VARIABLE(VAL)          (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)

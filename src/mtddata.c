@@ -350,7 +350,7 @@ static val_t sub(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t res = ARGS(0);
 	if (!IS_NUMBER(res)) {
-		EXCEPTION("Excepted Number!!\n");
+		EXCEPTION("Expected Number!!\n");
 	}
 	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
@@ -423,7 +423,7 @@ static val_t lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
@@ -444,7 +444,7 @@ static val_t string_lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -483,7 +483,7 @@ static val_t lte(val_t *VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
@@ -504,7 +504,7 @@ static val_t string_lte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -543,7 +543,7 @@ static val_t gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
@@ -564,7 +564,7 @@ static val_t string_gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -603,7 +603,7 @@ static val_t gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
@@ -624,7 +624,7 @@ static val_t string_gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -663,7 +663,7 @@ static val_t eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
@@ -684,7 +684,7 @@ static val_t string_eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -705,7 +705,7 @@ static val_t neq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Excepted Int!!\n");
+		EXCEPTION("Expected Int!!\n");
 	}
 	if (ARGC == 1) {
 		return new_bool(1);
@@ -729,7 +729,7 @@ static val_t string_neq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Excepted String!!\n");
+		EXCEPTION("Expected String!!\n");
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -772,7 +772,7 @@ static val_t quote(val_t * VSTACK, int ARGC) {
 static val_t funcall(val_t * VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_CALLABLE(val)) {
-		EXCEPTION("Excepted Symbol!!\n");
+		EXCEPTION("Expected Symbol!!\n");
 	}
 	func_t *func = search_func(val.ptr->str);
 	if (func == NULL && !IS_LAMBDA(val)) {
@@ -793,7 +793,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 		for (; i < ARGC; i++) {
 			val_t car = args.ptr->car;
 			if (!IS_SYMBOL(car)) {
-				EXCEPTION("Excepted symbol!!\n");
+				EXCEPTION("Expected symbol!!\n");
 			}
 			val_t value = ARGS(i);
 			set_variable(car.ptr, value, 1);
@@ -843,8 +843,9 @@ static val_t length(val_t *VSTACK, int ARGC) {
 		return new_int(0);
 	} else if (IS_STRING(val)) {
 		return new_int(strlen(val.ptr->str));
-	}
-	if (!IS_OPEN(val)) {
+	} else if (IS_ARRAY(val)) {
+		return new_int(val.size);
+	} else if (!IS_OPEN(val)) {
 		EXCEPTION("Not a list!!\n");
 	}
 	int res = 0;
@@ -856,6 +857,15 @@ static val_t length(val_t *VSTACK, int ARGC) {
 		EXCEPTION("Not a list!!\n");
 	}
 	return new_int(res);
+}
+
+static val_t svref(val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	val_t i = ARGS(1);
+	if (!IS_ARRAY(val)) {
+		EXCEPTION("Expected array!!\n");
+	}
+	return val.list[i.ivalue];
 }
 
 static val_t _if(val_t *VSTACK, struct array_t *a) {
@@ -958,7 +968,7 @@ static val_t block(val_t *VSTACK, array_t *a) {
 	}
 	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
-		EXCEPTION("Excepted symbol!!\n");
+		EXCEPTION("Expected symbol!!\n");
 	}
 	loop_frame_push(&buf, block_name);
 	int jmp = 0;
@@ -1049,7 +1059,7 @@ static val_t unless(val_t *VSTACK, array_t *a) {
 static val_t defun(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
-		EXCEPTION("Excepted Symbol!!\n");
+		EXCEPTION("Expected Symbol!!\n");
 	}
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
@@ -1100,7 +1110,7 @@ static val_t lambda(val_t *VSTACK, array_t *a) {
 static val_t defmacro(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
-		EXCEPTION("Excepted Symbol!!\n");
+		EXCEPTION("Expected Symbol!!\n");
 	}
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
@@ -1142,7 +1152,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 				if (argc == 2) {
 					variable = list.ptr->car;
 					if (!IS_SYMBOL(variable)) {
-						EXCEPTION("Excepted Symbol!!\n");
+						EXCEPTION("Expected Symbol!!\n");
 					}
 					value = list.ptr->cdr.ptr->car;
 					codegen(value);
@@ -1162,7 +1172,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 			} else {
 				//fprintf(stderr, "hi\n");
 				if (!IS_SYMBOL(list)) {
-					EXCEPTION("Excepted Symbol!!\n");
+					EXCEPTION("Expected Symbol!!\n");
 				}
 				if (is_star) {
 					set_variable(list.ptr, new_bool(0), 1);
@@ -1286,6 +1296,7 @@ static_mtd_data static_mtds[] = {
 	{"quote", 1, 0, 1, 1, quote, NULL},
 	{"list", -1, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, length, NULL},
+	{"svref", 2, 0, 0, 0, svref, NULL},
 	{"if", 3, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
 	{"assert", 1, FLAG_SPECIAL_FORM, 0, 0, NULL, _assert},
 	{"cond", -1, FLAG_SPECIAL_FORM, -1, 0, NULL, cond},
