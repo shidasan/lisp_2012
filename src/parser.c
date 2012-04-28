@@ -24,6 +24,16 @@ float tokenize_float(int start) {
 	return res;
 }
 
+char *string_tolower(char *c) {
+	int i = 0, size = strlen(c);
+	for (; i < size; i++) {
+		if (c[i] >= 'A' && c[i] <= 'Z') {
+			c[i] = tolower(c[i]);
+		}
+	}
+	return c;
+}
+
 int get_next_token_inner (string_buffer_t *buffer)
 {
     int ALT = 1;
@@ -187,6 +197,9 @@ void get_next_token ()
 {
 	string_buffer_t *buffer = new_string_buffer();
     token_type = get_next_token_inner(buffer);
+	if (token_type == tok_symbol) {
+		token_str = string_tolower(token_str);
+	}
 	string_buffer_free(buffer);
 }
 
