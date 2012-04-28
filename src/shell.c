@@ -91,6 +91,7 @@ void exec(int using_readline) {
 	}
 }
 char *split_and_exec(int argc, char **args, char *tmpstr) {
+	(void)args;
 	int prev_point = 0;
 	int next_point = 0;
 	char *leftover = NULL;

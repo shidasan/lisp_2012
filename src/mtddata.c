@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "lisp.h"
 
 static val_t loop_return_value;
@@ -794,6 +795,19 @@ static val_t not(val_t *VSTACK, int ARGC) {
 	return new_bool(IS_nil(ARGS(0)));
 }
 
+static val_t _sqrt (val_t *VSTACK, int ARGC) {
+	val_t val = ARGS(0);
+	val_t res = null_val();
+	if (IS_FLOAT(val)) {
+		res =  new_float((float)sqrt(val.fvalue));
+	} else if (IS_INT(val)) {
+		res = new_float((float)sqrt((double)val.ivalue));
+	} else {
+		EXCEPTION("Expected number!!\n");
+	}
+	return res;
+}
+
 static val_t atom(val_t *VSTACK, int ARGC) {
 	return new_bool(!IS_OPEN(ARGS(0)));
 }
@@ -1342,6 +1356,7 @@ static_mtd_data static_mtds[] = {
 	{"ZEROP", 1, 0, 0, 0, 0, zerop, NULL},
 	{"NULL", 1, 0, 0, 0, 0, null, NULL},
 	{"NOT", 1, 0, 0, 0, 0, not, NULL},
+	{"SQRT", 1, 0, 0, 0, 0, _sqrt, NULL},
 	{"ATOM", 1, 0, 0, 0, 0, atom, NULL},
 	{"QUOTE", 1, 0, 0, 1, 1, quote, NULL},
 	{"LIST", -1, 0, 0, 0, 0, list, NULL},

@@ -46,6 +46,7 @@ set(LISP_SRC
 set(LISP_BIN src/main.c)
 set(GC_BIN src/memory.c)
 add_library(lisp ${LISP_SRC})
+target_link_libraries(lisp m)
 add_executable(lisp ${LISP_BIN})
 add_library(gc_test ${LISP_SRC})
 add_executable(gc_test ${GC_TEST})
