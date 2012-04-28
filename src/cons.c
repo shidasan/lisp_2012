@@ -108,11 +108,9 @@ static void free_variable_table(cons_t *cons) {
 	int i;
 	variable_t *table = cons->variable_data_table;
 	variable_t *tempV, *currentV;
-	//fprintf(stderr, "free_variable_table %p\n", table);
 	for (i = 0;i < HASH_SIZE; i++){
 		currentV = table + i;
 		FREE(table[i].name);
-		//currentV = table[i].next;
 		while (currentV != NULL){
 			if (currentV->name != NULL) {
 				tempV = currentV->next;
@@ -121,25 +119,19 @@ static void free_variable_table(cons_t *cons) {
 					FREE(currentV);
 				}
 				currentV = tempV;
-				//fprintf(stderr, "next %p\n", tempV);
 			} else {
 				break;
 			}
 		}
 	}
-	//memset(cons->variable_data_table, 0, sizeof(variable_t) * HASH_SIZE);
 	FREE(cons->variable_data_table);
 }
 
 static void trace_variable_table(cons_t *cons, struct array_t *traced) {
-	//fprintf(stderr, "mark variable table%p\n", cons);
-	//ADDREF(cons, traced);
 	mark_variable_data_table(cons->variable_data_table, traced);
 }
 
 static void trace_local_environment(cons_t *cons, struct array_t *traced) {
-	//fprintf(stderr, "mark local_environment %p\n", cons);
-	//fprintf(stderr, "mark cons->car %p\n", cons->car);
 	ADDREF(cons, traced);
 	ADDREF_VAL_NULLABLE(cons->cdr, traced);
 	ADDREF_VAL(cons->car, traced);
@@ -198,12 +190,14 @@ static void print_cons_array(cons_t *cons, string_buffer_t *buffer) {
 }
 
 static void free_cons_array(cons_t *cons) {
-	(void)cons;
-
+	free(cons->list);
 }
 
-static void trace_cons_array(cons_t *cons, array_t *a) {
-	(void)cons;(void)a;
+static void trace_cons_array(cons_t *cons, array_t *traced) {
+	int i = 0;
+	for (; i < cons->size; i++) {
+		ADDREF_VAL(cons->list[i], traced);
+	}
 }
 
 static void default_print(cons_t *cons, string_buffer_t *buffer) {
@@ -243,21 +237,12 @@ val_t new_int(int n) {
 	res.tag = INT_OFFSET;
 	res.ivalue = n;
 	return res;
-	//cons_t *cons = new_cons_cell();
-	//cons->type = INT;
-	//cons->ivalue = n;
-	//cons->api = &cons_int_api;
-	//return cons;
 }
 
 val_t new_bool(int n) {
 	val_t res;
 	res.tag = (n) ? T_OFFSET : nil_OFFSET;
 	return res;
-	//cons_t *cons = new_cons_cell();
-	//cons->type = (n) ? T : nil;
-	//cons->api = (n) ? &cons_T_api : &cons_nil_api;
-	//return cons;
 }
 
 cons_t *new_func(const char *str, cons_t *environment) {
@@ -334,14 +319,22 @@ cons_t *new_cons_array(val_t val) {
 	val_t car = null_val();
 	array_t *a = new_array();
 	if (!IS_nil(val)) {
-		while (!IS_NULL(val)) {
+		while (!IS_NULL(val) && !IS_nil(val)) {
 			car = val.ptr->car;
 			array_add_val(a, car);
 			val = val.ptr->cdr;
 		}
 	}
-	cons->car.ivalue = array_size(a);
+	cons->size = array_size(a);
 	cons->list = (val_t*)a->list;
 	FREE(a);
+	return cons;
+}
+cons_t *new_cons_array_list(array_t *a) {
+	cons_t *cons = new_cons_cell();
+	cons->type = ARRAY;
+	cons->api = &cons_array_api;
+	cons->size = array_size(a);
+	cons->list = (val_t*)a->list;
 	return cons;
 }

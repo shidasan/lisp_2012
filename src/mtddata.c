@@ -844,7 +844,7 @@ static val_t length(val_t *VSTACK, int ARGC) {
 	} else if (IS_STRING(val)) {
 		return new_int(strlen(val.ptr->str));
 	} else if (IS_ARRAY(val)) {
-		return new_int(val.size);
+		return new_int(val.ptr->size);
 	} else if (!IS_OPEN(val)) {
 		EXCEPTION("Not a list!!\n");
 	}
@@ -865,7 +865,25 @@ static val_t svref(val_t *VSTACK, int ARGC) {
 	if (!IS_ARRAY(val)) {
 		EXCEPTION("Expected array!!\n");
 	}
-	return val.list[i.ivalue];
+	if (!IS_INT(i)) {
+		EXCEPTION("Expected int!!\n");
+	}
+	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
+		EXCEPTION("Array out of bounds!!\n");
+	}
+	return val.ptr->list[i.ivalue];
+}
+
+static val_t _vector(val_t *VSTACK, int ARGC) {
+	array_t *a = new_array();
+	int i = 0;
+	for (; i < ARGC; i++) {
+		array_add_val(a, ARGS(i));
+	}
+	val_t res = null_val();
+	res.ptr = new_cons_array_list(a);
+	FREE(a);
+	return res;
 }
 
 static val_t _if(val_t *VSTACK, struct array_t *a) {
@@ -1297,6 +1315,7 @@ static_mtd_data static_mtds[] = {
 	{"list", -1, 0, 0, 0, list, NULL},
 	{"length", 1, 0, 0, 0, length, NULL},
 	{"svref", 2, 0, 0, 0, svref, NULL},
+	{"vector", -1, 0, 0, 0, _vector, NULL},
 	{"if", 3, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
 	{"assert", 1, FLAG_SPECIAL_FORM, 0, 0, NULL, _assert},
 	{"cond", -1, FLAG_SPECIAL_FORM, -1, 0, NULL, cond},
