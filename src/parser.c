@@ -94,10 +94,10 @@ int get_next_token_inner (string_buffer_t *buffer)
             current_char++;
         }
 		string_toupper(buffer->str, buffer->size);
-		if (strncmp(buffer->str, "NIL", 3) == 0) {
+		if (buffer->size == 3 && strncmp(buffer->str, "NIL", 3) == 0) {
 			return tok_nil;
 		}
-		if (strncmp(buffer->str, "T", 1) == 0) {
+		if (buffer->size == 1 && strncmp(buffer->str, "T", 1) == 0) {
 			return tok_T;
 		}
 		token_str = string_buffer_to_string(buffer);

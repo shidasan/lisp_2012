@@ -140,7 +140,7 @@ static val_t cdr(val_t* VSTACK, int ARGC) {
 static val_t cons(val_t* VSTACK, int ARGC) {
 	val_t car = ARGS(0);
 	val_t cdr = ARGS(1);
-	val_t val;
+	val_t val = null_val();
 	val.ptr = new_open();
 	val.ptr->car = car;
 	val.ptr->cdr = cdr;
