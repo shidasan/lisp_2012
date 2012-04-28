@@ -17,7 +17,7 @@
 #define LOG_INT_MAX 11
 #define HASH_SIZE 16
 #define STACKSIZE 50000
-#define INSTSIZE 32
+#define INSTSIZE 256
 #define INIT_FILE_SIZE 50
 #define ARGC _argc
 #define likely(COND)   (COND)

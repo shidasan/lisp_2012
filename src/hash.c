@@ -182,7 +182,7 @@ struct val_t search_variable(char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car.ptr;
 	val_t res = search_variable_inner(table, str);
-	while (!IS_UNBOX(res) && res.ptr == NULL) {
+	while (IS_NULL(res)) {
 		if (environment->cdr.ptr == NULL) {
 			return res;
 		} else {

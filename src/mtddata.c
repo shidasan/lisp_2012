@@ -870,6 +870,7 @@ static val_t svstore(val_t *VSTACK, int ARGC) {
 		EXCEPTION("Expected int!!\n");
 	}
 	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
+		fprintf(stderr, "%d\n", i.ivalue);
 		EXCEPTION("Array out of bounds!!\n");
 	}
 	val.ptr->list[i.ivalue] = j;
@@ -895,7 +896,6 @@ static val_t _make_array(val_t *VSTACK, int ARGC) {
 	}
 	VSTACK[1] = val;
 	int _length = length(VSTACK+2, 1).ivalue;
-	fprintf(stderr, "_length: %d\n", _length);
 	if (_length != 1) {
 		EXCEPTION("TODO\n");
 	}

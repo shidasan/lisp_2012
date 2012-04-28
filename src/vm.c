@@ -179,6 +179,12 @@ mtdcall:
 		if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 			old_environment = begin_local_scope(func);
 			esp[-args_num] = func->mtd(esp, args_num);
+		} else if (FLAG_IS_MACRO(func->flag)) {
+			old_environment = begin_local_scope(func);
+			opline_list = func->opline_list;
+			set_args(esp, args_num, func);
+			val = exec_body(esp, func);
+			esp[-args_num] = val;
 		} else {
 			old_environment = change_local_scope(current_environment, func->environment);
 			environment_list_push(old_environment);
