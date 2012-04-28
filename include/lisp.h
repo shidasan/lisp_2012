@@ -87,6 +87,7 @@ char *string_buffer_to_string(string_buffer_t *buffer);
 typedef struct static_mtd_data {
 	const char *name;
 	int num_args;
+	int num_args_minimum;
 	int flag;
 	int is_quote0;
 	int is_quote1;

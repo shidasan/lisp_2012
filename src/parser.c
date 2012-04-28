@@ -24,11 +24,11 @@ float tokenize_float(int start) {
 	return res;
 }
 
-char *string_tolower(char *c) {
+char *string_toupper(char *c) {
 	int i = 0, size = strlen(c);
 	for (; i < size; i++) {
-		if (c[i] >= 'A' && c[i] <= 'Z') {
-			c[i] = tolower(c[i]);
+		if (c[i] >= 'a' && c[i] <= 'z') {
+			c[i] = toupper(c[i]);
 		}
 	}
 	return c;
@@ -85,7 +85,7 @@ int get_next_token_inner (string_buffer_t *buffer)
             current_char++;
         }
 
-		if (strncmp(buffer->str, "nil", 3) == 0) {
+		if (strncmp(buffer->str, "NIL", 3) == 0) {
 			return tok_nil;
 		}
 		if (strncmp(buffer->str, "T", 1) == 0) {
@@ -197,9 +197,6 @@ void get_next_token ()
 {
 	string_buffer_t *buffer = new_string_buffer();
     token_type = get_next_token_inner(buffer);
-	if (token_type == tok_symbol) {
-		token_str = string_tolower(token_str);
-	}
 	string_buffer_free(buffer);
 }
 
@@ -305,6 +302,7 @@ static val_t make_cons_tree2(int is_head_of_list) {
 }
 
 int parse_program (char *str) {
+	str = string_toupper(str);
 	tokenizer_init(str);
 	get_next_token();
 	jmp_buf buf;
@@ -313,12 +311,14 @@ int parse_program (char *str) {
 	int jmp = 0;
 	if ((jmp = setjmp(buf)) == 0) {
 		val_t cons = make_cons_tree2(0);
+		if (IS_NULL(cons)) {
+			EXCEPTION("Unexpected ')' !!!!\n");
+		}
 		codegen(cons);
 		loop_frame_t *frame = loop_frame_pop();
 		FREE(frame);
 		return 0;
 	} else {
-		fprintf(stderr, "Syntax Error\n");
 		return 1;
 	}
 }

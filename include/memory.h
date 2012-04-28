@@ -95,7 +95,8 @@ typedef struct variable_t{
 typedef struct func_t{
 	char* name;
 	struct func_t* next;
-	int value; // size of argument (?)
+	int value;
+	int value_minimum;
 	int flag;
 	int *is_quote;
 	union {

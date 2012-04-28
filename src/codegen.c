@@ -60,7 +60,7 @@ static void gen_expression(val_t);
 
 static void gen_mtd_check(val_t val, int list_length) {
 	new_opline(MTDCHECK, val);
-	memory[next_index-1].op[1].ivalue = list_length-1;
+	memory[next_index-1].op[1].ivalue = list_length;
 }
 
 static void gen_func(val_t val) {
@@ -74,8 +74,18 @@ static void gen_func(val_t val) {
 	}
 	val_t cdr = val.ptr->cdr;
 	//if (func == NULL || func->value != -1 && func->value != size) {
-	if (func == NULL || func->value != -1) {
-		gen_mtd_check(car, size);
+	if (func == NULL) {
+		gen_mtd_check(car, size-1);
+	} else if (func->value == -1) {
+		if (func->value_minimum > size-1) {
+			EXCEPTION("Too few arguments!!\n");
+		}
+	} else if (func->value != size-1) {
+		if (func->value > size-1) {
+			EXCEPTION("Too few arguments!!\n");
+		} else {
+			EXCEPTION("Too many arguments!!\n");
+		}
 	}
 	for (; i < size; i++) {
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {

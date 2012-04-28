@@ -162,8 +162,12 @@ mtdcheck:
 	if (func == NULL) {
 		FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
 	}
-	if (func->value != -1 && func->value != args_num) {
-		EXCEPTION("argument length does not match!!\n");
+	if (func->value != args_num) {
+		if (func->value > args_num) {
+			EXCEPTION("Too few arguments!!\n");
+		} else {
+			EXCEPTION("Too many arguments!!\n");
+		}
 	}
 	goto *((++pc)->instruction_ptr);
 

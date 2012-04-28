@@ -214,7 +214,6 @@ struct func_t* search_func (char* str)
 
 struct func_t* set_static_func (static_mtd_data *data) {
 	const char *str = data->name;
-	int i = data->num_args;
 	int flag = data->flag;
 	void *adr = (void*)data->mtd;
 	void *special_mtd = (void*)data->special_mtd;
@@ -230,7 +229,8 @@ struct func_t* set_static_func (static_mtd_data *data) {
 				strncpy (p->name, str, strlen(str));
 				p->name[strlen(str)] = '\0';
 			}
-			p->value = i;
+			p->value = data->num_args;
+			p->value_minimum = data->num_args_minimum;
 			p->flag = flag | FLAG_STATIC;
 			p->is_quote = is_quote;
 			if (FLAG_IS_SPECIAL_FORM(flag)) {

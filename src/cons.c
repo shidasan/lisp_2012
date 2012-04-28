@@ -27,7 +27,7 @@ void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {
 		string_buffer_append_s(buffer, "T");
 		break;
 	case nil_OFFSET:
-		string_buffer_append_s(buffer, "nil");
+		string_buffer_append_s(buffer, "NIL");
 		break;
 	default:
 		val.ptr->api->to_string(val.ptr, buffer);
