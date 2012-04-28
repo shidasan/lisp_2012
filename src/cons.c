@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "lisp.h"
 
 void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {

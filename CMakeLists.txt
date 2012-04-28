@@ -42,6 +42,7 @@ set(LISP_SRC
 		src/mtddata.c
 		src/memory.c
 		src/cons.c
+		src/bootstrap.c
    )
 set(LISP_BIN src/main.c)
 set(GC_BIN src/memory.c)

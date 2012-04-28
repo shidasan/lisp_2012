@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <dlfcn.h>
-#include <readline/readline.h>
 #include"lisp.h"
 #include"config.h"
 int current_index, next_index;
@@ -207,6 +201,11 @@ int shell (int argc, char* args[])
 	myreadline = (f != NULL) ? (char* (*)(const char*))f : NULL;
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
 	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
+	int i = 0;
+	while (bootstrap_functions[i] != NULL) {
+		split_and_exec(2, args, (char*)bootstrap_functions[i]);
+		i++;
+	}
 	if (argc > 1){
 		shell_file(argc, args, file);
 	} else {

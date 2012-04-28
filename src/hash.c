@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include"lisp.h"
+#include "lisp.h"
 /* list of variable_data table */
 cons_t *current_environment = NULL;
 array_t *environment_list = NULL;
@@ -255,6 +252,7 @@ struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, va
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){
 			if (p->name != NULL && strcmp(p->name, str) == 0 && FLAG_IS_STATIC(p->flag)) {
+				EXCEPTION("Cannot overwrite static function!!\n");
 				return NULL;
 			}
 			if (p->name == NULL){

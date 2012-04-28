@@ -1,10 +1,18 @@
-#ifndef MAIN
-#define MAIN
+#include "memory.h"
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <dlfcn.h>
 #include <assert.h>
 #include <ctype.h>
 #include <setjmp.h>
-#include "memory.h"
-#include "config.h"
+#include <math.h>
+#include <readline/readline.h>
+
+#ifndef MAIN
+#define MAIN
 #define LOG_INT_MAX 11
 #define HASH_SIZE 16
 #define STACKSIZE 50000
@@ -146,4 +154,6 @@ val_t exec_body(val_t *, func_t *);
 
 /* gc test */
 val_t root;
+
+extern const char *bootstrap_functions[];
 #endif

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include"lisp.h"
 const char* instruction_tostr[] = {"PUSH", "MTDCALL", "MTDCHECK", "SP_MTD", "GET_V", "GET_ARG", "END", "JMP"};
 static int dump_point = 0;
@@ -131,7 +130,7 @@ get_variable:
 		val = pc->op[0].val;
 		val_t res = search_variable(val.ptr->str);
 		if (IS_NULL(res)) {
-			FMT_EXCEPTION("Function %s not found!!\n", (void*)val.ptr->str);
+			FMT_EXCEPTION("Variable %s not found!!\n", (void*)val.ptr->str);
 		}
 		esp[0] = res;
 		esp++;

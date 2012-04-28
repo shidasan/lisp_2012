@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include"lisp.h"
 
 static opline_t *new_opline(enum eINSTRUCTION e, val_t val) {
