@@ -11,4 +11,5 @@ int main() {
 	//while (1) {
 	//	root = new_open();
 	//}
+	return 0;
 }

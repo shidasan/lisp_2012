@@ -9,8 +9,13 @@ typedef struct string_buffer_t {
 	size_t capacity;
 }string_buffer_t;
 
+struct val_t;
+
 typedef struct array_t {
-	void **list;
+	union {
+		void **list;
+		struct val_t *val;
+	};
 	int size;
 	int capacity;
 }array_t;
@@ -21,6 +26,7 @@ typedef struct val_t {
 	union {
 		struct cons_t *ptr;
 		struct array_t *a;
+		struct val_t *list;
 		struct {
 			union {
 				int ivalue;

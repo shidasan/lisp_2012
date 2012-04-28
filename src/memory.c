@@ -99,6 +99,22 @@ void array_add(array_t *a, void *v) {
 	}
 }
 
+void array_add_val(array_t *a, val_t v) {
+	if (a->size < a->capacity) {
+		a->val[a->size] = v;
+		a->size++;
+	} else {
+		size_t newcapacity = a->capacity * 2;
+		void **newlist = (void**)malloc(sizeof(void**) * newcapacity);
+		memcpy(newlist, a->list, sizeof(void**) * newcapacity);
+		FREE(a->list);
+		a->list = newlist;
+		a->capacity = newcapacity;
+		a->val[a->size] = v;
+		a->size++;
+	}
+}
+
 void *array_pop(array_t *a) {
 	if (a->size <= 0) {
 		return NULL;

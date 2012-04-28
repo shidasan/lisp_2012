@@ -111,8 +111,8 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 			if (strlen(str) > 0 && is_unexpected_input(str)) {
 				status = parse_program(str);
 			}
+			myadd_history(str);
 			if (status == 0){
-				myadd_history(str);
 				exec(argc == 1);
 			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
 				/* ignore */

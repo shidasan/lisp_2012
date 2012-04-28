@@ -212,8 +212,13 @@ static val_t make_cons_single_node(int is_head_of_list) {
 	case tok_T:
 		return new_bool(1);
 	case tok_array:
+		get_next_token();
 		val = make_cons_tree2(0);
+		if (!IS_OPEN(val)) {
+			EXCEPTION("Excepted '(' after '#' !!\n");
+		}
 		val.ptr = new_cons_array(val);
+		break;
 	case tok_symbol:
 		if (is_head_of_list) {
 			val.ptr = new_func(token_str, NULL);
