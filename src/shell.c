@@ -114,14 +114,6 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 			myadd_history(str);
 			if (status == 0){
 				exec(argc == 1);
-			} else if (strcmp(str, "\n") == 0 || strcmp(str, "\0") == 0) {
-				/* ignore */
-			} else if (status == 1) {
-				if (argc > 2 && strcmp(args[2], "--testing") == 0) {
-					/* test failing */
-					exit(1);
-				}
-				/* exit when error occers while reading FILE* */
 			}
 		}
 		free(str);
@@ -156,9 +148,9 @@ void shell_file(int argc, char **args, FILE* file) {
 			fclose(file);
 			break;
 		}
-		if (tmpstr[file_size] == '\n') {
-			tmpstr[file_size] = ' ';
-		}
+		//if (tmpstr[file_size] == '\n') {
+		//	tmpstr[file_size] = '\n';
+		//}
 		file_size++;
 	}
 	split_and_exec(argc, args, tmpstr);

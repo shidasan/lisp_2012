@@ -33,7 +33,15 @@ char *string_toupper(char *c) {
 	}
 	return c;
 }
-
+int skip_line() {
+	int len = strlen(current_char);
+	int i = 0;
+	while ((*current_char != '\0' || *current_char != '\n') && i < len ) {
+		current_char++;
+		i++;
+	}
+	return i == len;
+}
 int get_next_token_inner (string_buffer_t *buffer)
 {
     int ALT = 1;
@@ -44,6 +52,11 @@ int get_next_token_inner (string_buffer_t *buffer)
     if (*current_char == '\0' || *current_char == '\n'){
         return tok_eof;
     }
+	if (*current_char == ';') {
+		if (skip_line()) { //end of string
+			return tok_eof;
+		}
+	}
 	if (*current_char == '\"') {
 		current_char++;
 		while (*current_char != '\"') {
@@ -188,9 +201,7 @@ int get_next_token_inner (string_buffer_t *buffer)
     if( *current_char == '\0'){
         return tok_eof;
     }
-	string_buffer_free(buffer);
-	EXCEPTION("Invalid token!!\n");
-	return tok_error; //unreach
+	return tok_error; //unreachable
 } 
 
 void get_next_token ()
@@ -198,6 +209,11 @@ void get_next_token ()
 	string_buffer_t *buffer = new_string_buffer();
     token_type = get_next_token_inner(buffer);
 	string_buffer_free(buffer);
+	if (token_type == tok_symbol) {
+		token_str = string_toupper(token_str);
+	} else if (token_type == tok_error) {
+		EXCEPTION("Invalid token!!\n");
+	}
 }
 
 static void tokenizer_init(char *str) {
@@ -289,7 +305,7 @@ static val_t make_cons_tree2(int is_head_of_list) {
 		val_t root = null_val();
 		root.ptr = new_open();
 		cstack_cons_cell_push(root.ptr);
-		root.ptr->car.ptr = new_func("quote", NULL);
+		root.ptr->car.ptr = new_func("QUOTE", NULL);
 		root.ptr->cdr.ptr = new_open();
 		root.ptr->cdr.ptr->cdr = new_bool(0);
 		get_next_token();
@@ -302,9 +318,11 @@ static val_t make_cons_tree2(int is_head_of_list) {
 }
 
 int parse_program (char *str) {
-	str = string_toupper(str);
 	tokenizer_init(str);
 	get_next_token();
+	if (token_type == tok_eof) {
+		return 1;
+	}
 	jmp_buf buf;
 	val_t null_value = null_val();
 	loop_frame_push(&buf, null_value);
