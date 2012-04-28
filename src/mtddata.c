@@ -396,9 +396,41 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 	return res;
 }
 
+static val_t div_ii(val_t v0, val_t v1) {
+	if (v0.ivalue % v1.ivalue == 0) {
+		v0.ivalue /= v1.ivalue;
+		return v0;
+	} else {
+		return new_float(((float)v0.ivalue / (float)v1.ivalue));
+	}
+}
+
+static val_t div_if(val_t v0, val_t v1) {
+	return new_float((float)v0.ivalue / v1.fvalue);
+}
+
+static val_t div_fi(val_t v0, val_t v1) {
+	v0.fvalue /= v1.ivalue;
+	return v0;
+}
+
+static val_t div_ff(val_t v0, val_t v1) {
+	v0.fvalue /= v1.fvalue;
+	return v0;
+}
+
+static val_t (*div_op[])(val_t, val_t) = {div_ff, div_fi, div_if, div_ii};
 static val_t _div(val_t* VSTACK, int ARGC) {
-	(void)VSTACK;(void)ARGC;
-	assert(0);
+	int i;
+	val_t res = ARGS(0);
+	for (i = 1; i < ARGC; i++) {
+		val_t val = ARGS(i);
+		if (!IS_NUMBER(val)) {
+			EXCEPTION("type error!!\n");
+		}
+		res = div_op[IS_INT(res)*2+IS_INT(val)](res, val);
+	}
+	return res;
 }
 
 static int lt_ii(val_t v0, val_t v1) {
