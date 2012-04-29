@@ -26,8 +26,8 @@ void init_opline() {
 	current_index = next_index;
 }
 
-void unuse_opline() {
-	//next_index = current_index;
+void unuse_opline(int idx) {
+	next_index = idx;
 }
 
 int val_length(val_t val) {

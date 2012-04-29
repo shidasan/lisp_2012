@@ -212,6 +212,14 @@ static val_t sub(val_t* VSTACK, int ARGC) {
 	if (!IS_NUMBER(res)) {
 		EXCEPTION("Expected Number!!\n");
 	}
+	if (ARGC == 1) {
+		if (IS_INT(res)) {
+			res.ivalue *= -1;
+		} else {
+			res.fvalue *= -1;
+		}
+		return res;
+	}
 	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
@@ -918,7 +926,7 @@ static val_t _make_array(val_t *VSTACK, int ARGC) {
 static val_t _and(val_t *VSTACK, array_t *a) {
 	int i = 0, size = array_size(a);
 	for (; i < size; i++) {
-		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 		if (IS_nil(val)) {
 			return new_bool(0);
 		}
@@ -929,7 +937,7 @@ static val_t _and(val_t *VSTACK, array_t *a) {
 static val_t _or(val_t *VSTACK, array_t *a) {
 	int i = 0, size = array_size(a);
 	for (; i < size; i++) {
-		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 		if (!IS_nil(val)) {
 			return new_bool(1);
 		}
@@ -957,7 +965,7 @@ static val_t _assert(val_t *VSTACK, array_t *a) {
 	return val;
 }
 
-static val_t eval_inner(val_t *VSTACK, val_t val);
+val_t eval_inner(val_t *VSTACK, val_t val);
 
 static val_t cond(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
@@ -1016,7 +1024,6 @@ static val_t loop(val_t *VSTACK, array_t *a) {
 	VSTACK[1] = new_bool(0);
 	loop_frame_push(buf, VSTACK[1]);
 	if (setjmp(*buf) == 0) {
-		fprintf(stderr, "loop size: %d\n", array_size(a));
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
@@ -1290,7 +1297,6 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 	array_free(a2);
 	val_t res = null_val();
 	int i;
-	fprintf(stderr, "let size: %d\n", array_size(a));
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
@@ -1304,10 +1310,11 @@ static val_t let(val_t *VSTACK, struct array_t *a) {
 static val_t let_star(val_t *VSTACK, array_t *a) {
 	return let_inner(VSTACK, a, 1);
 }
-static val_t eval_inner(val_t *VSTACK, val_t val) {
+val_t eval_inner(val_t *VSTACK, val_t val) {
+	int idx = next_index;
 	codegen(val);
 	val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
-	unuse_opline();
+	unuse_opline(idx);
 	return res;
 }
 static val_t eval(val_t *VSTACK, int ARGC) {

@@ -81,8 +81,9 @@ val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	for (; a < (int)array_size(opline_list); a++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
-			codegen(res);
-			res = vm_exec(2, memory + current_index, VSTACK + 1);
+			res = eval_inner(VSTACK, res);
+			//codegen(res);
+			//res = vm_exec(2, memory + current_index, VSTACK + 1);
 			array_add_val(list, res);
 		}
 	}
@@ -91,8 +92,9 @@ val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	if (FLAG_IS_MACRO(func->flag) ){
 		for (a = 0; a < array_size(list); a++) {
 			res = array_get_val(list, a);
-			codegen(res);
-			res = vm_exec(2, memory + current_index, VSTACK+1);
+			//codegen(res);
+			//res = vm_exec(2, memory + current_index, VSTACK+1);
+			res = eval_inner(VSTACK, res);
 		}
 	}
 	array_free(list);

@@ -126,7 +126,7 @@ extern void** table;
 
 extern static_mtd_data static_mtds[];
 void init_opline();
-void unuse_opline();
+void unuse_opline(int);
 /*hash.h*/
 void mark_func_data_table(array_t *);
 void mark_variable_data_table(variable_t *, array_t *);
@@ -156,6 +156,7 @@ int parse_program(char *);
 val_t vm_exec (int, opline_t *, val_t *);
 void set_args(val_t *, int, func_t *);
 val_t exec_body(val_t *, int , func_t *);
+val_t eval_inner(val_t *, val_t);
 
 /* gc test */
 val_t root;
