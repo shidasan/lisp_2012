@@ -6,6 +6,7 @@ void loop_frame_push(jmp_buf *buf, val_t block_name) {
 	loop_frame_t *frame = (loop_frame_t*)malloc(sizeof(loop_frame_t));
 	frame->buf = buf;
 	frame->block_name = block_name;
+	frame->environment = current_environment;
 	array_add(loop_frame_list, frame);
 }
 
@@ -18,8 +19,10 @@ void throw_inner() {
 	while ((frame = loop_frame_pop()) != NULL) {
 		jmp_buf *buf = frame->buf;
 		val_t block_name = frame->block_name;
+		cons_t *environment = frame->environment;
 		free(frame);
 		if (IS_NULL(block_name)) {
+			environment = current_environment;
 			longjmp(*buf, 1);
 		}
 	}
@@ -1008,50 +1011,24 @@ static val_t progn(val_t *VSTACK, array_t *a) {
 static val_t loop(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
 	val_t res = null_val();
-	jmp_buf buf;
+	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
 	VSTACK[1] = new_bool(0);
-	loop_frame_push(&buf, VSTACK[1]);
+	loop_frame_push(buf, VSTACK[1]);
 	int jmp = 0;
-	if ((jmp = setjmp(buf)) == 0) {
+	if ((jmp = setjmp(*buf)) == 0) {
+		fprintf(stderr, "loop size: %d\n", array_size(a));
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
 				res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 2);
 			}
 		}
-	}
-	res = loop_return_value;
-	return res;
-}
-
-static val_t block(val_t *VSTACK, array_t *a) {
-	int size = array_size(a);
-	if (size == 0) {
-		EXCEPTION("Too few arguments!!\n");
-	} else if (size == 1) {
-		return new_bool(0);
-	}
-	val_t res = null_val();
-	jmp_buf buf;
-	if (loop_frame_list == NULL) {
-		loop_frame_list = new_array();
-	}
-	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
-	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
-		EXCEPTION("Expected symbol!!\n");
-	}
-	loop_frame_push(&buf, block_name);
-	int jmp = 0;
-	if ((jmp = setjmp(buf)) == 0) {
-		int i = 1; 
-		for (; i < size; i++) {
-			res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 1);
-		}
-		loop_frame_t *frame = loop_frame_pop();
-		FREE(frame);
 	} else {
+		FREE(buf);
 		res = loop_return_value;
 	}
+	FREE(buf);
+	res = loop_return_value;
 	return res;
 }
 
@@ -1063,14 +1040,51 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 	while ((frame = loop_frame_pop()) != NULL) {
 		jmp_buf *buf = frame->buf;
 		val_t block_name = frame->block_name;
-		free(frame);
+		cons_t *environment = frame->environment;
+		FREE(frame);
 		if (IS_nil(block_name)) {
 			loop_return_value = (ARGC == 0) ? new_bool(0) : ARGS(0);
+			current_environment = environment;
 			longjmp(*buf, 1);
+		}
+		if (!IS_NULL(block_name)) {
+			FREE(buf);
 		}
 	}
 	EXCEPTION("No block found!!\n");
 	return null_val(); //unreachable
+}
+
+static val_t block(val_t *VSTACK, array_t *a) {
+	int size = array_size(a);
+	if (size == 0) {
+		EXCEPTION("Too few arguments!!\n");
+	} else if (size == 1) {
+		return new_bool(0);
+	}
+	val_t res = null_val();
+	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
+	if (loop_frame_list == NULL) {
+		loop_frame_list = new_array();
+	}
+	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
+		EXCEPTION("Expected symbol!!\n");
+	}
+	loop_frame_push(buf, block_name);
+	int jmp = 0;
+	if ((jmp = setjmp(*buf)) == 0) {
+		int i = 1; 
+		for (; i < size; i++) {
+			res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 1);
+		}
+		loop_frame_t *frame = loop_frame_pop();
+		FREE(frame);
+	} else {
+		FREE(buf);
+		res = loop_return_value;
+	}
+	return res;
 }
 
 static val_t _return_from(val_t *VSTACK, int ARGC) {
@@ -1278,6 +1292,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 	array_free(a2);
 	val_t res = null_val();
 	int i;
+	fprintf(stderr, "let size: %d\n", array_size(a));
 	for (i = 1; i < array_size(a); i++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
@@ -1357,7 +1372,7 @@ static_mtd_data static_mtds[] = {
 	{"LIST", -1, 0, 0, 0, 0, list, NULL},
 	{"LENGTH", 1, 0, 0, 0, 0, length, NULL},
 	{"SVREF", 2, 0, 0, 0, 0, svref, NULL},
-	{"SVSTORE", 3, 0, 0, 0, 0, svstore, NULL},
+	{"SYSTEM::SVSTORE", 3, 0, 0, 0, 0, svstore, NULL},
 	{"VECTOR", -1, 0, 0, 0, 0, _vector, NULL},
 	{"MAKE-ARRAY", 1, 0, 0, 0, 0, _make_array, NULL},
 	{"AND", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _and},

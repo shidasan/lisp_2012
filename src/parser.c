@@ -32,7 +32,7 @@ char *string_toupper(char *c, int size) {
 int skip_line() {
 	int len = strlen(current_char);
 	int i = 0;
-	while ((*current_char != '\0' || *current_char != '\n') && i < len ) {
+	while ((*current_char != '\n') && i < len ) {
 		current_char++;
 		i++;
 	}
@@ -42,6 +42,7 @@ int get_next_token_inner (string_buffer_t *buffer)
 {
     int alt = 1;
     token_int = 0;
+L_start:
     while (isspace(*current_char) || *current_char == '\n' || *current_char == '\t'){
         current_char++;
     }
@@ -52,6 +53,8 @@ int get_next_token_inner (string_buffer_t *buffer)
 		if (skip_line()) { //end of string
 			return tok_eof;
 		}
+		current_char++;
+		goto L_start;
 	}
 	if (*current_char == '\"') {
 		current_char++;

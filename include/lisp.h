@@ -111,6 +111,7 @@ int inst_size;
 typedef struct loop_frame_t {
 	jmp_buf *buf;
 	val_t block_name;
+	cons_t *environment;
 }loop_frame_t;
 
 array_t *loop_frame_list;

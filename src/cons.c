@@ -224,20 +224,20 @@ val_t null_val() {
 	return res;
 }
 val_t new_float(float f) {
-	val_t res;
+	val_t res = null_val();
 	res.tag = FLOAT_OFFSET;
 	res.fvalue = f;
 	return res;
 }
 val_t new_int(int n) {
-	val_t res;
+	val_t res = null_val();
 	res.tag = INT_OFFSET;
 	res.ivalue = n;
 	return res;
 }
 
 val_t new_bool(int n) {
-	val_t res;
+	val_t res = null_val();
 	res.tag = (n) ? T_OFFSET : nil_OFFSET;
 	return res;
 }
