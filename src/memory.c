@@ -63,10 +63,16 @@ void string_buffer_free(string_buffer_t *buffer) {
 
 void *array_get(array_t *a, int n) {
 	if (n < 0 || n >= a->size) {
-		fprintf(stderr, "out of bounds\n");
-		asm("int3");
+		EXCEPTION("Array out of bounds!!\n");
 	}
 	return a->list[n];
+}
+
+val_t array_get_val(array_t *a, int n) {
+	if (n < 0 || n >= a->size) {
+		EXCEPTION("Array out of bounds!!\n");
+	}
+	return a->val[n];
 }
 
 int array_size(array_t *a) {
@@ -75,7 +81,7 @@ int array_size(array_t *a) {
 
 void array_set(array_t *a, int n, void *v) {
 	if (n < 0 || n >= a->size) {
-		fprintf(stderr, "out if bounds\n");
+		EXCEPTION("Array out of bounds!!\n");
 	}
 	a->list[n] = v;
 }

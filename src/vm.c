@@ -77,15 +77,25 @@ val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	cons_t *old_environment = change_local_scope(current_environment, func->environment);
 	environment_list_push(old_environment);
 	set_args(VSTACK, ARGC, func);
+	array_t *list = new_array();
 	for (; a < (int)array_size(opline_list); a++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
 			codegen(res);
 			res = vm_exec(2, memory + current_index, VSTACK + 1);
+			array_add_val(list, res);
 		}
 	}
 	environment_list_pop();
 	end_local_scope(old_environment);
+	if (FLAG_IS_MACRO(func->flag) ){
+		for (a = 0; a < array_size(list); a++) {
+			res = array_get_val(list, a);
+			codegen(res);
+			res = vm_exec(2, memory + current_index, VSTACK+1);
+		}
+	}
+	array_free(list);
 	return res;
 }
 val_t vm_exec (int i , opline_t* pc, val_t *ebp)

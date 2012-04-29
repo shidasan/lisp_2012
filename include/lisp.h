@@ -82,6 +82,7 @@ enum ast_type {ast_atom, ast_list, ast_list_close, ast_static_func, ast_quote, a
 int shell(int , char**);
 void print_return_value(val_t );
 void *array_get(struct array_t*, int);
+val_t array_get_val(struct array_t*, int);
 int array_size(struct array_t *);
 void array_set(struct array_t *, int, void *);
 void array_add(struct array_t *, void *);
