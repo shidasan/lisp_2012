@@ -157,6 +157,7 @@ void val_to_string(val_t , string_buffer_t*, int);
 #define CONS_EVAL(CONS) (CONS)->api->eval(CONS)
 
 void gc_init();
+void gc_end();
 void cstack_cons_cell_push(cons_t *);
 cons_t *cstack_cons_cell_pop();
 
@@ -165,11 +166,11 @@ val_t new_int(int n);
 val_t new_float(float f);
 val_t new_bool(int n);
 cons_t* new_cons_cell();
-cons_t* new_string(const char *str);
+cons_t* new_string(char *str);
 cons_t* new_cons_array(val_t);
 cons_t* new_cons_array_list(array_t*);
 cons_t *new_lambda(lambda_env_t *, array_t *);
-cons_t* new_func(const char *str, cons_t *environment);
+cons_t* new_func(char *str, cons_t *environment);
 cons_t* new_variable(char *str);
 cons_t* new_open();
 cons_t* new_variable_data_table();

@@ -262,6 +262,38 @@ static void new_cons_arena() {
 	free_list = ((cons_tbl_t*)array_get(arena->a, 0))->head->slots;
 	cons_arena = arena;
 }
+
+static void free_object() {
+	uintptr_t i, j;
+	cons_page_t *page;
+	for (i = 0; i < (uintptr_t)array_size(cons_arena->a); i++) {
+		array_t *a = cons_arena->a;
+		cons_tbl_t *tbl = (cons_tbl_t *)array_get(a, i);
+		for (page = tbl->head; page < tbl->bottom; page++) {
+			for (j = 1; j <= PAGECONSSIZE; j++) {
+				if ((page->slots+j-1)->api) {
+					CONS_FREE(page->slots+j-1);
+				}
+			}
+		}
+	}
+}
+
+static void free_arena() {
+	int i = 0;
+	for (; i < array_size(cons_arena->a); i++) {
+		cons_tbl_t *tbl = array_get(cons_arena->a, i);
+		FREE(tbl);
+	}
+	array_free(cons_arena->a);
+	FREE(cons_arena);
+}
+
+static void free_cons_arena() {
+	//free_object();
+	//free_arena();
+}
+
 static int mark_count = 0;
 static int cons_is_marked(cons_t *cons) {
 	cons_page_t *page = (cons_page_t*)((((uintptr_t)cons) / PAGESIZE) * PAGESIZE);
@@ -358,10 +390,10 @@ static void gc_sweep() {
 						//CONS_PRINT(page->slots+j-1);
 						//fprintf(stderr, "\n");
 						CONS_FREE(page->slots+j-1);
+						memset((page->slots + j-1), 0, sizeof(cons_t));
+						page->slots[j-1].cdr.ptr = free_list;
+						free_list = &page->slots[j-1];
 					}
-					memset((page->slots + j-1), 0, sizeof(cons_t));
-					page->slots[j-1].cdr.ptr = free_list;
-					free_list = &page->slots[j-1];
 					unused_object++;
 					marked++;
 				} else {
@@ -424,4 +456,8 @@ cons_t *cstack_cons_cell_pop() {
 void gc_init() {
 	cstack_cons_cell_list = new_array();
 	new_cons_arena();
+}
+
+void gc_end() {
+	free_cons_arena();
 }

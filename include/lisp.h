@@ -121,6 +121,8 @@ loop_frame_t *loop_frame_pop();
 void throw_exception(const char *, int, const char *);
 void throw_fmt_exception(const char *, int, const char *, va_list);
 val_t call_lambda(val_t *, array_t *);
+val_t call_mtd(val_t *, int , func_t *);
+val_t call_macro(val_t *, int , func_t *);
 extern int current_index, next_index;
 extern void** table;
 
@@ -155,7 +157,6 @@ int parse_program(char *);
 /*eval.h*/
 val_t vm_exec (int, opline_t *, val_t *);
 void set_args(val_t *, int, func_t *);
-val_t exec_body(val_t *, int , func_t *);
 val_t eval_inner(val_t *, val_t);
 
 /* gc test */

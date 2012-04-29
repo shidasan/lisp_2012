@@ -211,5 +211,6 @@ int shell (int argc, char* args[])
 	} else {
 		shell_readline(argc, args);
 	}
+	gc_end();
 	return 0;
 }

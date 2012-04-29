@@ -104,18 +104,17 @@ static void trace_open(cons_t *cons, struct array_t *traced) {
 static void free_variable_table(cons_t *cons) {
 	int i;
 	variable_t *table = cons->variable_data_table;
-	variable_t *tempV, *currentV;
+	variable_t *tmp, *cur;
 	for (i = 0;i < HASH_SIZE; i++){
-		currentV = table + i;
-		FREE(table[i].name);
-		while (currentV != NULL){
-			if (currentV->name != NULL) {
-				tempV = currentV->next;
-				FREE(currentV->name);
-				if (currentV > table + HASH_SIZE) {
-					FREE(currentV);
+		cur = table + i;
+		while (cur != NULL){
+			if (cur->name != NULL) {
+				tmp = cur->next;
+				FREE(cur->name);
+				if (cur > table + HASH_SIZE) {
+					FREE(cur);
 				}
-				currentV = tempV;
+				cur = tmp;
 			} else {
 				break;
 			}
@@ -242,14 +241,15 @@ val_t new_bool(int n) {
 	return res;
 }
 
-cons_t *new_func(const char *str, cons_t *environment) {
+cons_t *new_func(char *str, cons_t *environment) {
 	cons_t *cons = new_cons_cell();
 	cons->type = FUNC;
 	cons->api = &cons_func_api;
-	char *newstr = (char *)malloc(strlen(str)+1);
-	memcpy(newstr, str, strlen(str)+1);
-	newstr[strlen(str)] = '\0';
-	cons->str = newstr;
+	cons->str = str;
+	//char *newstr = (char *)malloc(strlen(str)+1);
+	//memcpy(newstr, str, strlen(str)+1);
+	//newstr[strlen(str)] = '\0';
+	//cons->str = newstr;
 	cons->local_environment = environment;
 	return cons;
 }
@@ -258,10 +258,11 @@ cons_t *new_variable(char *str) {
 	cons_t *cons = new_cons_cell();
 	cons->type = VARIABLE;
 	cons->api = &cons_variable_api;
-	char *newstr = (char *)malloc(strlen(str)+1);
-	memcpy(newstr, str, strlen(str)+1);
-	newstr[strlen(str)] = '\0';
-	cons->str = newstr;
+	cons->str = str;
+	//char *newstr = (char *)malloc(strlen(str)+1);
+	//memcpy(newstr, str, strlen(str)+1);
+	//newstr[strlen(str)] = '\0';
+	//cons->str = newstr;
 	return cons;
 }
 
@@ -289,14 +290,15 @@ cons_t *new_local_environment() {
 	return cons;
 }
 
-cons_t *new_string(const char *str) {
+cons_t *new_string(char *str) {
 	cons_t *cons = new_cons_cell();
 	cons->type = STRING;
 	cons->api = &cons_string_api;
-	int len = strlen(str);
-	cons->str = (char*)malloc(len+1);
-	memcpy(cons->str, str, len);
-	cons->str[len] = '\0';
+	cons->str = str;
+	//int len = strlen(str);
+	//cons->str = (char*)malloc(len+1);
+	//memcpy(cons->str, str, len);
+	//cons->str[len] = '\0';
 	return cons;
 }
 

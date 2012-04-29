@@ -70,7 +70,24 @@ val_t call_lambda(val_t *VSTACK, array_t *a) {
 	return res;
 }
 
-val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
+val_t call_mtd(val_t *VSTACK, int ARGC, func_t *func) {
+	val_t res;
+	array_t *opline_list = func->opline_list;
+	int a = 0;
+	cons_t *old_environment = change_local_scope(current_environment, func->environment);
+	environment_list_push(old_environment);
+	set_args(VSTACK, ARGC, func);
+	for (; a < (int)array_size(opline_list); a++) {
+		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
+		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
+			res = eval_inner(VSTACK, res);
+		}
+	}
+	environment_list_pop();
+	end_local_scope(old_environment);
+	return res;
+}
+val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 	val_t res;
 	array_t *opline_list = func->opline_list;
 	int a = 0;
@@ -80,7 +97,7 @@ val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	array_t *list = new_array();
 	for (; a < (int)array_size(opline_list); a++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
-		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
+		if (func != NULL) {
 			res = eval_inner(VSTACK, res);
 			//codegen(res);
 			//res = vm_exec(2, memory + current_index, VSTACK + 1);
@@ -89,13 +106,11 @@ val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	}
 	environment_list_pop();
 	end_local_scope(old_environment);
-	if (FLAG_IS_MACRO(func->flag) ){
-		for (a = 0; a < array_size(list); a++) {
-			res = array_get_val(list, a);
-			//codegen(res);
-			//res = vm_exec(2, memory + current_index, VSTACK+1);
-			res = eval_inner(VSTACK, res);
-		}
+	for (a = 0; a < array_size(list); a++) {
+		res = array_get_val(list, a);
+		//codegen(res);
+		//res = vm_exec(2, memory + current_index, VSTACK+1);
+		res = eval_inner(VSTACK, res);
 	}
 	array_free(list);
 	return res;
@@ -197,10 +212,10 @@ mtdcall:
 			esp[-args_num] = func->mtd(esp, args_num);
 			end_local_scope(old_environment);
 		} else if (FLAG_IS_MACRO(func->flag)) {
-			val = exec_body(esp, args_num, func);
+			val = call_macro(esp, args_num, func);
 			esp[-args_num] = val;
 		} else {
-			val = exec_body(esp, args_num, func);
+			val = call_mtd(esp, args_num, func);
 			esp[-args_num] = val;
 		}
 		esp -= (args_num - 1);

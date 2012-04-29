@@ -804,7 +804,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 		environment_list_pop();
 		end_local_scope(old_environment);
 	} else {
-		res = exec_body(VSTACK + ARGC-3, ARGC-1, func);
+		res = call_mtd(VSTACK + ARGC-3, ARGC-1, func);
 	}
 	return res;
 }
