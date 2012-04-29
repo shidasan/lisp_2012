@@ -11,10 +11,9 @@ void new_func_data_table() {
 }
 
 void mark_func_data_table(array_t *traced) {
-	func_t *table = func_data_table;
 	int i = 0;
 	for (; i < HASH_SIZE; i++) {
-		func_t *func = table + i;
+		func_t *func = func_data_table + i;
 		while (func != NULL) {
 			if (func->name) {
 				ADDREF_NULLABLE(func->environment, traced);
@@ -125,10 +124,6 @@ struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int i
 				return res;
 			}
 		} else if (strcmp(p->name, str) == 0) {
-			FREE(p->name);
-			p->name = (char*)malloc(strlen(str)+1);
-			strcpy (p->name, str);
-			p->name[strlen(str)] = '\0';
 			p->cons = value;
 			return p->cons;
 		} else if (p->next == NULL) {

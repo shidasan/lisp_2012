@@ -87,13 +87,13 @@ void array_set(array_t *a, int n, void *v) {
 }
 
 void array_add(array_t *a, void *v) {
-	if (a->size < a->capacity) {
+	if (a->size < a->capacity - 1) {
 		a->list[a->size] = v;
 		a->size++;
 	} else {
 		size_t newcapacity = a->capacity * 2;
 		void **newlist = (void**)malloc(sizeof(void**) * newcapacity);
-		memcpy(newlist, a->list, sizeof(void**) * newcapacity);
+		memcpy(newlist, a->list, sizeof(void**) * a->capacity);
 		FREE(a->list);
 		a->list = newlist;
 		a->capacity = newcapacity;
@@ -174,7 +174,7 @@ static size_t object_capacity;
 
 typedef struct cons_page_h_t {
 	/* sizeof(cons_page_h_t) must be less than sizeof(cons_t) */
-	uintptr_t allocated_ptr;
+	void* allocated_ptr;
 	uintptr_t *bitmap;
 	uintptr_t *tenure;
 	uintptr_t *unused;
@@ -283,15 +283,17 @@ static void free_arena() {
 	int i = 0;
 	for (; i < array_size(cons_arena->a); i++) {
 		cons_tbl_t *tbl = array_get(cons_arena->a, i);
-		FREE(tbl);
+		free(tbl->bitmap);
+		free(tbl->head->h.allocated_ptr);
+		free(tbl);
 	}
 	array_free(cons_arena->a);
 	FREE(cons_arena);
 }
 
 static void free_cons_arena() {
-	//free_object();
-	//free_arena();
+	free_object();
+	free_arena();
 }
 
 static int mark_count = 0;
