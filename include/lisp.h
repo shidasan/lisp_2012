@@ -124,6 +124,7 @@ extern void** table;
 
 extern static_mtd_data static_mtds[];
 void init_opline();
+void unuse_opline();
 /*hash.h*/
 void mark_func_data_table(array_t *);
 void mark_variable_data_table(variable_t *, array_t *);

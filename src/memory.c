@@ -277,7 +277,7 @@ static void mark_stack(array_t *traced) {
 
 static void mark_opline(array_t *traced) {
 	int i = 0;
-	//fprintf(stderr, "mark opline\n");
+	//fprintf(stderr, "mark opline next_index: %d\n", next_index);
 	for (; i < next_index; i++) {
 		opline_t *op = memory + i;
 		switch(op->instruction) {

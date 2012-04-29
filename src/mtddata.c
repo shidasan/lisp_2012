@@ -851,6 +851,7 @@ static val_t svref(val_t *VSTACK, int ARGC) {
 		EXCEPTION("Expected int!!\n");
 	}
 	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
+		fprintf(stderr, "ivalue: %d, size: %d\n", i.ivalue, val.ptr->size);
 		EXCEPTION("Array out of bounds!!\n");
 	}
 	return val.ptr->list[i.ivalue];
@@ -902,7 +903,7 @@ static val_t _make_array(val_t *VSTACK, int ARGC) {
 	int i = 0, size = val.ptr->car.ivalue;
 	array_t *a = new_array();
 	for (; i < size; i++) {
-		array_add_val(a, new_bool(0));
+		array_add_val(a, new_int(0));
 	}
 	val_t res = null_val();
 	res.ptr = new_cons_array_list(a);
@@ -952,6 +953,8 @@ static val_t _assert(val_t *VSTACK, array_t *a) {
 	return val;
 }
 
+static val_t eval_inner(val_t *VSTACK, val_t val);
+
 static val_t cond(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
 	if (size == 0) {
@@ -970,8 +973,9 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 				&& strcmp(car.ptr->str, "otherwise") == 0) {
 			/* default */
 		} else {
-			codegen(val.ptr->car);
-			res = vm_exec(2, memory+current_index, VSTACK);
+			res = eval_inner(VSTACK, val.ptr->car);
+			//codegen(val.ptr->car);
+			//res = vm_exec(2, memory+current_index, VSTACK);
 			if (IS_nil(res)) {
 				continue;
 			}
@@ -982,8 +986,9 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 			for (; j < _length; j++) {
 				cdr = cdr.ptr->cdr;
 				car = cdr.ptr->car;
-				codegen(car);
-				res = vm_exec(2, memory+current_index, VSTACK);
+				res = eval_inner(VSTACK, car);
+				//codegen(car);
+				//res = vm_exec(2, memory+current_index, VSTACK);
 			}
 			return res;
 		}
@@ -1209,10 +1214,12 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 	array_t *a1 = new_array();
 	array_t *a2 = new_array();
 	if (IS_OPEN(value_list)) {
-		list = value_list.ptr->car;
-		while (list.ptr != NULL && !IS_nil(list)) {
+		while (!IS_nil(value_list)) {
+			list = value_list.ptr->car;
 			if (IS_OPEN(list)) {
 				VSTACK[1] = list;
+				//VAL_PRINT(list, _buffer);
+				//fprintf(stdout, "\n");
 				int argc = length(VSTACK+2, 1).ivalue;
 				if (argc == 2) {
 					variable = list.ptr->car;
@@ -1220,8 +1227,9 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 						EXCEPTION("Expected Symbol!!\n");
 					}
 					value = list.ptr->cdr.ptr->car;
-					codegen(value);
-					val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
+					val_t res = eval_inner(VSTACK, value);
+					//codegen(value);
+					//val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
 					if (is_star) {
 						set_variable(variable.ptr, res, 1);
 					} else {
@@ -1283,12 +1291,16 @@ static val_t let(val_t *VSTACK, struct array_t *a) {
 static val_t let_star(val_t *VSTACK, array_t *a) {
 	return let_inner(VSTACK, a, 1);
 }
+static val_t eval_inner(val_t *VSTACK, val_t val) {
+	codegen(val);
+	val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
+	unuse_opline();
+	return res;
+}
 static val_t eval(val_t *VSTACK, int ARGC) {
 	//val_t cons = CONS_EVAL(ARGS(0));
-	val_t cons = ARGS(0);
-	codegen(cons);
-	val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
-	return res;
+	val_t val = ARGS(0);
+	return eval_inner(VSTACK, val);
 }
 
 /*

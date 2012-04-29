@@ -26,6 +26,10 @@ void init_opline() {
 	current_index = next_index;
 }
 
+void unuse_opline() {
+	next_index = current_index;
+}
+
 int val_length(val_t val) {
 	if (IS_nil(val)) {
 		return 0;
@@ -86,6 +90,8 @@ static void gen_func(val_t val) {
 	}
 	for (; i < size; i++) {
 		if (quote_position != NULL && (i == quote_position[0] || i == quote_position[1] || quote_position[0] == -1)) {
+			new_opline(PUSH, cdr.ptr->car);
+		} else if (func != NULL && FLAG_IS_MACRO(func->flag)) {
 			new_opline(PUSH, cdr.ptr->car);
 		} else {
 			gen_expression(cdr.ptr->car);
