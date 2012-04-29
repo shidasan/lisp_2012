@@ -88,6 +88,7 @@ void array_set(struct array_t *, int, void *);
 void array_add(struct array_t *, void *);
 void array_add_val(struct array_t *, val_t);
 void *array_pop(struct array_t *);
+val_t array_pop_val(struct array_t *);
 void string_buffer_append_s(string_buffer_t *buffer, const char *str);
 void string_buffer_append_c(string_buffer_t *buffer, char c);
 void string_buffer_append_i(string_buffer_t *buffer, int i);

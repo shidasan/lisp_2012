@@ -158,7 +158,6 @@ special_mtd:
 		array = pc->op[1].a;
 		if (IS_NULL(val)) { /* lambda function */
 			esp[-1] = call_lambda(esp, array);
-			esp++;
 		} else {
 			func = search_func(val.ptr->str);
 			cons_t *old_environment = begin_local_scope(func);

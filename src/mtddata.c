@@ -15,6 +15,7 @@ loop_frame_t *loop_frame_pop() {
 	return frame;
 }
 void throw_inner() {
+	abort();
 	loop_frame_t *frame;
 	while ((frame = loop_frame_pop()) != NULL) {
 		jmp_buf *buf = frame->buf;
@@ -1014,13 +1015,12 @@ static val_t loop(val_t *VSTACK, array_t *a) {
 	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
 	VSTACK[1] = new_bool(0);
 	loop_frame_push(buf, VSTACK[1]);
-	int jmp = 0;
-	if ((jmp = setjmp(*buf)) == 0) {
+	if (setjmp(*buf) == 0) {
 		fprintf(stderr, "loop size: %d\n", array_size(a));
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
-				res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 2);
+				res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK+i+1);
 			}
 		}
 	} else {
@@ -1050,6 +1050,8 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 		if (!IS_NULL(block_name)) {
 			FREE(buf);
 		}
+		fprintf(stderr, "frame not match!!\n");
+		abort();
 	}
 	EXCEPTION("No block found!!\n");
 	return null_val(); //unreachable
@@ -1064,16 +1066,12 @@ static val_t block(val_t *VSTACK, array_t *a) {
 	}
 	val_t res = null_val();
 	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
-	if (loop_frame_list == NULL) {
-		loop_frame_list = new_array();
-	}
 	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
 		EXCEPTION("Expected symbol!!\n");
 	}
 	loop_frame_push(buf, block_name);
-	int jmp = 0;
-	if ((jmp = setjmp(*buf)) == 0) {
+	if (setjmp(*buf) == 0) {
 		int i = 1; 
 		for (; i < size; i++) {
 			res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 1);

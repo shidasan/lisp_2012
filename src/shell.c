@@ -73,8 +73,7 @@ void exec(int using_readline) {
 	val_t null_value;
 	null_value.ptr = NULL;
 	loop_frame_push(&buf, null_value);
-	int jmp = 0;
-	if ((jmp = setjmp(buf)) == 0) {
+	if (setjmp(buf) == 0) {
 		val_t val = vm_exec(2, memory + current_index, stack_value);
 		if (!IS_NULL(val) && using_readline) {
 			print_return_value(val);

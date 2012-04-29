@@ -325,8 +325,7 @@ int parse_program (char *str) {
 	jmp_buf buf;
 	val_t null_value = null_val();
 	loop_frame_push(&buf, null_value);
-	int jmp = 0;
-	if ((jmp = setjmp(buf)) == 0) {
+	if (setjmp(buf) == 0) {
 		val_t cons = make_cons_tree2(0);
 		if (IS_NULL(cons)) {
 			EXCEPTION("Unexpected ')' !!!!\n");

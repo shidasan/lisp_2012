@@ -126,6 +126,14 @@ void *array_pop(array_t *a) {
 	return a->list[a->size];
 }
 
+val_t array_pop_val(array_t *a) {
+	if (a->size <= 0) {
+		return null_val();
+	}
+	a->size--;
+	return a->val[a->size];
+}
+
 void array_trace(array_t *a, array_t *traced) {
 	int i = 0;
 	for (; i < array_size(a); i++) {
