@@ -69,10 +69,14 @@ val_t call_lambda(val_t *VSTACK, array_t *a) {
 	end_local_scope(old_environment);
 	return res;
 }
-val_t exec_body(val_t *VSTACK, func_t *func) {
+
+val_t exec_body(val_t *VSTACK, int ARGC, func_t *func) {
 	val_t res;
 	array_t *opline_list = func->opline_list;
 	int a = 0;
+	cons_t *old_environment = change_local_scope(current_environment, func->environment);
+	environment_list_push(old_environment);
+	set_args(VSTACK, ARGC, func);
 	for (; a < (int)array_size(opline_list); a++) {
 		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
@@ -80,6 +84,8 @@ val_t exec_body(val_t *VSTACK, func_t *func) {
 			res = vm_exec(2, memory + current_index, VSTACK + 1);
 		}
 	}
+	environment_list_pop();
+	end_local_scope(old_environment);
 	return res;
 }
 val_t vm_exec (int i , opline_t* pc, val_t *ebp)
@@ -111,7 +117,6 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 	val_t val;
 	func_t *func = NULL;
 	struct array_t *array = NULL;
-	struct array_t *opline_list = NULL;
 
 
     goto *(pc->instruction_ptr);
@@ -179,22 +184,14 @@ mtdcall:
 		if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 			old_environment = begin_local_scope(func);
 			esp[-args_num] = func->mtd(esp, args_num);
+			end_local_scope(old_environment);
 		} else if (FLAG_IS_MACRO(func->flag)) {
-			old_environment = begin_local_scope(func);
-			opline_list = func->opline_list;
-			set_args(esp, args_num, func);
-			val = exec_body(esp, func);
+			val = exec_body(esp, args_num, func);
 			esp[-args_num] = val;
 		} else {
-			old_environment = change_local_scope(current_environment, func->environment);
-			environment_list_push(old_environment);
-			opline_list = func->opline_list;
-			set_args(esp, args_num, func);
-			val = exec_body(esp, func);
+			val = exec_body(esp, args_num, func);
 			esp[-args_num] = val;
-			environment_list_pop();
 		}
-		end_local_scope(old_environment);
 		esp -= (args_num - 1);
 		goto *((++pc)->instruction_ptr);
 	}

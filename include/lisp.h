@@ -151,7 +151,7 @@ int parse_program(char *);
 /*eval.h*/
 val_t vm_exec (int, opline_t *, val_t *);
 void set_args(val_t *, int, func_t *);
-val_t exec_body(val_t *, func_t *);
+val_t exec_body(val_t *, int , func_t *);
 
 /* gc test */
 val_t root;

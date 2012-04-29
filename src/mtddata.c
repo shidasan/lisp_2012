@@ -768,6 +768,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 	if (func != NULL && FLAG_IS_STATIC(func->flag)) {
 		old_environment = begin_local_scope(func);
 		res = func->mtd(VSTACK, ARGC - 1);
+		end_local_scope(old_environment);
 	} else if (IS_LAMBDA(val)) { /* call lambda function */
 		lambda_env_t *env = val.ptr->env;
 		val_t args = env->args;
@@ -789,14 +790,10 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 			res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
 		}
 		environment_list_pop();
+		end_local_scope(old_environment);
 	} else {
-		old_environment = change_local_scope(current_environment, func->environment);
-		environment_list_push(old_environment);
-		set_args(VSTACK, ARGC-1, func);
-		res = exec_body(VSTACK + ARGC-3, func);
-		environment_list_pop();
+		res = exec_body(VSTACK + ARGC-3, ARGC-1, func);
 	}
-	end_local_scope(old_environment);
 	return res;
 }
 
@@ -964,7 +961,7 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 	for (; i < size; i++) {
 		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
 		VSTACK[1] = val;
-		int _length = length(VSTACK+1, 1).ivalue;
+		int _length = length(VSTACK+2, 1).ivalue;
 		if (_length == 0) {
 			EXCEPTION("clause NIL should be a list");
 		}
@@ -1138,7 +1135,7 @@ static val_t defun(val_t *VSTACK, array_t *a) {
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
-	int argc = length(VSTACK+1, 1).ivalue;
+	int argc = length(VSTACK+2, 1).ivalue;
 	set_func(fcons.ptr, opline_list, argc, args, current_environment, 0);
 	return fcons;
 }
@@ -1189,8 +1186,8 @@ static val_t defmacro(val_t *VSTACK, array_t *a) {
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
-	int argc = length(VSTACK+1, 1).ivalue;
-	set_func(fcons.ptr, opline_list, argc, args, current_environment, FLAG_MACRO);
+	int argc = length(VSTACK+2, 1).ivalue;
+	set_func(fcons.ptr, opline_list, argc, args, current_environment, FLAG_MACRO | FLAG_LOCAL_SCOPE);
 	return fcons;
 }
 
