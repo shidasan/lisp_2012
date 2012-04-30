@@ -263,6 +263,7 @@ static val_t make_cons_single_node(int is_head_of_list) {
 static val_t make_cons_list() {
 	val_t val = null_val();
 	val.ptr = new_open();
+	cstack_cons_cell_push(val.ptr);
 	val_t tmp = val;
 	val_t car = null_val();
 	get_next_token();
@@ -294,6 +295,7 @@ static val_t make_cons_list() {
 		tmp.ptr->cdr.ptr->car = car;
 		tmp = tmp.ptr->cdr;
 	}
+	cstack_cons_cell_pop();
 	return val;
 }
 

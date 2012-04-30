@@ -1,6 +1,7 @@
 #include "lisp.h"
 /* list of variable_data table */
 cons_t *current_environment = NULL;
+cons_t *root_environment = NULL;
 array_t *environment_list = NULL;
 /* function_data table */
 func_t *func_data_table = NULL;
@@ -76,8 +77,15 @@ cons_t *end_local_scope(cons_t *old_environment) {
 
 void new_global_environment() {
 	current_environment = new_local_environment();
+	root_environment = current_environment;
 	current_environment->car.ptr = new_variable_data_table();
 	environment_list = new_array();
+}
+
+void environment_clear() {
+	array_free(environment_list);
+	environment_list = new_array();
+	current_environment = root_environment;
 }
 
 void environment_list_push(cons_t *environment) {

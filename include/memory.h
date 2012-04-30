@@ -151,6 +151,7 @@ void gc_init();
 void gc_end();
 void cstack_cons_cell_push(cons_t *);
 cons_t *cstack_cons_cell_pop();
+void cstack_cons_cell_clear();
 
 val_t null_val();
 val_t new_int(int n);
@@ -166,6 +167,7 @@ cons_t* new_variable(char *str);
 cons_t* new_open();
 cons_t* new_variable_data_table();
 cons_t* new_local_environment();
+void environment_clear();
 
 array_t *new_array();
 void array_free(array_t *a);

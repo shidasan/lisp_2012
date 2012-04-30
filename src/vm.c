@@ -133,11 +133,14 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		res.ptr = (cons_t *)table;
         return res;
     }
+
+	if ((ebp - stack_value) > STACKSIZE) {
+		EXCEPTION("Stack over flow!!\n");
+	}
+
 	if (0&& dump_point < next_index - 1) {
 		dump_vm();
 	}
-
-    //val_t stack_value[STACKSIZE];
 
 	val_t *esp = ebp;
     int args_num = 0; 

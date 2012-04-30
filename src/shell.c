@@ -82,6 +82,8 @@ void exec(int using_readline) {
 		loop_frame_t *frame = loop_frame_pop();
 		FREE(frame);
 	} else {
+		cstack_cons_cell_clear();
+		environment_clear();
 	}
 }
 char *split_and_exec(int argc, char **args, char *tmpstr) {

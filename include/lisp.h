@@ -15,7 +15,7 @@
 #ifndef MAIN
 #define MAIN
 #define HASH_SIZE 16
-#define STACKSIZE 50000
+#define STACKSIZE 2000
 #define INSTSIZE 256
 #define INIT_FILE_SIZE 50
 #define ARGC _argc
@@ -133,6 +133,7 @@ func_t* set_static_func (static_mtd_data *data);
 func_t* set_func(cons_t *cons, array_t *opline_list, int argc, val_t args, cons_t *current_environment, int flag);
 void new_global_environment();
 extern cons_t* current_environment;
+extern cons_t* root_environment;
 void mark_environment_list(array_t*);
 void environment_list_push(cons_t*);
 cons_t *environment_list_pop();

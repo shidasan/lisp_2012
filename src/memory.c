@@ -445,6 +445,11 @@ cons_t *cstack_cons_cell_pop() {
 	return array_pop(cstack_cons_cell_list);
 }
 
+void cstack_cons_cell_clear() {
+	array_free(cstack_cons_cell_list);
+	cstack_cons_cell_list = new_array();
+}
+
 void gc_init() {
 	cstack_cons_cell_list = new_array();
 	new_cons_arena();
