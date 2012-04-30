@@ -142,7 +142,7 @@ static void free_string(cons_t *cons) {
 }
 
 static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
-	string_buffer_append_s(buffer, "<function :lambda ");
+	string_buffer_append_s(buffer, "<FUNCTION :LAMBDA ");
 	VAL_TO_STRING(cons->env->args, buffer, 1);
 	string_buffer_append_c(buffer, ' ');
 	int i = 0;

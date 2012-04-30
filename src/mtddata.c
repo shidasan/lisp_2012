@@ -15,7 +15,6 @@ loop_frame_t *loop_frame_pop() {
 	return frame;
 }
 void throw_inner() {
-	abort();
 	loop_frame_t *frame;
 	while ((frame = loop_frame_pop()) != NULL) {
 		jmp_buf *buf = frame->buf;
@@ -1058,7 +1057,6 @@ static val_t _return(val_t *VSTACK, int ARGC) {
 			FREE(buf);
 		}
 		fprintf(stderr, "frame not match!!\n");
-		abort();
 	}
 	EXCEPTION("No block found!!\n");
 	return null_val(); //unreachable

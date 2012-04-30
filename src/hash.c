@@ -95,17 +95,18 @@ void func_data_table_free() {
 		cur = func_data_table + i;
 		while (cur){
 			if (cur->name) {
+				func_t *tmp = cur->next;
 				if (!FLAG_IS_STATIC(cur->flag)) {
 					free(cur->name);
-					//array_free(cur->opline_list);
+					array_free(cur->opline_list);
 				}
 				if (cur != func_data_table + i) {
-					//free(cur);
+					free(cur);
 				}
+				cur = tmp;
 			} else {
 				break;
 			}
-			cur = cur->next;
 		}
 	}
 	free(func_data_table);
@@ -238,7 +239,7 @@ struct func_t* set_static_func (static_mtd_data *data) {
 			return p;
 		} else if (p->next == NULL){
 			p->next = (func_t*)malloc(sizeof(func_t));
-			memset(p->next, 0, sizeof(variable_t));
+			memset(p->next, 0, sizeof(func_t));
 			p = p->next;
 		} else {
 			p = p->next;

@@ -23,7 +23,7 @@ void opline_free() {
 	for (; i < inst_size; i++) {
 		switch(pc->instruction) {
 			case SPECIAL_MTD:
-				//array_free(pc->op[1].a);
+				array_free(pc->op[1].a);
 				break;
 			default:
 				break;
