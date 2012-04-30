@@ -164,9 +164,7 @@ void shell_readline(int argc, char **args) {
 		init_opline();
 		if (leftover != NULL) {
 			char *tmptmpstr = myreadline("    ");
-			fprintf(stderr, "input: %s, leftover: %s\n", tmptmpstr, leftover);
 			tmpstr = str_join(tmptmpstr, leftover);
-			fprintf(stderr, "result: %s\n", tmpstr);
 			free(leftover);
 			leftover = NULL;
 			free(tmptmpstr);

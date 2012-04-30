@@ -155,6 +155,12 @@ static val_t cdr(val_t* VSTACK, int ARGC) {
 	return val.ptr->cdr;
 }
 
+static val_t eq(val_t* VSTACK, int ARGC) {
+	val_t val0 = ARGS(0);
+	val_t val1 = ARGS(1);
+	return new_bool(val0.ptr == val1.ptr);
+}
+
 static val_t cons(val_t* VSTACK, int ARGC) {
 	val_t car = ARGS(0);
 	val_t cdr = ARGS(1);
@@ -573,7 +579,7 @@ static int eq_ff(val_t v0, val_t v1) {
 
 static int (*eq_op[])(val_t, val_t) = {eq_ff, eq_fi, eq_if, eq_ii};
 
-static val_t eq(val_t* VSTACK, int ARGC) {
+static val_t opeq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
@@ -1353,6 +1359,7 @@ static_mtd_data static_mtds[] = {
 	{"CONS", 2, 0, 0, 0, 0, cons, NULL},
 	{"CAR", 1, 0, 0, 0, 0, car, NULL},
 	{"CDR", 1, 0, 0, 0, 0, cdr, NULL},
+	{"EQ", 2, 0, 0, 0, 0, eq, NULL},
 	{"PRINT", 1, 0, 0, 0, 0, print, NULL},
 	{"FORMAT", -1, 2, FLAG_SPECIAL_FORM, 0, 0, NULL, format},
 	{"+", -1, 0, 0, 0, 0, add, NULL},
@@ -1367,7 +1374,7 @@ static_mtd_data static_mtds[] = {
 	{"STRING>", -1, 1, 0, 0, 0, string_gt, NULL},
 	{">=", -1, 1, 0, 0, 0, gte, NULL},
 	{"STRING>=", -1, 1, 0, 0, 0, string_gte, NULL},
-	{"=", -1, 1, 0, 0, 0, eq, NULL},
+	{"=", -1, 1, 0, 0, 0, opeq, NULL},
 	{"STRING=", -1, 1, 0, 0, 0, string_eq, NULL},
 	{"/=", -1, 1, 0, 0, 0, neq, NULL},
 	{"STRING/=", -1, 1, 0, 0, 0, string_neq, NULL},
