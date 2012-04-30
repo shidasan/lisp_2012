@@ -154,16 +154,6 @@ void array_free(array_t *a) {
 	FREE(a);
 }
 
-/* AST */
-
-ast_t *new_ast(int type, int sub_type) {
-	ast_t *ast = (ast_t *)malloc(sizeof(ast_t));
-	memset(ast, 0, sizeof(ast_t));
-	ast->type = type;
-	ast->sub_type = sub_type;
-	ast->a = new_array();
-	return ast;
-}
 
 /* allocator */
 

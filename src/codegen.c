@@ -161,7 +161,7 @@ static void gen_special_form(val_t val) {
 static void gen_list (val_t cons) {
 	val_t car = cons.ptr->car;
 	if (IS_UNBOX(car)) {
-		EXCEPTION("Expected symbol!!\n");
+		EXPECTED("symbol", car);
 	}
 	func_t *func = search_func(car.ptr->str);
 	if (IS_OPEN(car) || (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag))) {

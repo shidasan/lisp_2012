@@ -112,19 +112,6 @@ typedef struct func_t{
 
 void func_data_table_free();
 
-typedef struct ast_t {
-	int type;
-	int sub_type;
-	union {
-		int ivalue;
-		char *str;
-		/* array of ast_t */
-		struct array_t *a;
-		/* atom */
-		cons_t *cons;
-	};
-}ast_t;
-
 #define ADDREF(CONS, A) \
 	(array_add((A), (CONS)));\
 
@@ -180,12 +167,11 @@ cons_t* new_open();
 cons_t* new_variable_data_table();
 cons_t* new_local_environment();
 
-struct array_t *new_array();
-void array_free(struct array_t *a);
+array_t *new_array();
+void array_free(array_t *a);
+
 string_buffer_t *new_string_buffer();
 void string_buffer_free(string_buffer_t *buffer);
-
-ast_t *new_ast(int type, int sub_type);
 
 extern val_t stack_value[];
 extern val_t *esp;
