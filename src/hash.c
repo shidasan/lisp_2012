@@ -88,23 +88,27 @@ cons_t *environment_list_pop() {
 	return array_pop(environment_list);
 }
 
-void free_func_data_table() {
-	func_t *tempF, *currentF;
+void func_data_table_free() {
+	func_t *cur = NULL;
 	int i;
 	for (i = 0;(unsigned int)i < HASH_SIZE; i++){
-		FREE(func_data_table[i].name);
-		currentF = func_data_table[i].next;
-		while (1){
-			if (currentF != NULL){
-				tempF = currentF->next;
-				FREE(currentF->name);
-				FREE(currentF);
-				currentF = tempF;
+		cur = func_data_table + i;
+		while (cur){
+			if (cur->name) {
+				if (!FLAG_IS_STATIC(cur->flag)) {
+					free(cur->name);
+					//array_free(cur->opline_list);
+				}
+				if (cur != func_data_table + i) {
+					//free(cur);
+				}
 			} else {
 				break;
 			}
+			cur = cur->next;
 		}
 	}
+	free(func_data_table);
 }
 
 struct val_t set_variable_inner (cons_t *table, cons_t *cons, val_t value, int is_end_of_table_list)
@@ -216,6 +220,7 @@ struct func_t* set_static_func (static_mtd_data *data) {
 			if (p->name != NULL && strcmp(p->name, str) == 0) {
 				return NULL;
 			}
+
 			if (p->name == NULL){
 				p->name = (char*)malloc(strlen(str)+1);
 				strncpy (p->name, str, strlen(str));

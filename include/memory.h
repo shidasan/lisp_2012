@@ -86,6 +86,8 @@ typedef struct opline_t{
 	}op[2];
 }opline_t;
 
+void opline_free();
+
 typedef struct variable_t{
 	char* name;
 	struct variable_t* next;
@@ -107,6 +109,8 @@ typedef struct func_t{
 	cons_t *environment;
 	val_t args;
 }func_t;
+
+void func_data_table_free();
 
 typedef struct ast_t {
 	int type;
@@ -182,7 +186,6 @@ string_buffer_t *new_string_buffer();
 void string_buffer_free(string_buffer_t *buffer);
 
 ast_t *new_ast(int type, int sub_type);
-void ast_free(ast_t *ast);
 
 extern val_t stack_value[];
 extern val_t *esp;

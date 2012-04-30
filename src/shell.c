@@ -211,6 +211,8 @@ int shell (int argc, char* args[])
 	} else {
 		shell_readline(argc, args);
 	}
+	func_data_table_free();
+	opline_free();
 	gc_end();
 	return 0;
 }

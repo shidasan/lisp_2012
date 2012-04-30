@@ -304,7 +304,11 @@ static val_t make_cons_tree2(int is_head_of_list) {
 		val_t root = null_val();
 		root.ptr = new_open();
 		cstack_cons_cell_push(root.ptr);
-		root.ptr->car.ptr = new_func("QUOTE", NULL);
+		char *qstr = (char*)malloc(6);
+		qstr[0] = 'Q';qstr[1] = 'U';qstr[2] = 'O';
+		qstr[3] = 'T';qstr[4] = 'E';qstr[5] = '\0';
+		root.ptr->car.ptr = new_func(qstr, NULL);
+		//root.ptr->car.ptr = new_func("QUOTE", NULL);
 		root.ptr->cdr.ptr = new_open();
 		root.ptr->cdr.ptr->cdr = new_bool(0);
 		get_next_token();

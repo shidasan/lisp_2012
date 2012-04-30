@@ -17,6 +17,22 @@ static opline_t *new_opline(enum eINSTRUCTION e, val_t val) {
 	return memory + next_index-1;
 }
 
+void opline_free() {
+	int i = 0;
+	opline_t *pc = memory;
+	for (; i < inst_size; i++) {
+		switch(pc->instruction) {
+			case SPECIAL_MTD:
+				//array_free(pc->op[1].a);
+				break;
+			default:
+				break;
+		}
+		pc++;
+	}
+	free(memory);
+}
+
 static void new_opline_special_method(enum eINSTRUCTION e, val_t cons, struct array_t *a) {
 	new_opline(e, cons);
 	memory[next_index-1].op[1].a = a;
@@ -142,7 +158,7 @@ static void gen_special_form(val_t val) {
 static void gen_list (val_t cons) {
 	val_t car = cons.ptr->car;
 	if (IS_UNBOX(car)) {
-		EXCEPTION("Excepted symbol!!\n");
+		EXCEPTION("Expected symbol!!\n");
 	}
 	func_t *func = search_func(car.ptr->str);
 	if (IS_OPEN(car) || (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag))) {
