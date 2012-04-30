@@ -46,7 +46,7 @@ L_start:
     while (isspace(*current_char) || *current_char == '\n' || *current_char == '\t'){
         current_char++;
     }
-    if (*current_char == '\0' || *current_char == '\n'){
+    if (*current_char == '\0'){
         return tok_eof;
     }
 	if (*current_char == ';') {

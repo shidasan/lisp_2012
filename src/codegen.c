@@ -82,6 +82,9 @@ static void gen_mtd_check(val_t val, int list_length) {
 static void gen_func(val_t val) {
 	assert(!IS_UNBOX(val));
 	val_t car = val.ptr->car;
+	if (!IS_SYMBOL(car)) {
+		EXPECTED("symbol", car);
+	}
 	func_t *func = search_func(car.ptr->str);
 	int i = 1, size = val_length(val);
 	int *quote_position = NULL;

@@ -27,6 +27,7 @@
 #define TODO(STR) fprintf(stderr, "TODO (%s, %d): ", __FILE__, __LINE__); fprintf(stderr, (STR)); assert(0)
 #define EXCEPTION(STR) throw_exception(__FILE__, __LINE__, STR)
 #define FMT_EXCEPTION(STR, ...) throw_fmt_exception(__FILE__, __LINE__, STR, __VA_ARGS__)
+#define EXPECTED(STR, VAL) throw_type_exception(__FILE__, __LINE__, STR, VAL)
 #define MTD_EVAL(MTD, ...)\
 	MTD(__VA_ARGS__)
 
@@ -40,31 +41,31 @@
 #define FLAG_IS_SPECIAL_FORM(FLAG)     (FLAG & FLAG_SPECIAL_FORM)
 #define FLAG_CREATES_LOCAL_SCOPE(FLAG) (FLAG & FLAG_LOCAL_SCOPE)
 
-#define TYPE_MASK ((int)0x000F0000)
+#define TYPE_MASK                      ((int)0x000F0000)
 
-#define INT_OFFSET                (((int)1) << 16)
-#define FLOAT_OFFSET              (((int)2) << 16)
-#define T_OFFSET                  (((int)3) << 16)
-#define nil_OFFSET                (((int)4) << 16)
+#define INT_OFFSET                     (((int)1) << 16)
+#define FLOAT_OFFSET                   (((int)2) << 16)
+#define T_OFFSET                       (((int)3) << 16)
+#define nil_OFFSET                     (((int)4) << 16)
 
-#define VAL_TYPE(VAL)             ((VAL).tag & TYPE_MASK)
-#define IS_UNBOX(VAL)             (VAL_TYPE(VAL))
-#define IS_NULL(VAL)              ((VAL).ptr == NULL)
-#define IS_INT(VAL)               (VAL_TYPE(VAL) == INT_OFFSET)
-#define IS_FLOAT(VAL)             (VAL_TYPE(VAL) == FLOAT_OFFSET)
-#define IS_NUMBER(VAL)            (IS_INT(VAL) || IS_FLOAT(VAL))
-#define IS_T(VAL)                 (VAL_TYPE(VAL) == T_OFFSET)
-#define IS_nil(VAL)               (VAL_TYPE(VAL) == nil_OFFSET)
-#define IS_OPEN(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
-#define IS_STRING(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == STRING)
-#define IS_ARRAY(VAL)             (!IS_UNBOX(VAL) && (VAL).ptr->type == ARRAY)
-#define IS_FUNC(VAL)              (!IS_UNBOX(VAL) && (VAL).ptr->type == FUNC)
-#define IS_LAMBDA(VAL)            (!IS_UNBOX(VAL) && (VAL).ptr->type == LAMBDA)
-#define IS_VARIABLE(VAL)          (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)
-#define IS_SYMBOL(VAL)            (IS_FUNC(VAL) || IS_VARIABLE(VAL))
-#define IS_CALLABLE(VAL)          (IS_SYMBOL(VAL) || IS_LAMBDA(VAL))
-#define IS_VARIABLE_TABLE(VAL)    (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE_TABLE)
-#define IS_LOCAL_ENVIRONMENT(VAL) (!IS_UNBOX(VAL) && (VAL).ptr->type == LOCAL_ENVIRONMENT)
+#define VAL_TYPE(VAL)                  ((VAL).tag & TYPE_MASK)
+#define IS_UNBOX(VAL)                  (VAL_TYPE(VAL))
+#define IS_NULL(VAL)                   ((VAL).ptr == NULL)
+#define IS_INT(VAL)                    (VAL_TYPE(VAL) == INT_OFFSET)
+#define IS_FLOAT(VAL)                  (VAL_TYPE(VAL) == FLOAT_OFFSET)
+#define IS_NUMBER(VAL)                 (IS_INT(VAL) || IS_FLOAT(VAL))
+#define IS_T(VAL)                      (VAL_TYPE(VAL) == T_OFFSET)
+#define IS_nil(VAL)                    (VAL_TYPE(VAL) == nil_OFFSET)
+#define IS_OPEN(VAL)                   (!IS_UNBOX(VAL) && (VAL).ptr->type == OPEN)
+#define IS_STRING(VAL)                 (!IS_UNBOX(VAL) && (VAL).ptr->type == STRING)
+#define IS_ARRAY(VAL)                  (!IS_UNBOX(VAL) && (VAL).ptr->type == ARRAY)
+#define IS_FUNC(VAL)                   (!IS_UNBOX(VAL) && (VAL).ptr->type == FUNC)
+#define IS_LAMBDA(VAL)                 (!IS_UNBOX(VAL) && (VAL).ptr->type == LAMBDA)
+#define IS_VARIABLE(VAL)               (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE)
+#define IS_SYMBOL(VAL)                 (IS_FUNC(VAL) || IS_VARIABLE(VAL))
+#define IS_CALLABLE(VAL)               (IS_SYMBOL(VAL) || IS_LAMBDA(VAL))
+#define IS_VARIABLE_TABLE(VAL)         (!IS_UNBOX(VAL) && (VAL).ptr->type == VARIABLE_TABLE)
+#define IS_LOCAL_ENVIRONMENT(VAL)      (!IS_UNBOX(VAL) && (VAL).ptr->type == LOCAL_ENVIRONMENT)
 
 #define TO_INT(VAL)               ((int)(VAL & ((1 << 32)-1)))
 
@@ -118,8 +119,11 @@ typedef struct loop_frame_t {
 array_t *loop_frame_list;
 void loop_frame_push(jmp_buf *buf, val_t block_name);
 loop_frame_t *loop_frame_pop();
+
 void throw_exception(const char *, int, const char *);
 void throw_fmt_exception(const char *, int, const char *, va_list);
+void throw_type_exception(const char *, int, const char *, val_t);
+
 val_t call_lambda(val_t *, array_t *);
 val_t call_mtd(val_t *, int , func_t *);
 val_t call_macro(val_t *, int , func_t *);

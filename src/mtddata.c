@@ -28,15 +28,30 @@ void throw_inner() {
 	}
 }
 void throw_exception(const char *_file, int _line, const char *format){
-	fprintf(stderr, "Exception!! (%s, %d): \n", _file, _line);
+	(void)_file;(void)_line;
+	fprintf(stderr, "From %s, %d): \n", _file, _line);
 	fprintf(stderr, "%s", format);
 	throw_inner();
 }
+
 void throw_fmt_exception(const char *_file, int _line, const char *format, va_list ap ){
-	fprintf(stderr, "Exception!! (%s, %d): \n", _file, _line);
+	(void)_file;(void)_line;
+	fprintf(stderr, "From %s, %d: \n", _file, _line);
 	fprintf(stderr, format, ap);
 	throw_inner();
 }
+
+void throw_type_exception(const char *_file, int _line, const char *type, val_t val) {
+	fprintf(stderr, "From %s, %d: \n", _file, _line);
+	string_buffer_t *buffer = new_string_buffer();
+	VAL_TO_STRING(val, buffer, 1);
+	char *str = string_buffer_to_string(buffer);
+	fprintf(stderr, "%s is not a %s\n", str, type);
+	free(str);
+	string_buffer_free(buffer);
+	throw_inner();
+}
+
 static val_t print(val_t *VSTACK, int ARGC) {
 	val_t cons = ARGS(0);
 	print_return_value(cons);
@@ -127,7 +142,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 static val_t car(val_t* VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_OPEN(val)) {
-		EXCEPTION("expected list!!\n");
+		EXPECTED("list", val);
 	}
 	return val.ptr->car;
 }
@@ -135,7 +150,7 @@ static val_t car(val_t* VSTACK, int ARGC) {
 static val_t cdr(val_t* VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_OPEN(val)) {
-		EXCEPTION("expected list!!\n");
+		EXPECTED("list", val);
 	}
 	return val.ptr->cdr;
 }
@@ -177,7 +192,7 @@ static val_t add(val_t* VSTACK, int ARGC) {
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		res = add_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -209,7 +224,7 @@ static val_t sub(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t res = ARGS(0);
 	if (!IS_NUMBER(res)) {
-		EXCEPTION("Expected Number!!\n");
+		EXPECTED("number", res);
 	}
 	if (ARGC == 1) {
 		if (IS_INT(res)) {
@@ -222,7 +237,7 @@ static val_t sub(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", res);
 		}
 		res = sub_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -256,7 +271,7 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 	for (i = 0; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", res);
 		}
 		res = mul_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -293,7 +308,7 @@ static val_t _div(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val_t val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", res);
 		}
 		res = div_op[IS_INT(res)*2+IS_INT(val)](res, val);
 	}
@@ -322,13 +337,13 @@ static val_t lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (lt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -343,7 +358,7 @@ static val_t string_lt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
@@ -382,13 +397,13 @@ static val_t lte(val_t *VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (lte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -403,13 +418,13 @@ static val_t string_lte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("string", val);
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) > 0) {
@@ -442,13 +457,13 @@ static val_t gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (gt_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -463,13 +478,13 @@ static val_t string_gt(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("string", val);
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) <= 0) {
@@ -502,13 +517,13 @@ static val_t gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (gte_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -523,13 +538,13 @@ static val_t string_gte(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("string", val);
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) < 0) {
@@ -562,13 +577,13 @@ static val_t eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	val_t current_number = val;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -583,13 +598,13 @@ static val_t string_eq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("string", val);
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) != 0) {
@@ -604,7 +619,7 @@ static val_t neq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected Int!!\n");
+		EXPECTED("number", val);
 	}
 	if (ARGC == 1) {
 		return new_bool(1);
@@ -613,7 +628,7 @@ static val_t neq(val_t* VSTACK, int ARGC) {
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_NUMBER(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("number", val);
 		}
 		val_t next_number = val;
 		if (eq_op[IS_INT(current_number)*2+IS_INT(next_number)](current_number, next_number)) {
@@ -628,13 +643,13 @@ static val_t string_neq(val_t* VSTACK, int ARGC) {
 	int i;
 	val_t val = ARGS(0);
 	if (!IS_STRING(val)) {
-		EXCEPTION("Expected String!!\n");
+		EXPECTED("string", val);
 	}
 	const char* current_str = val.ptr->str;
 	for (i = 1; i < ARGC; i++) {
 		val = ARGS(i);
 		if (!IS_STRING(val)) {
-			EXCEPTION("type error!!\n");
+			EXPECTED("string", val);
 		}
 		const char  *next_str = val.ptr->str;
 		if (strcmp(current_str, next_str) == 0) {
@@ -669,7 +684,7 @@ static val_t _sqrt (val_t *VSTACK, int ARGC) {
 	} else if (IS_INT(val)) {
 		res = new_float((float)sqrt((double)val.ivalue));
 	} else {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 	}
 	return res;
 }
@@ -681,7 +696,7 @@ static val_t _random(val_t *VSTACK, int ARGC) {
 	} else if (IS_FLOAT(val)) {
 		return new_float(rand() / (RAND_MAX / val.fvalue));
 	} else {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 		return null_val(); //unreachable
 	}
 }
@@ -689,7 +704,7 @@ static val_t _random(val_t *VSTACK, int ARGC) {
 static val_t _sin(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 	}
 	if (IS_INT(val)) {
 		return new_float(sin((float)val.ivalue));
@@ -701,7 +716,7 @@ static val_t _sin(val_t *VSTACK, int ARGC) {
 static val_t _cos(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 	}
 	if (IS_INT(val)) {
 		return new_float(cos((float)val.ivalue));
@@ -713,7 +728,7 @@ static val_t _cos(val_t *VSTACK, int ARGC) {
 static val_t _tan(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 	}
 	if (IS_INT(val)) {
 		return new_float(tan((float)val.ivalue));
@@ -725,7 +740,7 @@ static val_t _tan(val_t *VSTACK, int ARGC) {
 static val_t _floor(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_NUMBER(val)) {
-		EXCEPTION("Expected number!!\n");
+		EXPECTED("number", val);
 	}
 	if (IS_FLOAT(val)) {
 		return new_int(floor(val.fvalue));
@@ -768,7 +783,7 @@ static val_t quote(val_t * VSTACK, int ARGC) {
 static val_t funcall(val_t * VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_CALLABLE(val)) {
-		EXCEPTION("Expected Symbol!!\n");
+		EXPECTED("symbol", val);
 	}
 	func_t *func = search_func(val.ptr->str);
 	if (func == NULL && !IS_LAMBDA(val)) {
@@ -790,7 +805,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 		for (; i < ARGC; i++) {
 			val_t car = args.ptr->car;
 			if (!IS_SYMBOL(car)) {
-				EXCEPTION("Expected symbol!!\n");
+				EXPECTED("symbol", car);
 			}
 			val_t value = ARGS(i);
 			set_variable(car.ptr, value, 1);
@@ -839,7 +854,7 @@ static val_t length(val_t *VSTACK, int ARGC) {
 	} else if (IS_ARRAY(val)) {
 		return new_int(val.ptr->size);
 	} else if (!IS_OPEN(val)) {
-		EXCEPTION("Not a list!!\n");
+		EXPECTED("list", val);
 	}
 	int res = 0;
 	while (IS_OPEN(val)) {
@@ -847,7 +862,7 @@ static val_t length(val_t *VSTACK, int ARGC) {
 		val = val.ptr->cdr;
 	}
 	if (!IS_nil(val)) {
-		EXCEPTION("Not a list!!\n");
+		EXPECTED("list", val);
 	}
 	return new_int(res);
 }
@@ -856,10 +871,10 @@ static val_t svref(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	val_t i = ARGS(1);
 	if (!IS_ARRAY(val)) {
-		EXCEPTION("Expected array!!\n");
+		EXPECTED("array", val);
 	}
 	if (!IS_INT(i)) {
-		EXCEPTION("Expected int!!\n");
+		EXPECTED("integer", i);
 	}
 	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
 		fprintf(stderr, "ivalue: %d, size: %d\n", i.ivalue, val.ptr->size);
@@ -873,10 +888,10 @@ static val_t svstore(val_t *VSTACK, int ARGC) {
 	val_t i = ARGS(1);
 	val_t j = ARGS(2);
 	if (!IS_ARRAY(val)) {
-		EXCEPTION("Expected array!!\n");
+		EXPECTED("array", val);
 	}
 	if (!IS_INT(i)) {
-		EXCEPTION("Expected int!!\n");
+		EXPECTED("integer", i);
 	}
 	if (i.ivalue < 0 || i.ivalue >= val.ptr->size) {
 		fprintf(stderr, "%d\n", i.ivalue);
@@ -901,7 +916,7 @@ static val_t _vector(val_t *VSTACK, int ARGC) {
 static val_t _make_array(val_t *VSTACK, int ARGC) {
 	val_t val = ARGS(0);
 	if (!IS_OPEN(val)) {
-		EXCEPTION("Expected list");
+		EXPECTED("list", val);
 	}
 	VSTACK[1] = val;
 	int _length = length(VSTACK+2, 1).ivalue;
@@ -909,7 +924,7 @@ static val_t _make_array(val_t *VSTACK, int ARGC) {
 		EXCEPTION("TODO\n");
 	}
 	if (!IS_INT(val.ptr->car)) {
-		EXCEPTION("Expected int!!\n");
+		EXPECTED("integer", val.ptr->car);
 	}
 	int i = 0, size = val.ptr->car.ivalue;
 	array_t *a = new_array();
@@ -1073,7 +1088,7 @@ static val_t block(val_t *VSTACK, array_t *a) {
 	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
 	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
-		EXCEPTION("Expected symbol!!\n");
+		EXPECTED("symbol", block_name);
 	}
 	loop_frame_push(buf, block_name);
 	if (setjmp(*buf) == 0) {
@@ -1146,7 +1161,7 @@ static val_t unless(val_t *VSTACK, array_t *a) {
 static val_t defun(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
-		EXCEPTION("Expected Symbol!!\n");
+		EXPECTED("symbol", fcons);
 	}
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
@@ -1197,7 +1212,7 @@ static val_t lambda(val_t *VSTACK, array_t *a) {
 static val_t defmacro(val_t *VSTACK, array_t *a) {
 	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
-		EXCEPTION("Expected Symbol!!\n");
+		EXPECTED("symbol", fcons);
 	}
 	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
@@ -1217,7 +1232,7 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 	val_t variable = ARGS(0);
 	val_t value = ARGS(1);
 	if (!IS_SYMBOL(variable)) {
-		EXCEPTION("Not a atom!!\n");
+		EXPECTED("symbol", variable);
 	}
 	set_variable(variable.ptr, value, 0);
 	return value;
@@ -1241,7 +1256,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 				if (argc == 2) {
 					variable = list.ptr->car;
 					if (!IS_SYMBOL(variable)) {
-						EXCEPTION("Expected Symbol!!\n");
+						EXPECTED("symbol", variable);
 					}
 					value = list.ptr->cdr.ptr->car;
 					val_t res = eval_inner(VSTACK, value);
@@ -1262,7 +1277,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 			} else {
 				//fprintf(stderr, "hi\n");
 				if (!IS_SYMBOL(list)) {
-					EXCEPTION("Expected Symbol!!\n");
+					EXPECTED("symbol", list);
 				}
 				if (is_star) {
 					set_variable(list.ptr, new_bool(0), 1);
