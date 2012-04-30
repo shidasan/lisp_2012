@@ -323,7 +323,9 @@ static val_t make_cons_tree2(int is_head_of_list) {
 }
 
 int parse_program (char *str) {
-	tokenizer_init(str);
+	if (str) {
+		tokenizer_init(str);
+	}
 	get_next_token();
 	if (token_type == tok_eof) {
 		return 1;

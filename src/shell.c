@@ -25,7 +25,7 @@ static void init_first() {
 static char *str_join(char *tmptmpstr, char *leftover) {
 	char *tmpstr = (char*)malloc(sizeof(char) * (strlen(tmptmpstr) + strlen(leftover) + 1));
 	memcpy(tmpstr, leftover, strlen(leftover));
-	memcpy(tmpstr + strlen(leftover), tmptmpstr, sizeof(tmpstr));
+	memcpy(tmpstr + strlen(leftover), tmptmpstr, strlen(tmptmpstr));
 	tmpstr[strlen(tmptmpstr) + strlen(leftover)] = '\0';
 	return tmpstr;
 }
@@ -112,6 +112,9 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 			if (status == 0){
 				exec(argc == 1);
 			}
+			while ((parse_program(NULL) == 0)) {
+				exec(argc == 1);
+			}
 		}
 		free(str);
 		if (next_point == (int)strlen(tmpstr)) {
@@ -161,7 +164,9 @@ void shell_readline(int argc, char **args) {
 		init_opline();
 		if (leftover != NULL) {
 			char *tmptmpstr = myreadline("    ");
+			fprintf(stderr, "input: %s, leftover: %s\n", tmptmpstr, leftover);
 			tmpstr = str_join(tmptmpstr, leftover);
+			fprintf(stderr, "result: %s\n", tmpstr);
 			free(leftover);
 			leftover = NULL;
 			free(tmptmpstr);
