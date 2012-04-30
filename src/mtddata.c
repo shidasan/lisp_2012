@@ -64,7 +64,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 	if (length < 2) {
 		EXCEPTION("Too few arguments!!\n");
 	}
-	val_t destination = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t destination = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	switch (VAL_TYPE(destination)) {
 		case T_OFFSET:
 		case nil_OFFSET:
@@ -73,7 +73,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 			EXCEPTION("Invalid file stream!!\n");
 			break;
 	}
-	val_t format_string = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
+	val_t format_string = vm_exec(memory + (uintptr_t)array_get(a, 1), VSTACK);
 	if (IS_UNBOX(format_string) || format_string.ptr->type != STRING) {
 		EXCEPTION("The control-string must be a string!!\n");
 	}
@@ -95,7 +95,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 				if (evaluate >= length) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}
-				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
+				val = vm_exec(memory + (uintptr_t)array_get(a, evaluate), VSTACK);
 				VAL_TO_STRING(val, buffer, 0);
 				location += 2;
 				evaluate++;
@@ -105,7 +105,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 				if (evaluate >= length) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}
-				val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
+				val = vm_exec(memory + (uintptr_t)array_get(a, evaluate), VSTACK);
 				VAL_TO_STRING(val, buffer, 1);
 				location += 2;
 				evaluate++;
@@ -123,7 +123,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 		}
 	}
 	for (; evaluate < length; evaluate++) {
-		val = vm_exec(2, memory + (uintptr_t)array_get(a, evaluate), VSTACK);
+		val = vm_exec(memory + (uintptr_t)array_get(a, evaluate), VSTACK);
 	}
 	val_t res;
 	res.ptr = NULL;
@@ -819,7 +819,7 @@ static val_t funcall(val_t * VSTACK, int ARGC) {
 		}
 		for (i = 0; i < array_size(lambda_data_list); i++) {
 			lambda_data_t *data = (lambda_data_t*)array_get(lambda_data_list, i);
-			res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
+			res = vm_exec(memory + data->opline_idx, VSTACK+1);
 		}
 		environment_list_pop();
 		end_local_scope(old_environment);
@@ -946,7 +946,7 @@ static val_t _make_array(val_t *VSTACK, int ARGC) {
 static val_t _and(val_t *VSTACK, array_t *a) {
 	int i = 0, size = array_size(a);
 	for (; i < size; i++) {
-		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		val_t val = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 		if (IS_nil(val)) {
 			return new_bool(0);
 		}
@@ -957,7 +957,7 @@ static val_t _and(val_t *VSTACK, array_t *a) {
 static val_t _or(val_t *VSTACK, array_t *a) {
 	int i = 0, size = array_size(a);
 	for (; i < size; i++) {
-		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		val_t val = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 		if (!IS_nil(val)) {
 			return new_bool(1);
 		}
@@ -966,18 +966,18 @@ static val_t _or(val_t *VSTACK, array_t *a) {
 }
 
 static val_t _if(val_t *VSTACK, struct array_t *a) {
-	val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t val = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	val_t res = null_val();
 	if (!IS_nil(val)) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, 1), VSTACK);
 	} else {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, 2), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, 2), VSTACK);
 	}
 	return res;
 }
 
 static val_t _assert(val_t *VSTACK, array_t *a) {
-	val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t val = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (IS_nil(val)) {
 		EXCEPTION("NIL must evalueate to a non-NIL value\n");
 		assert(0);
@@ -994,7 +994,7 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 	}
 	val_t res = null_val();
 	for (; i < size; i++) {
-		val_t val = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		val_t val = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 		VSTACK[1] = val;
 		int _length = length(VSTACK+2, 1).ivalue;
 		if (_length == 0) {
@@ -1007,7 +1007,7 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 		} else {
 			res = eval_inner(VSTACK, val.ptr->car);
 			//codegen(val.ptr->car);
-			//res = vm_exec(2, memory+current_index, VSTACK);
+			//res = vm_exec(memory+current_index, VSTACK);
 			if (IS_nil(res)) {
 				continue;
 			}
@@ -1020,7 +1020,7 @@ static val_t cond(val_t *VSTACK, array_t *a) {
 				car = cdr.ptr->car;
 				res = eval_inner(VSTACK, car);
 				//codegen(car);
-				//res = vm_exec(2, memory+current_index, VSTACK);
+				//res = vm_exec(memory+current_index, VSTACK);
 			}
 			return res;
 		}
@@ -1032,7 +1032,7 @@ static val_t progn(val_t *VSTACK, array_t *a) {
 	int size = array_size(a), i = 0;
 	val_t res = null_val();
 	for (; i < size; i++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
 	return res;
 }
@@ -1047,7 +1047,7 @@ static val_t loop(val_t *VSTACK, array_t *a) {
 		while (1) {
 			i = 0;
 			for (; i < size; i++) {
-				res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK+i+1);
+				res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK+i+1);
 			}
 		}
 	} else {
@@ -1092,7 +1092,7 @@ static val_t block(val_t *VSTACK, array_t *a) {
 	}
 	val_t res = null_val();
 	jmp_buf *buf = (jmp_buf*)malloc(sizeof(jmp_buf));
-	val_t block_name = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t block_name = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_nil(block_name) && !IS_T(block_name) && !IS_SYMBOL(block_name)) {
 		EXPECTED("symbol", block_name);
 	}
@@ -1100,7 +1100,7 @@ static val_t block(val_t *VSTACK, array_t *a) {
 	if (setjmp(*buf) == 0) {
 		int i = 1; 
 		for (; i < size; i++) {
-			res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + 1);
+			res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK + 1);
 		}
 		loop_frame_t *frame = loop_frame_pop();
 		FREE(frame);
@@ -1137,13 +1137,13 @@ static val_t when(val_t *VSTACK, array_t *a) {
 	if (size == 0) {
 		EXCEPTION("argument length does not match!!\n");
 	}
-	val_t res = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t res = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (IS_nil(res) || size == 1) {
 		return new_bool(0);
 	}
 	int i = 1;
 	for (; i < size; i++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
 	return res;
 }
@@ -1153,28 +1153,28 @@ static val_t unless(val_t *VSTACK, array_t *a) {
 	if (size == 0) {
 		EXCEPTION("argument length does not match!!\n");
 	}
-	val_t res = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t res = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (IS_T(res) || size == 1) {
 		return new_bool(0);
 	}
 	int i = 1;
 	for (; i < size; i++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
 	return res;
 }
 
 static val_t defun(val_t *VSTACK, array_t *a) {
-	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t fcons = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
 		EXPECTED("symbol", fcons);
 	}
-	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
+	val_t args = vm_exec(memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
 	struct array_t *opline_list = new_array();
 	for (; i < array_size(a); i++) {
 		array_add(opline_list, ((void*)((uintptr_t)next_index)));
-		val_t fbody = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + i);
+		val_t fbody = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK + i);
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
@@ -1198,12 +1198,12 @@ static lambda_env_t *new_lambda_env(val_t args, cons_t *environment) {
 }
 
 static val_t lambda(val_t *VSTACK, array_t *a) {
-	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t args = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	int i = 1;
 	struct array_t *fbody_list = new_array();
 	for (; i < array_size(a); i++) {
 		int idx = next_index;
-		val_t fbody = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + i);
+		val_t fbody = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK + i);
 		array_add(fbody_list, new_lambda_data(idx, fbody));
 		codegen(fbody);
 	}
@@ -1216,16 +1216,16 @@ static val_t lambda(val_t *VSTACK, array_t *a) {
 }
 
 static val_t defmacro(val_t *VSTACK, array_t *a) {
-	val_t fcons = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t fcons = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (!IS_SYMBOL(fcons)) {
 		EXPECTED("symbol", fcons);
 	}
-	val_t args = vm_exec(2, memory + (uintptr_t)array_get(a, 1), VSTACK);
+	val_t args = vm_exec(memory + (uintptr_t)array_get(a, 1), VSTACK);
 	int i = 2;
 	struct array_t *opline_list = new_array();
 	for (; i < array_size(a); i++) {
 		array_add(opline_list, ((void*)((uintptr_t)next_index)));
-		val_t fbody = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK + i);
+		val_t fbody = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK + i);
 		codegen(fbody);
 	}
 	VSTACK[1] = args;
@@ -1245,7 +1245,7 @@ static val_t setq(val_t *VSTACK, int ARGC) {
 }
 
 static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
-	val_t value_list = vm_exec(2, memory + (uintptr_t)array_get(a, 0), VSTACK);
+	val_t value_list = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	val_t variable = null_val();
 	val_t list = null_val();
 	val_t value = null_val();
@@ -1267,7 +1267,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 					value = list.ptr->cdr.ptr->car;
 					val_t res = eval_inner(VSTACK, value);
 					//codegen(value);
-					//val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
+					//val_t res = vm_exec(memory + current_index, VSTACK + 1);
 					if (is_star) {
 						set_variable(variable.ptr, res, 1);
 					} else {
@@ -1317,7 +1317,7 @@ static val_t let_inner(val_t *VSTACK, struct array_t *a, int is_star) {
 	val_t res = null_val();
 	int i;
 	for (i = 1; i < array_size(a); i++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK);
+		res = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
 	}
 	return res;
 }
@@ -1332,7 +1332,7 @@ static val_t let_star(val_t *VSTACK, array_t *a) {
 val_t eval_inner(val_t *VSTACK, val_t val) {
 	int idx = next_index;
 	codegen(val);
-	val_t res = vm_exec(2, memory + current_index, VSTACK + 1);
+	val_t res = vm_exec(memory + current_index, VSTACK + 1);
 	unuse_opline(idx);
 	return res;
 }

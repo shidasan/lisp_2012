@@ -55,7 +55,7 @@ val_t call_lambda(val_t *VSTACK, array_t *a) {
 		if (!IS_SYMBOL(car)) {
 			EXCEPTION("Excepted symbol!!\n");
 		}
-		val_t value = vm_exec(2, memory + (uintptr_t)array_get(a, i), VSTACK+1);
+		val_t value = vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK+1);
 		set_variable(car.ptr, value, 1);
 		args = args.ptr->cdr;
 	}
@@ -63,7 +63,7 @@ val_t call_lambda(val_t *VSTACK, array_t *a) {
 	res.ptr = NULL;
 	for (i = 0; i < (int)array_size(lambda_data_list); i++) {
 		lambda_data_t *data = (lambda_data_t*)array_get(lambda_data_list, i);
-		res = vm_exec(2, memory + data->opline_idx, VSTACK+1);
+		res = vm_exec(memory + data->opline_idx, VSTACK+1);
 	}
 	environment_list_pop();
 	end_local_scope(old_environment);
@@ -78,7 +78,7 @@ val_t call_mtd(val_t *VSTACK, int ARGC, func_t *func) {
 	environment_list_push(old_environment);
 	set_args(VSTACK, ARGC, func);
 	for (; a < (int)array_size(opline_list); a++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
+		res = vm_exec(memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL && FLAG_IS_MACRO(func->flag)) {
 			res = eval_inner(VSTACK, res);
 		}
@@ -96,11 +96,11 @@ val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 	set_args(VSTACK, ARGC, func);
 	array_t *list = new_array();
 	for (; a < (int)array_size(opline_list); a++) {
-		res = vm_exec(2, memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
+		res = vm_exec(memory + (uintptr_t)array_get(opline_list, a), VSTACK + 1);
 		if (func != NULL) {
 			res = eval_inner(VSTACK, res);
 			//codegen(res);
-			//res = vm_exec(2, memory + current_index, VSTACK + 1);
+			//res = vm_exec(memory + current_index, VSTACK + 1);
 			array_add_val(list, res);
 		}
 	}
@@ -109,13 +109,13 @@ val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 	for (a = 0; a < array_size(list); a++) {
 		res = array_get_val(list, a);
 		//codegen(res);
-		//res = vm_exec(2, memory + current_index, VSTACK+1);
+		//res = vm_exec(memory + current_index, VSTACK+1);
 		res = eval_inner(VSTACK, res);
 	}
 	array_free(list);
 	return res;
 }
-val_t vm_exec (int i , opline_t* pc, val_t *ebp)
+val_t vm_exec (opline_t* pc, val_t *ebp)
 {
     static void *table [] = {
         &&push,
@@ -128,7 +128,7 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		&&jmp,
     };
 
-    if(i == 1){
+    if(!pc){
 		val_t res;
 		res.ptr = (cons_t *)table;
         return res;
@@ -138,7 +138,7 @@ val_t vm_exec (int i , opline_t* pc, val_t *ebp)
 		EXCEPTION("Stack over flow!!\n");
 	}
 
-	if (0&& dump_point < next_index - 1) {
+	if (0 && dump_point < next_index - 1) {
 		dump_vm();
 	}
 

@@ -7,7 +7,7 @@ void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {
 			string_buffer_append_c(buffer, '(');
 			break;
 		case STRING:
-			string_buffer_append_c(buffer, '\"');
+			string_buffer_append_c(buffer, '"');
 			break;
 		default:
 			break;
@@ -36,7 +36,7 @@ void val_to_string(val_t val, string_buffer_t *buffer, int is_root) {
 			string_buffer_append_c(buffer, ')');
 			break;
 		case STRING:
-			string_buffer_append_c(buffer, '\"');
+			string_buffer_append_c(buffer, '"');
 			break;
 		default:
 			break;
@@ -246,10 +246,6 @@ cons_t *new_func(char *str, cons_t *environment) {
 	cons->type = FUNC;
 	cons->api = &cons_func_api;
 	cons->str = str;
-	//char *newstr = (char *)malloc(strlen(str)+1);
-	//memcpy(newstr, str, strlen(str)+1);
-	//newstr[strlen(str)] = '\0';
-	//cons->str = newstr;
 	cons->local_environment = environment;
 	return cons;
 }
@@ -259,10 +255,6 @@ cons_t *new_variable(char *str) {
 	cons->type = VARIABLE;
 	cons->api = &cons_variable_api;
 	cons->str = str;
-	//char *newstr = (char *)malloc(strlen(str)+1);
-	//memcpy(newstr, str, strlen(str)+1);
-	//newstr[strlen(str)] = '\0';
-	//cons->str = newstr;
 	return cons;
 }
 
@@ -295,10 +287,6 @@ cons_t *new_string(char *str) {
 	cons->type = STRING;
 	cons->api = &cons_string_api;
 	cons->str = str;
-	//int len = strlen(str);
-	//cons->str = (char*)malloc(len+1);
-	//memcpy(cons->str, str, len);
-	//cons->str[len] = '\0';
 	return cons;
 }
 

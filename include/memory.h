@@ -140,7 +140,7 @@ void val_to_string(val_t , string_buffer_t*, int);
 #define VAL_PRINT(VAL, BUFFER)\
 	string_buffer_t* BUFFER = new_string_buffer();\
 	VAL_TO_STRING(VAL, BUFFER, 1);\
-	fprintf(stdout, "%s", (BUFFER)->str);\
+	fprintf(stdout, "%s", BUFFER->str);\
 	FREE(BUFFER);\
 
 

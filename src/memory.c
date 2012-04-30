@@ -355,7 +355,7 @@ static void gc_mark() {
 	goto LOOP;
 	while ((cons = (cons_t*)array_pop(ostack)) != NULL) {
 		CONS_TRACE(cons, traced);
-LOOP:
+	LOOP:
 		tmp = NULL;
 		while((tmp = (cons_t*)array_pop(traced)) != NULL) {
 			if (!cons_is_marked(tmp)) {

@@ -148,7 +148,7 @@ int val_length(val_t val);
 /*parser.h*/
 int parse_program(char *);
 /*eval.h*/
-val_t vm_exec (int, opline_t *, val_t *);
+val_t vm_exec (opline_t *, val_t *);
 void set_args(val_t *, int, func_t *);
 val_t eval_inner(val_t *, val_t);
 

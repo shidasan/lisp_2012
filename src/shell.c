@@ -30,7 +30,7 @@ static char *str_join(char *tmptmpstr, char *leftover) {
 	return tmpstr;
 }
 
-void set_static_mtds() {
+static void set_static_mtds() {
 	int i = 0;
 	while (static_mtds[i].mtd != NULL || static_mtds[i].special_mtd != NULL) {
 		static_mtd_data *data = static_mtds + i;
@@ -39,7 +39,7 @@ void set_static_mtds() {
 	}
 }
 
-int get_split_point(char *src, int start) {
+static int get_split_point(char *src, int start) {
 	int res = start, level = 0;
 	while (src[res] != '\0') {
 		if (src[res] == '(') {
@@ -58,6 +58,7 @@ int get_split_point(char *src, int start) {
 	}
 	return strlen(src);
 }
+
 static int is_unexpected_input(char *str) {
 	return (strcmp(str, " ") != 0 && strcmp(str, "\n") != 0 && strcmp(str, "\0") != 0);
 }
@@ -65,7 +66,8 @@ static int is_unexpected_input(char *str) {
 void print_return_value(val_t val) {
 	VAL_PRINT(val, _buffer);
 }
-void exec(int using_readline) {
+
+static int exec(int using_readline) {
 	jmp_buf buf;
 	if (loop_frame_list == NULL) {
 		loop_frame_list = new_array();
@@ -74,19 +76,22 @@ void exec(int using_readline) {
 	null_value.ptr = NULL;
 	loop_frame_push(&buf, null_value);
 	if (setjmp(buf) == 0) {
-		val_t val = vm_exec(2, memory + current_index, stack_value);
+		val_t val = vm_exec(memory + current_index, stack_value);
 		if (!IS_NULL(val) && using_readline) {
 			print_return_value(val);
 			printf("\n");
 		}
 		loop_frame_t *frame = loop_frame_pop();
 		FREE(frame);
+		return 0;
 	} else {
 		cstack_cons_cell_clear();
 		environment_clear();
+		return 1;
 	}
 }
-char *split_and_exec(int argc, char **args, char *tmpstr) {
+
+static char *split_and_exec(int argc, char **args, char *tmpstr) {
 	(void)args;
 	int prev_point = 0;
 	int next_point = 0;
@@ -109,11 +114,11 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 				status = parse_program(str);
 			}
 			myadd_history(str);
-			if (status == 0){
-				exec(argc == 1);
-			}
-			while ((parse_program(NULL) == 0)) {
-				exec(argc == 1);
+			while (!status) {
+				status = exec(argc == 1);
+				if (!status) {
+					status = parse_program(NULL);
+				}
 			}
 		}
 		free(str);
@@ -130,7 +135,8 @@ char *split_and_exec(int argc, char **args, char *tmpstr) {
 	}
 	return leftover;
 }
-void shell_file(int argc, char **args, FILE* file) {
+
+static void shell_file(int argc, char **args, FILE* file) {
 	int file_capacity = INIT_FILE_SIZE;
 	int file_size = 0;
 	char *tmpstr = (char*)malloc(file_capacity);
@@ -156,7 +162,8 @@ void shell_file(int argc, char **args, FILE* file) {
 	split_and_exec(argc, args, tmpstr);
 	FREE(tmpstr);
 }
-void shell_readline(int argc, char **args) {
+
+static void shell_readline(int argc, char **args) {
 	int file_capacity = INIT_FILE_SIZE;
 	char *tmpstr = (char*)malloc(file_capacity);
 	char *leftover = NULL;
@@ -187,7 +194,7 @@ static void exception_init() {
 int shell (int argc, char* args[])
 {
 	FILE* file = NULL;
-	table = (void**)(vm_exec(1, NULL, NULL).ptr);
+	table = (void**)(vm_exec(NULL, NULL).ptr);
 	gc_init();
 	new_func_data_table();
 	new_global_environment();
