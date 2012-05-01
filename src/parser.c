@@ -6,7 +6,7 @@ static int token_int;
 static float token_float;
 
 int is_open_space_close(char c) {
-	return c == '(' || c == ' ' || c == ')' || c == '\n' || c == '\t';
+	return c == '(' || c == ' ' || c == ')' || c == '\n' || c == '\t' || c == '\0';
 }
 
 float tokenize_float(int start, int alt) {
@@ -59,6 +59,9 @@ L_start:
 	if (*current_char == '\"') {
 		current_char++;
 		while (*current_char != '\"') {
+			if (*current_char == '\0') {
+				return tok_error;
+			}
 			string_buffer_append_c(buffer, *current_char);
 			current_char++;
 		}
@@ -326,14 +329,14 @@ int parse_program (char *str) {
 	if (str) {
 		tokenizer_init(str);
 	}
-	get_next_token();
-	if (token_type == tok_eof) {
-		return 1;
-	}
 	jmp_buf buf;
 	val_t null_value = null_val();
 	loop_frame_push(&buf, null_value);
 	if (setjmp(buf) == 0) {
+		get_next_token();
+		if (token_type == tok_eof) {
+			return 1;
+		}
 		val_t cons = make_cons_tree2(0);
 		if (IS_NULL(cons)) {
 			EXCEPTION("Unexpected ')' !!!!\n");

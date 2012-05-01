@@ -163,7 +163,10 @@ static void gen_list (val_t cons) {
 	if (IS_UNBOX(car)) {
 		EXPECTED("symbol", car);
 	}
-	func_t *func = search_func(car.ptr->str);
+	func_t *func = NULL;
+	if (!IS_OPEN(car)) {
+		func = search_func(car.ptr->str);
+	}
 	if (IS_OPEN(car) || (func != NULL && FLAG_IS_SPECIAL_FORM(func->flag))) {
 		gen_special_form(cons);
 	} else {

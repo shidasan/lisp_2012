@@ -2,7 +2,7 @@
 #include"config.h"
 int current_index, next_index;
 char* strtmp;
-char* str;
+static char* str;
 void** table;
 static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
@@ -140,6 +140,7 @@ static void shell_file(int argc, char **args, FILE* file) {
 	int file_capacity = INIT_FILE_SIZE;
 	int file_size = 0;
 	char *tmpstr = (char*)malloc(file_capacity);
+	char *leftover = NULL;
 	while (1) {
 		if (file_size == file_capacity - 1){
 			int newcapacity = file_capacity * 2;
@@ -159,7 +160,11 @@ static void shell_file(int argc, char **args, FILE* file) {
 		//}
 		file_size++;
 	}
-	split_and_exec(argc, args, tmpstr);
+	leftover = split_and_exec(argc, args, tmpstr);
+	if (leftover) {
+		fprintf(stderr, "Input stream ends within an object\n");
+		free(leftover);
+	}
 	FREE(tmpstr);
 }
 
