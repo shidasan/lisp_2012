@@ -1,8 +1,8 @@
 (setq PI 3.1416)
-(setq WIDTH 256)
-(setq HEIGHT 256)
+(setq WIDTH 32)
+(setq HEIGHT 32)
 (setq NSUBSAMPLES 2)
-(setq NAO_SAMPLES 8)
+(setq NAO_SAMPLES 4)
 
 (defmacro inc (x) (list 'setq x (list '+ x 1)))
 (defun vx (v) (svref v 0))

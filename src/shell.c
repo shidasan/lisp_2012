@@ -184,6 +184,10 @@ static void shell_readline(int argc, char **args) {
 		} else {
 			tmpstr = myreadline(">>> ");
 		}
+		if (tmpstr == NULL) {
+			fprintf(stderr, "\n");
+			continue;
+		}
 		if (strcmp(tmpstr, "exit") == 0) {
 			break;
 		}

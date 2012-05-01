@@ -285,6 +285,9 @@ static val_t mul(val_t* VSTACK, int ARGC) {
 }
 
 static val_t div_ii(val_t v0, val_t v1) {
+	if (v1.ivalue == 0) {
+		EXCEPTION("0 div\n");
+	}
 	if (v0.ivalue % v1.ivalue == 0) {
 		v0.ivalue /= v1.ivalue;
 		return v0;
@@ -294,15 +297,24 @@ static val_t div_ii(val_t v0, val_t v1) {
 }
 
 static val_t div_if(val_t v0, val_t v1) {
+	if (v1.fvalue == 0) {
+		EXCEPTION("0 div\n");
+	}
 	return new_float((float)v0.ivalue / v1.fvalue);
 }
 
 static val_t div_fi(val_t v0, val_t v1) {
+	if (v1.ivalue == 0) {
+		EXCEPTION("0 div\n");
+	}
 	v0.fvalue /= v1.ivalue;
 	return v0;
 }
 
 static val_t div_ff(val_t v0, val_t v1) {
+	if (v1.fvalue == 0) {
+		EXCEPTION("0 div\n");
+	}
 	v0.fvalue /= v1.fvalue;
 	return v0;
 }
