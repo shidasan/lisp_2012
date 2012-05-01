@@ -9,7 +9,7 @@ static int (*myadd_history)(const char *);
 val_t stack_value[STACKSIZE];
 val_t *esp = 0;
 
-static int add_history(const char *line) {
+static int _add_history(const char *line) {
 	(void)line;
 	return 0;
 }
@@ -217,7 +217,7 @@ int shell (int argc, char* args[])
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
 	myreadline = (f != NULL) ? (char* (*)(const char*))f : NULL;
 	f = (handler != NULL) ? dlsym(handler, "add_history") : NULL;
-	myadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
+	myadd_history = (f != NULL) ? (int (*)(const char*))f : _add_history;
 	int i = 0;
 	while (bootstrap_functions[i] != NULL) {
 		split_and_exec(2, args, (char*)bootstrap_functions[i]);
