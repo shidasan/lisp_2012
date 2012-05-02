@@ -81,13 +81,13 @@
    (progn
    (let ((tt (* (- 1) (/ (+ (vdot (svref isect 0) (svref plane 1)) d) v))))
     (if (and (> tt 0.0) (< tt (svref isect 4)))
-	 (progn
+     (progn
      (system::svstore isect 4 tt)
      (system::svstore isect 5 T)
      (system::svstore isect 2 (vadd (svref isect 0) (vmul (svref isect 1) (vector tt tt tt))))
      (system::svstore isect 3 (vector (vx (svref plane 1)) (vy (svref plane 1)) (vz (svref plane 1)))))
-	 nil)
-	))
+     nil)
+    ))
    nil))
  isect)
 
@@ -129,14 +129,8 @@
   (system::svstore occlsect 1 (vector 0.0 0.0 0.0))
   (system::svstore occlsect 2 (vector 0.0 0.0 0.0))
   (system::svstore occlsect 3 (vector 0.0 0.0 0.0))
-  (setq j 0)
-  (loop
-   (if (>= j ntheta) (return)
-   (progn
-   (setq i 0)
-   (loop
-	(if (>= i nphi) (return)
-	 (progn
+  (dotimes (j ntheta)
+   (dotimes (i nphi)
      (let* ((theta (sqrt (random 1.0)))
             (phi (* 2.0 PI (random 1.0)))
             (x (* (cos phi) theta))
@@ -154,9 +148,7 @@
       (setq occlsect (interSectsSphere (svref spheres 2) occlsect))
       (setq occlsect (interSectsPlane plane occlsect))
       (if (svref occlsect 5)
-       (setq hitCount (+ hitCount 1)) nil))
-     (setq i (+ i 1)))))
-   (setq j (+ j 1)))))
+       (setq hitCount (+ hitCount 1)) nil))))
   (let ((occlusionRatio (/ (- (* ntheta nphi) hitCount) (* ntheta nphi))))
    (vector occlusionRatio occlusionRatio occlusionRatio))))
 
@@ -170,10 +162,6 @@
 (defun render (byteImage width height numberOfSubSamples)
  (let* ((fimg (make-array (list (* width height 3))))
         (isect (make-array '(6)))
-        (yy 0)
-        (xx 0)
-    (vv 0)
-    (u 0)
     (ambientOcclusion nil)
     (p 0)
     (p1 0)
@@ -182,21 +170,10 @@
    (system::svstore isect 1 (vector 0.0 0.0 0.0))
    (system::svstore isect 2 (vector 0.0 0.0 0.0))
    (system::svstore isect 3 (vector 0.0 0.0 0.0))
-   (loop
-	(if (>= yy height) (return)
-	 (progn
-    (setq xx 0)
-    (loop
-	 (if (>= xx width) (return)
-	  (progn
-     (setq vv 0)
-     (loop
-	  (if (>= vv numberOfSubSamples) (return)
-	   (progn
-      (setq u 0)
-      (loop
-	   (if (>= u numberOfSubSamples) (return)
-		(progn
+   (dotimes (yy height)
+    (dotimes (xx width)
+     (dotimes (vv numberOfSubSamples)
+      (dotimes (u numberOfSubSamples)
        (system::svstore isect 1 (vector 
                         (/ (+ xx (- (/ u numberOfSubSamples) (/ width 2.0))) (/ width 2.0))
                         (- (/ (+ yy (- (/ vv numberOfSubSamples) (/ height 2.0))) (/ height 2.0)))
@@ -216,9 +193,7 @@
         (system::svstore fimg (+ p 1) (+ (svref fimg (+ p 1)) (svref ambientOcclusion 1)))
         (system::svstore fimg (+ p 2) (+ (svref fimg (+ p 2)) (svref ambientOcclusion 2))))
         nil
-       )
-       (setq u (+ u 1)))))
-      (setq vv (+ vv 1)))))
+       )))
      (setq p1 (* 3 (+ (* yy width) xx)))
      (setq num (* numberOfSubSamples numberOfSubSamples))
      (system::svstore fimg p1 (/ (svref fimg p1) num))
@@ -226,20 +201,14 @@
      (system::svstore fimg (+ p1 2) (/ (svref fimg (+ p1 2)) num))
      (system::svstore byteImage p1 (clamp (svref fimg p1)))
      (system::svstore byteImage (+ p1 1) (clamp (svref fimg (+ p1 1))))
-     (system::svstore byteImage (+ p1 2) (clamp (svref fimg (+ p1 2))))
-     (setq xx (+ xx 1)))))
-    (setq yy (+ yy 1))))
-    )))
+     (system::svstore byteImage (+ p1 2) (clamp (svref fimg (+ p1 2))))))))
 (defun run ()
   (let ((img (make-array (list (* WIDTH HEIGHT 3))))
         (i 0))
     (render img WIDTH HEIGHT NSUBSAMPLES)
     (format T "~A~%~A ~A~%~A~%" "P3" WIDTH HEIGHT 255)
-    (loop
-	 (if (>= i (* WIDTH HEIGHT 3)) (return)
-	  (progn
-     (format T "~A " (svref img i))
-     (setq i (+ i 1)))))
+	(dotimes (i (* WIDTH HEIGHT 3))
+     (format T "~A " (svref img i)))
     (format T "~%")
     ))
 (run)
