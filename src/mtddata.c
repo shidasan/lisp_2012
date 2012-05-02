@@ -1071,6 +1071,91 @@ static val_t loop(val_t *VSTACK, array_t *a) {
 	return res;
 }
 
+static val_t dolist(val_t *VSTACK, array_t *a) {
+	val_t args0 = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
+	if (!IS_OPEN(args0)) {
+		EXPECTED("list", args0);
+	}
+	VSTACK[1] = args0;
+	int list_length = length(VSTACK+2, 1).ivalue;
+	if (list_length != 2 && list_length != 3) {
+		EXCEPTION("Invalid list length!!\n");
+	}
+	val_t symbol = args0.ptr->car;
+	if (!IS_SYMBOL(symbol)) {
+		EXPECTED("symbol", symbol);
+	}
+	set_variable(symbol.ptr, new_bool(0), 1);
+	args0 = args0.ptr->cdr;
+	val_t list = eval_inner(VSTACK+1, args0.ptr->car);
+	if (!IS_OPEN(list)) {
+		EXPECTED("list", list);
+	}
+	args0 = args0.ptr->cdr;
+	val_t expr = null_val();
+	if (IS_OPEN(args0)) {
+		expr = args0.ptr->car;
+	}
+	val_t car;
+	while (!IS_nil(list)) {
+		car = list.ptr->car;
+		set_variable(symbol.ptr, car, 1);
+		int i = 0;
+		for (; i < array_size(a); i++) {
+			vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
+		}
+		list = list.ptr->cdr;
+	}
+	set_variable(symbol.ptr, car, 1);
+	val_t res = new_bool(0);
+	if (IS_OPEN(expr)) {
+		res = eval_inner(VSTACK+1, expr);
+	}
+	return res;
+}
+
+static val_t dotimes(val_t *VSTACK, array_t *a) {
+	val_t args0 = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
+	if (!IS_OPEN(args0)) {
+		EXPECTED("list", args0);
+	}
+	VSTACK[1] = args0;
+	int list_length = length(VSTACK+2, 1).ivalue;
+	if (list_length != 2 && list_length != 3) {
+		EXCEPTION("Invalid list length!!\n");
+	}
+	val_t symbol = args0.ptr->car;
+	if (!IS_SYMBOL(symbol)) {
+		EXPECTED("symbol", symbol);
+	}
+	set_variable(symbol.ptr, new_bool(0), 1);
+	args0 = args0.ptr->cdr;
+	val_t limit = eval_inner(VSTACK+1, args0.ptr->car);
+	if (!IS_INT(limit)) {
+		EXPECTED("integer", limit);
+	}
+	args0 = args0.ptr->cdr;
+	val_t expr = null_val();
+	if (IS_OPEN(args0)) {
+		expr = args0.ptr->car;
+	}
+	int count = 0;
+	while (count < limit.ivalue) {
+		set_variable(symbol.ptr, new_int(count), 1);
+		int i = 0;
+		for (; i < array_size(a); i++) {
+			vm_exec(memory + (uintptr_t)array_get(a, i), VSTACK);
+		}
+		count++;
+	}
+	set_variable(symbol.ptr, new_int(count), 1);
+	val_t res = new_bool(0);
+	if (!IS_NULL(expr)) {
+		res = eval_inner(VSTACK+1, expr);
+	}
+	return res;
+}
+
 static val_t _return(val_t *VSTACK, int ARGC) {
 	if (ARGC > 1) {
 		EXCEPTION("too many arguments!!\n");
@@ -1419,6 +1504,8 @@ static_mtd_data static_mtds[] = {
 	{"COND", -1, 0, FLAG_SPECIAL_FORM, -1, 0, NULL, cond},
 	{"PROGN", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, progn},
 	{"LOOP", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, loop},
+	{"DOLIST", -1, 1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, dolist},
+	{"DOTIMES", -1, 1, FLAG_SPECIAL_FORM | FLAG_LOCAL_SCOPE, 1, 0, NULL, dotimes},
 	{"BLOCK", -1, 1, FLAG_SPECIAL_FORM, 1, 0, NULL, block},
 	{"RETURN", -1, 0, 0, 0, 0, _return, NULL},
 	{"RETURN-FROM", -1, 1, 0, 1, 0, _return_from, NULL},
