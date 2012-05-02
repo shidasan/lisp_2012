@@ -980,12 +980,18 @@ static val_t _or(val_t *VSTACK, array_t *a) {
 }
 
 static val_t _if(val_t *VSTACK, struct array_t *a) {
+	int size = array_size(a);
+	if (size > 3) {
+		EXCEPTION("Too many arguments!!\n");
+	}
 	val_t val = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	val_t res = null_val();
 	if (!IS_nil(val)) {
 		res = vm_exec(memory + (uintptr_t)array_get(a, 1), VSTACK);
-	} else {
+	} else if (size == 3) {
 		res = vm_exec(memory + (uintptr_t)array_get(a, 2), VSTACK);
+	} else {
+		res = new_bool(0);
 	}
 	return res;
 }
@@ -1501,7 +1507,7 @@ static_mtd_data static_mtds[] = {
 	{"MAKE-ARRAY", 1, 0, 0, 0, 0, _make_array, NULL},
 	{"AND", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _and},
 	{"OR", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _or},
-	{"IF", 3, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
+	{"IF", -1, 2, FLAG_SPECIAL_FORM, 0, 0, NULL, _if},
 	{"ASSERT", 1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, _assert},
 	{"COND", -1, 0, FLAG_SPECIAL_FORM, -1, 0, NULL, cond},
 	{"PROGN", -1, 0, FLAG_SPECIAL_FORM, 0, 0, NULL, progn},
