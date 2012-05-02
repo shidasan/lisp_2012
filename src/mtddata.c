@@ -92,6 +92,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 				break;
 
 			case 'A':
+			case 'a':
 				if (evaluate >= length) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}
@@ -102,6 +103,7 @@ static val_t format(val_t *VSTACK, array_t *a) {
 				break;
 
 			case 'C':
+			case 'c':
 				if (evaluate >= length) {
 					EXCEPTION("There are not enough arguments left for format directive!!\n");
 				}

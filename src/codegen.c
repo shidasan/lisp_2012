@@ -130,6 +130,9 @@ static void gen_special_form(val_t val) {
 	val_t op;
 	op.ptr = NULL;
 	if (IS_OPEN(val.ptr->car)) {
+		if (strcmp(val.ptr->car.ptr->str, "lambda") != 0) {
+			EXPECTED("symbol", val.ptr->car);
+		}
 		gen_expression(val.ptr->car);
 		new_opline_special_method(SPECIAL_MTD, op, a);
 	} else {
