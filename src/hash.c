@@ -167,7 +167,7 @@ struct val_t set_variable(cons_t *cons, val_t value, int set_local_scope) {
 	return res;
 }
 
-struct val_t search_variable_inner (cons_t *table, char* str)
+struct val_t search_variable_inner (cons_t *table, const char* str)
 {
 	variable_t* p = table->variable_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	val_t res = null_val();
@@ -186,7 +186,7 @@ struct val_t search_variable_inner (cons_t *table, char* str)
 	}
 }
 
-struct val_t search_variable(char *str) {
+struct val_t search_variable(const char *str) {
 	cons_t *environment = current_environment;
 	cons_t *table = environment->car.ptr;
 	val_t res = search_variable_inner(table, str);
@@ -203,7 +203,7 @@ struct val_t search_variable(char *str) {
 	return res;
 }
 
-struct func_t* search_func (char* str)
+struct func_t* search_func (const char* str)
 {
 	struct func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
@@ -256,7 +256,7 @@ struct func_t* set_static_func (static_mtd_data *data) {
 }
 
 struct func_t* set_func (cons_t *cons, struct array_t *opline_list, int argc, val_t args, cons_t *current_environment, int flag) {
-	char *str = cons->str;
+	const char *str = cons->str;
 	func_t* p = func_data_table + ((str[0] * str[1]) % HASH_SIZE);
 	while (1){
 		if (p->name == NULL || strcmp(p->name,str) == 0){

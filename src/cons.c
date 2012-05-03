@@ -48,7 +48,7 @@ static void print_func(cons_t *cons, string_buffer_t *buffer) {
 }
 
 static void free_func(cons_t *cons) {
-	FREE(cons->str);
+	FREE(cons->ptr);
 }
 
 static void print_variable(cons_t *cons, string_buffer_t *buffer) {
@@ -56,7 +56,7 @@ static void print_variable(cons_t *cons, string_buffer_t *buffer) {
 }
 
 static void free_variable(cons_t *cons) {
-	FREE(cons->str);
+	FREE(cons->ptr);
 }
 
 static void print_open(cons_t *cons, string_buffer_t *buffer) {
@@ -138,7 +138,7 @@ static void print_string(cons_t *cons, string_buffer_t *buffer) {
 }
 
 static void free_string(cons_t *cons) {
-	FREE(cons->str);
+	FREE(cons->ptr);
 }
 
 static void print_lambda(cons_t *cons, string_buffer_t *buffer) {
@@ -282,8 +282,8 @@ cons_t *new_local_environment() {
 	return cons;
 }
 
-cons_t *new_string(char *str) {
-	cons_t *cons = new_cons_cell();
+cons_t *new_string(const char *str) {
+	cons_t *cons = new_cons_cell(); //new_cons_cell()の内部でGCが走る
 	cons->type = STRING;
 	cons->api = &cons_string_api;
 	cons->str = str;

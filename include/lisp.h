@@ -139,9 +139,9 @@ void environment_list_push(cons_t*);
 cons_t *environment_list_pop();
 
 val_t set_variable (cons_t *cons, val_t value, int set_local_scope);
-val_t search_variable (char* str);
+val_t search_variable (const char* str);
 
-func_t* search_func (char* str);
+func_t* search_func (const char* str);
 /*generator.h*/
 void codegen(val_t );
 int val_length(val_t val);

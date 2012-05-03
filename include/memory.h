@@ -50,7 +50,8 @@ typedef struct lambda_data_t {
 typedef struct cons_t{
 	int type;
 	union {
-		char* str;
+		void* ptr;
+		const char* str;
 		struct val_t car;
 		struct variable_t *variable_data_table;
 		struct lambda_env_t *env;
@@ -160,7 +161,7 @@ val_t new_int(int n);
 val_t new_float(float f);
 val_t new_bool(int n);
 cons_t* new_cons_cell();
-cons_t* new_string(char *str);
+cons_t* new_string(const char *str);
 cons_t* new_cons_array(val_t);
 cons_t* new_cons_array_list(array_t*);
 cons_t *new_lambda(lambda_env_t *, array_t *);
