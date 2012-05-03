@@ -109,7 +109,7 @@ void array_add_val(array_t *a, val_t v) {
 	} else {
 		size_t newcapacity = a->capacity * 2;
 		void **newlist = (void**)malloc(sizeof(void**) * newcapacity);
-		memcpy(newlist, a->list, sizeof(void**) * newcapacity);
+		memcpy(newlist, a->list, sizeof(void**) * a->capacity);
 		FREE(a->list);
 		a->list = newlist;
 		a->capacity = newcapacity;
