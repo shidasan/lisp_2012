@@ -29,6 +29,7 @@ char *string_toupper(char *c, int size) {
 	}
 	return c;
 }
+
 int skip_line() {
 	int len = strlen(current_char);
 	int i = 0;
@@ -38,17 +39,17 @@ int skip_line() {
 	}
 	return i == len;
 }
-int get_next_token_inner (string_buffer_t *buffer)
-{
-    int alt = 1;
-    token_int = 0;
+
+int get_next_token_inner (string_buffer_t *buffer) {
+	int alt = 1;
+	token_int = 0;
 L_start:
-    while (isspace(*current_char) || *current_char == '\n' || *current_char == '\t'){
-        current_char++;
-    }
-    if (*current_char == '\0'){
-        return tok_eof;
-    }
+	while (isspace(*current_char) || *current_char == '\n' || *current_char == '\t'){
+		current_char++;
+	}
+	if (*current_char == '\0'){
+		return tok_eof;
+	}
 	if (*current_char == ';') {
 		if (skip_line()) { //end of string
 			return tok_eof;
@@ -69,15 +70,15 @@ L_start:
 		token_str = string_buffer_to_string(buffer);
 		return tok_string;
 	}
-    if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
-        if (*current_char == '-'){
-            alt = -1;
-            current_char++;
-        }
-        while (isdigit(*current_char)){
-            token_int = 10 * token_int + (*current_char - 48);
-            current_char++;
-        }
+	if (isdigit(*current_char) || (*current_char == '-' && isdigit(*(current_char + 1)))){
+		if (*current_char == '-'){
+			alt = -1;
+			current_char++;
+		}
+		while (isdigit(*current_char)){
+			token_int = 10 * token_int + (*current_char - 48);
+			current_char++;
+		}
 		if (*current_char == '.') {
 			current_char++;
 			if (isdigit(*current_char)) {
@@ -87,18 +88,18 @@ L_start:
 				return tok_int;
 			}
 		}
-        token_int *= alt;
-        if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
+		token_int *= alt;
+		if ((*current_char) != '(' && (*current_char) != ')' && (*current_char) != ' ' && (*current_char) != '\n' && *current_char != ',' && *current_char != '\0'){
 			return tok_error;
-        } else {
-            return tok_int;
-        }
-    }
-    if (isalpha(*current_char)){
-        while (!is_open_space_close(*current_char)){
+		} else {
+			return tok_int;
+		}
+	}
+	if (isalpha(*current_char)){
+		while (!is_open_space_close(*current_char)){
 			string_buffer_append_c(buffer, *current_char);
-            current_char++;
-        }
+			current_char++;
+		}
 		string_toupper(buffer->str, buffer->size);
 		if (buffer->size == 3 && strncmp(buffer->str, "NIL", 3) == 0) {
 			return tok_nil;
@@ -108,13 +109,13 @@ L_start:
 		}
 		token_str = string_buffer_to_string(buffer);
 		return tok_symbol;
-    }
-    if (*current_char == '('){
-        current_char++;
-        return tok_open;
-    } else if (*current_char == ')'){
-        current_char++;
-        return tok_close;
+	}
+	if (*current_char == '('){
+		current_char++;
+		return tok_open;
+	} else if (*current_char == ')'){
+		current_char++;
+		return tok_close;
 	} else if (*current_char == '#') {
 		current_char++;
 		return tok_array;
@@ -200,16 +201,15 @@ L_start:
 			return tok_symbol;
 		}
 	}
-    if( *current_char == '\0'){
-        return tok_eof;
-    }
+	if( *current_char == '\0'){
+		return tok_eof;
+	}
 	return tok_error; //unreachable
 } 
 
-void get_next_token ()
-{
+void get_next_token () {
 	string_buffer_t *buffer = new_string_buffer();
-    token_type = get_next_token_inner(buffer);
+	token_type = get_next_token_inner(buffer);
 	string_buffer_free(buffer);
 	if (token_type == tok_symbol) {
 		token_str = string_toupper(token_str, strlen(token_str));
@@ -272,8 +272,8 @@ static val_t make_cons_list() {
 	get_next_token();
 	tmp.ptr->car = make_cons_tree2(1);
 	if (IS_NULL(tmp.ptr->car)) {
-	//if (tmp.ptr->car.ivalue == 0) {
-		//assert(0);
+		//if (tmp.ptr->car.ivalue == 0) {
+	//assert(0);
 		tmp = new_bool(0);
 		return tmp;
 	}
@@ -300,52 +300,52 @@ static val_t make_cons_list() {
 	}
 	cstack_cons_cell_pop();
 	return val;
-}
-
-static val_t make_cons_tree2(int is_head_of_list) {
-	if (token_type == tok_open) {
-		return make_cons_list();
-	}else if (token_type == tok_quote) {	
-		val_t root = null_val();
-		root.ptr = new_open();
-		cstack_cons_cell_push(root.ptr);
-		char *qstr = (char*)malloc(6);
-		qstr[0] = 'Q';qstr[1] = 'U';qstr[2] = 'O';
-		qstr[3] = 'T';qstr[4] = 'E';qstr[5] = '\0';
-		root.ptr->car.ptr = new_func(qstr, NULL);
-		//root.ptr->car.ptr = new_func("QUOTE", NULL);
-		root.ptr->cdr.ptr = new_open();
-		root.ptr->cdr.ptr->cdr = new_bool(0);
-		get_next_token();
-		root.ptr->cdr.ptr->car = make_cons_tree2(0);
-		cstack_cons_cell_pop();
-		return root;
-	} else {
-		return make_cons_single_node(is_head_of_list);
 	}
-}
 
-int parse_program (char *str) {
-	if (str) {
-		tokenizer_init(str);
+	static val_t make_cons_tree2(int is_head_of_list) {
+		if (token_type == tok_open) {
+			return make_cons_list();
+		}else if (token_type == tok_quote) {	
+			val_t root = null_val();
+			root.ptr = new_open();
+			cstack_cons_cell_push(root.ptr);
+			char *qstr = (char*)malloc(6);
+			qstr[0] = 'Q';qstr[1] = 'U';qstr[2] = 'O';
+			qstr[3] = 'T';qstr[4] = 'E';qstr[5] = '\0';
+			root.ptr->car.ptr = new_func(qstr, NULL);
+			//root.ptr->car.ptr = new_func("QUOTE", NULL);
+			root.ptr->cdr.ptr = new_open();
+			root.ptr->cdr.ptr->cdr = new_bool(0);
+			get_next_token();
+			root.ptr->cdr.ptr->car = make_cons_tree2(0);
+			cstack_cons_cell_pop();
+			return root;
+		} else {
+			return make_cons_single_node(is_head_of_list);
+		}
 	}
-	jmp_buf buf;
-	val_t null_value = null_val();
-	loop_frame_push(&buf, null_value);
-	if (setjmp(buf) == 0) {
-		get_next_token();
-		if (token_type == tok_eof) {
+
+	int parse_program (char *str) {
+		if (str) {
+			tokenizer_init(str);
+		}
+		jmp_buf buf;
+		val_t null_value = null_val();
+		loop_frame_push(&buf, null_value);
+		if (setjmp(buf) == 0) {
+			get_next_token();
+			if (token_type == tok_eof) {
+				return 1;
+			}
+			val_t cons = make_cons_tree2(0);
+			if (IS_NULL(cons)) {
+				EXCEPTION("Unexpected ')' !!!!\n");
+			}
+			codegen(cons);
+			loop_frame_t *frame = loop_frame_pop();
+			FREE(frame);
+			return 0;
+		} else {
 			return 1;
 		}
-		val_t cons = make_cons_tree2(0);
-		if (IS_NULL(cons)) {
-			EXCEPTION("Unexpected ')' !!!!\n");
-		}
-		codegen(cons);
-		loop_frame_t *frame = loop_frame_pop();
-		FREE(frame);
-		return 0;
-	} else {
-		return 1;
 	}
-}

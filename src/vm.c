@@ -100,7 +100,7 @@ val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 		if (func != NULL) {
 			res = eval_inner(VSTACK, res);
 			//codegen(res);
-			//res = vm_exec(memory + current_index, VSTACK + 1);
+	  //res = vm_exec(memory + current_index, VSTACK + 1);
 			array_add_val(list, res);
 		}
 	}
@@ -109,7 +109,7 @@ val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 	for (a = 0; a < array_size(list); a++) {
 		res = array_get_val(list, a);
 		//codegen(res);
-		//res = vm_exec(memory + current_index, VSTACK+1);
+	//res = vm_exec(memory + current_index, VSTACK+1);
 		res = eval_inner(VSTACK, res);
 	}
 	array_free(list);
@@ -117,8 +117,8 @@ val_t call_macro(val_t *VSTACK, int ARGC, func_t *func) {
 }
 val_t vm_exec (opline_t* pc, val_t *ebp)
 {
-    static void *table [] = {
-        &&push,
+	static void *table [] = {
+		&&push,
 		&&mtdcall,
 		&&mtdcheck,
 		&&special_mtd,
@@ -126,13 +126,13 @@ val_t vm_exec (opline_t* pc, val_t *ebp)
 		&&get_arg,
 		&&end,
 		&&jmp,
-    };
+	};
 
-    if(!pc){
+	if(!pc){
 		val_t res;
 		res.ptr = (cons_t *)table;
-        return res;
-    }
+		return res;
+	}
 
 	if ((ebp - stack_value) > STACKSIZE) {
 		EXCEPTION("Stack over flow!!\n");
@@ -143,13 +143,13 @@ val_t vm_exec (opline_t* pc, val_t *ebp)
 	}
 
 	val_t *esp = ebp;
-    int args_num = 0; 
+	int args_num = 0; 
 	val_t val;
 	func_t *func = NULL;
 	struct array_t *array = NULL;
 
 
-    goto *(pc->instruction_ptr);
+	goto *(pc->instruction_ptr);
 
 jmp:
 	pc += pc->op[0].ivalue;
@@ -160,33 +160,32 @@ get_arg:
 	esp++;
 	goto *((++pc)->instruction_ptr);
 
-get_variable:
-	{
-		val = pc->op[0].val;
-		val_t res = search_variable(val.ptr->str);
-		if (IS_NULL(res)) {
-			FMT_EXCEPTION("Variable %s not found!!\n", (void*)val.ptr->str);
-		}
-		esp[0] = res;
-		esp++;
-		goto *((++pc)->instruction_ptr);
+get_variable: {
+	val = pc->op[0].val;
+	val_t res = search_variable(val.ptr->str);
+	if (IS_NULL(res)) {
+		FMT_EXCEPTION("Variable %s not found!!\n", (void*)val.ptr->str);
 	}
+	esp[0] = res;
+	esp++;
+	goto *((++pc)->instruction_ptr);
+}
 
 special_mtd:
 	{
-		val = pc->op[0].val;
-		array = pc->op[1].a;
-		if (IS_NULL(val)) { /* lambda function */
-			esp[-1] = call_lambda(esp, array);
-		} else {
-			func = search_func(val.ptr->str);
-			cons_t *old_environment = begin_local_scope(func);
-			esp[0] = func->special_mtd(esp, array);
-			esp++;
-			end_local_scope(old_environment);
-		}
-		goto *((++pc)->instruction_ptr);
+	val = pc->op[0].val;
+	array = pc->op[1].a;
+	if (IS_NULL(val)) { /* lambda function */
+		esp[-1] = call_lambda(esp, array);
+	} else {
+		func = search_func(val.ptr->str);
+		cons_t *old_environment = begin_local_scope(func);
+		esp[0] = func->special_mtd(esp, array);
+		esp++;
+		end_local_scope(old_environment);
 	}
+	goto *((++pc)->instruction_ptr);
+}
 
 mtdcheck:
 	val = pc->op[0].val;
@@ -204,33 +203,32 @@ mtdcheck:
 	}
 	goto *((++pc)->instruction_ptr);
 
-mtdcall:
-	{
-		val = pc->op[0].val;
-		cons_t *old_environment = NULL;
-		args_num = pc->op[1].ivalue;
-		func = search_func(val.ptr->str);
-		if (func != NULL && FLAG_IS_STATIC(func->flag)) {
-			old_environment = begin_local_scope(func);
-			esp[-args_num] = func->mtd(esp, args_num);
-			end_local_scope(old_environment);
-		} else if (FLAG_IS_MACRO(func->flag)) {
-			val = call_macro(esp, args_num, func);
-			esp[-args_num] = val;
-		} else {
-			val = call_mtd(esp, args_num, func);
-			esp[-args_num] = val;
-		}
-		esp -= (args_num - 1);
-		goto *((++pc)->instruction_ptr);
+mtdcall: {
+	val = pc->op[0].val;
+	cons_t *old_environment = NULL;
+	args_num = pc->op[1].ivalue;
+	func = search_func(val.ptr->str);
+	if (func != NULL && FLAG_IS_STATIC(func->flag)) {
+		old_environment = begin_local_scope(func);
+		esp[-args_num] = func->mtd(esp, args_num);
+		end_local_scope(old_environment);
+	} else if (FLAG_IS_MACRO(func->flag)) {
+		val = call_macro(esp, args_num, func);
+		esp[-args_num] = val;
+	} else {
+		val = call_mtd(esp, args_num, func);
+		esp[-args_num] = val;
 	}
+	esp -= (args_num - 1);
+	goto *((++pc)->instruction_ptr);
+}
 end:
-    return ebp[0];
+	return ebp[0];
 
 push:
 	esp[0] = pc->op[0].val;
 	esp++;
-    goto *((++pc)->instruction_ptr);
+	goto *((++pc)->instruction_ptr);
 }
 
 
