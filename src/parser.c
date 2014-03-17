@@ -223,7 +223,7 @@ static void tokenizer_init(char *str) {
 	current_char = str;
 }
 
-static val_t make_cons_tree2(int is_head_of_list);
+static val_t make_cons_tree(int is_head_of_list);
 
 static val_t make_cons_single_node(int is_head_of_list) {
 	val_t val = null_val();
@@ -241,7 +241,7 @@ static val_t make_cons_single_node(int is_head_of_list) {
 		return new_bool(1);
 	case tok_array:
 		get_next_token();
-		val = make_cons_tree2(0);
+		val = make_cons_tree(0);
 		if (!IS_OPEN(val) && !IS_nil(val)) {
 			EXCEPTION("Expected '(' or nil after '#' !!\n");
 		}
@@ -270,7 +270,7 @@ static val_t make_cons_list() {
 	val_t tmp = val;
 	val_t car = null_val();
 	get_next_token();
-	tmp.ptr->car = make_cons_tree2(1);
+	tmp.ptr->car = make_cons_tree(1);
 	if (IS_NULL(tmp.ptr->car)) {
 		//if (tmp.ptr->car.ivalue == 0) {
 	//assert(0);
@@ -281,7 +281,7 @@ static val_t make_cons_list() {
 		get_next_token();
 		if (token_type == tok_dot) {
 			get_next_token();
-			tmp.ptr->cdr = make_cons_tree2(0);
+			tmp.ptr->cdr = make_cons_tree(0);
 			/* eat ')' */
 			get_next_token();
 			if (token_type != tok_close) {
@@ -289,7 +289,7 @@ static val_t make_cons_list() {
 			}
 			break;
 		}
-		car = make_cons_tree2(0);
+		car = make_cons_tree(0);
 		if (IS_NULL(car)) {
 			tmp.ptr->cdr = new_bool(0);
 			break;
@@ -302,7 +302,7 @@ static val_t make_cons_list() {
 	return val;
 	}
 
-	static val_t make_cons_tree2(int is_head_of_list) {
+	static val_t make_cons_tree(int is_head_of_list) {
 		if (token_type == tok_open) {
 			return make_cons_list();
 		}else if (token_type == tok_quote) {	
@@ -317,7 +317,7 @@ static val_t make_cons_list() {
 			root.ptr->cdr.ptr = new_open();
 			root.ptr->cdr.ptr->cdr = new_bool(0);
 			get_next_token();
-			root.ptr->cdr.ptr->car = make_cons_tree2(0);
+			root.ptr->cdr.ptr->car = make_cons_tree(0);
 			cstack_cons_cell_pop();
 			return root;
 		} else {
@@ -337,7 +337,7 @@ static val_t make_cons_list() {
 			if (token_type == tok_eof) {
 				return 1;
 			}
-			val_t cons = make_cons_tree2(0);
+			val_t cons = make_cons_tree(0);
 			if (IS_NULL(cons)) {
 				EXCEPTION("Unexpected ')' !!!!\n");
 			}
