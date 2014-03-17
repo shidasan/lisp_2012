@@ -1,5 +1,7 @@
 #include"lisp.h"
 #include"config.h"
+
+/* STATIC FIELDS */
 int current_index, next_index;
 char* strtmp;
 static char* str;
@@ -8,6 +10,7 @@ static char *(*myreadline)(const char *);
 static int (*myadd_history)(const char *);
 val_t stack_value[STACKSIZE];
 val_t *esp = 0;
+/* END OF STATIC FIELDS */
 
 static int _add_history(const char *line) {
 	(void)line;
@@ -93,6 +96,7 @@ static int exec(int using_readline) {
 
 static char *split_and_exec(int argc, char **args, char *tmpstr) {
 	(void)args;
+	int using_readline = argc == 1;
 	int prev_point = 0;
 	int next_point = 0;
 	char *leftover = NULL;
@@ -111,13 +115,16 @@ static char *split_and_exec(int argc, char **args, char *tmpstr) {
 		if (strlen(str) > 0) {
 			status = -1;
 			if (strlen(str) > 0 && is_unexpected_input(str)) {
-				status = parse_program(str);
+				status = parse_program(str, using_readline);
 			}
 			myadd_history(str);
 			while (!status) {
-				status = exec(argc == 1);
+				status = exec(using_readline);
 				if (!status) {
-					status = parse_program(NULL);
+					status = parse_program(NULL, using_readline);
+				} else if (!using_readline) {
+					/* Stop execution */
+					exit(1);
 				}
 			}
 		}

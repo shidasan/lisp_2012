@@ -325,7 +325,7 @@ static val_t make_cons_list() {
 		}
 	}
 
-	int parse_program (char *str) {
+	int parse_program (char *str, int using_readline) {
 		if (str) {
 			tokenizer_init(str);
 		}
@@ -346,6 +346,10 @@ static val_t make_cons_list() {
 			FREE(frame);
 			return 0;
 		} else {
+			/* If script is come from file stream, stop the execution */
+			if (!using_readline) {
+				exit(1);
+			}
 			return 1;
 		}
 	}

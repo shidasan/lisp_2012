@@ -146,7 +146,7 @@ func_t* search_func (const char* str);
 void codegen(val_t );
 int val_length(val_t val);
 /*parser.h*/
-int parse_program(char *);
+int parse_program(char *, int);
 /*eval.h*/
 val_t vm_exec (opline_t *, val_t *);
 void set_args(val_t *, int, func_t *);

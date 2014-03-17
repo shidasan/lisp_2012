@@ -21,6 +21,8 @@ void throw_inner() {
 		val_t block_name = frame->block_name;
 		cons_t *environment = frame->environment;
 		free(frame);
+
+		/* block_name is null at top-level */
 		if (IS_NULL(block_name)) {
 			environment = current_environment;
 			longjmp(*buf, 1);
@@ -1000,7 +1002,6 @@ static val_t _assert(val_t *VSTACK, array_t *a) {
 	val_t val = vm_exec(memory + (uintptr_t)array_get(a, 0), VSTACK);
 	if (IS_nil(val)) {
 		EXCEPTION("NIL must evalueate to a non-NIL value\n");
-		assert(0);
 	}
 	return val;
 }
